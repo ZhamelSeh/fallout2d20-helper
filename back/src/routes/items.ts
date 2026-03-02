@@ -21,6 +21,7 @@ import {
   magazineIssues,
   mods,
   modEffects,
+  itemCompatibleMods,
 } from '../db/schema/index';
 
 const router = Router();
@@ -121,6 +122,19 @@ router.get('/:id(\\d+)', async (req: any, res) => {
       case 'mod': {
         const [modDetails] = await db.select().from(mods).where(eq(mods.itemId, id));
         const effects = await db.select().from(modEffects).where(eq(modEffects.modId, modDetails.id));
+        // Fetch compatible target items for this mod
+        const compatRows = await db
+          .select({ targetItemId: itemCompatibleMods.targetItemId })
+          .from(itemCompatibleMods)
+          .where(eq(itemCompatibleMods.modItemId, id));
+        const compatibleTargetIds = compatRows.map(r => r.targetItemId);
+        let compatibleItems: { id: number; name: string; nameKey: string | null; itemType: string }[] = [];
+        if (compatibleTargetIds.length > 0) {
+          const targetItems = await Promise.all(
+            compatibleTargetIds.map(tid => db.select({ id: items.id, name: items.name, nameKey: items.nameKey, itemType: items.itemType }).from(items).where(eq(items.id, tid)))
+          );
+          compatibleItems = targetItems.flat();
+        }
         details = {
           ...modDetails,
           effects: effects.map((e) => ({
@@ -131,6 +145,7 @@ router.get('/:id(\\d+)', async (req: any, res) => {
             ammoType: e.ammoType,
             descriptionKey: e.descriptionKey,
           })),
+          compatibleItems,
         };
         break;
       }

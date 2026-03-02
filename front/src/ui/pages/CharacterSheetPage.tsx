@@ -69,10 +69,10 @@ export function CharacterSheetPage() {
     setIsFormOpen(false);
   };
 
-  // Handle inventory change
-  const handleInventoryChange = async () => {
-    await refetch();
-  };
+  // Handle inventory change (local update, no refetch)
+  const handleInventoryChange = useCallback((updatedInventory: InventoryItemApi[]) => {
+    setCharacter(prev => prev ? { ...prev, inventory: updatedInventory } : prev);
+  }, []);
 
   // Handle caps change
   const handleCapsChange = async (newCaps: number) => {
@@ -335,8 +335,8 @@ export function CharacterSheetPage() {
                 inventory={(character.inventory ?? []) as InventoryItemApi[]}
                 caps={character.caps ?? 0}
                 carryCapacity={character.carryCapacity}
-                onInventoryChange={handleInventoryChange}
                 onCapsChange={handleCapsChange}
+                onInventoryChange={handleInventoryChange}
               />
             ),
           },

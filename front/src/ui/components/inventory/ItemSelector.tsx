@@ -1,8 +1,9 @@
 import { useState, useMemo, useCallback, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Search, X, Plus, Minus, Sword, Shield, Shirt, Pill, Apple, Wrench, Package, Settings } from 'lucide-react';
+import { Search, X, Plus, Minus, Sword, Shield, Shirt, Pill, Apple, Wrench, Package, Settings, Eye } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { Button } from '../../../components/Button';
+import { ItemDetailModal } from '../../../components/ItemDetailModal';
 import { useItems } from '../../../hooks/useItems';
 import type { ItemType, BaseItemApi } from '../../../services/api';
 
@@ -72,6 +73,7 @@ export function ItemSelector({ isOpen, onClose, onSelect }: ItemSelectorProps) {
   const [selectedItem, setSelectedItem] = useState<DisplayItem | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [displayCount, setDisplayCount] = useState(50);
+  const [detailItem, setDetailItem] = useState<{ id: number; itemType: ItemType } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
   const PAGE_SIZE = 50;
@@ -262,11 +264,10 @@ export function ItemSelector({ isOpen, onClose, onSelect }: ItemSelectorProps) {
                   const isSelected = selectedItem?.id === item.id && selectedItem?.itemType === item.itemType;
 
                   return (
-                    <button
+                    <div
                       key={`${item.itemType}-${item.id}`}
-                      type="button"
                       onClick={() => setSelectedItem(item)}
-                      className={`w-full flex items-center gap-3 p-2 text-left transition-colors ${
+                      className={`w-full flex items-center gap-2 p-2 text-left transition-colors cursor-pointer ${
                         isSelected ? 'bg-vault-blue' : 'hover:bg-gray-800'
                       }`}
                     >
@@ -288,7 +289,15 @@ export function ItemSelector({ isOpen, onClose, onSelect }: ItemSelectorProps) {
                       <span className="text-xs text-vault-yellow w-16 text-right">
                         {item.value} {t('common.labels.caps')}
                       </span>
-                    </button>
+                      <button
+                        type="button"
+                        onClick={(e) => { e.stopPropagation(); setDetailItem({ id: item.id, itemType: item.itemType }); }}
+                        className="p-1 text-gray-400 hover:text-vault-yellow rounded hover:bg-gray-700 flex-shrink-0"
+                        title={t('common.details')}
+                      >
+                        <Eye size={14} />
+                      </button>
+                    </div>
                   );
                 })}
               </div>
@@ -360,6 +369,14 @@ export function ItemSelector({ isOpen, onClose, onSelect }: ItemSelectorProps) {
           </Button>
         </div>
       </div>
+
+      {/* Item detail modal */}
+      <ItemDetailModal
+        isOpen={!!detailItem}
+        onClose={() => setDetailItem(null)}
+        itemId={detailItem?.id ?? null}
+        itemType={detailItem?.itemType ?? null}
+      />
     </Modal>
   );
 }

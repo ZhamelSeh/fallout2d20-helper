@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { Modal } from './Modal';
 import { getRarityColor } from '../generators/utils';
-import { itemsApi, type ItemType, type ItemEffect, type WeaponApi, type ArmorApi, type PowerArmorApi, type ClothingApi, type ChemApi, type FoodApi, type AmmunitionApi, type GeneralGoodApi, type RobotArmorApi, type SyringerAmmoApi, type MagazineApi, type DiseaseApi, type PerkApi, type ModApi } from '../services/api';
+import { itemsApi, type ItemType, type ItemEffect, type WeaponApi, type ArmorApi, type PowerArmorApi, type ClothingApi, type ChemApi, type FoodApi, type AmmunitionApi, type GeneralGoodApi, type RobotArmorApi, type SyringerAmmoApi, type MagazineApi, type DiseaseApi, type PerkApi, type ModApi, type ModCompatibleItem } from '../services/api';
 import { EffectDisplay } from './EffectDisplay';
 
 type AnyItemApi = WeaponApi | ArmorApi | PowerArmorApi | RobotArmorApi | ClothingApi | AmmunitionApi | SyringerAmmoApi | ChemApi | FoodApi | GeneralGoodApi | MagazineApi | ModApi;
@@ -802,6 +802,30 @@ function ModDetails({ item }: { item: ModApi }) {
               <li key={i} className="text-gray-200">• {formatEffect(e)}</li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {item.compatibleItems && item.compatibleItems.length > 0 && (
+        <div>
+          <h4 className="text-vault-yellow font-bold mb-2">{t('itemDetail.mod.compatibleItems')}</h4>
+          <div className="flex flex-wrap gap-1">
+            {item.compatibleItems.map((ci: ModCompatibleItem) => {
+              const categoryKey = ci.itemType === 'weapon' ? 'weapons'
+                : ci.itemType === 'armor' ? 'armor'
+                : ci.itemType === 'powerArmor' ? 'armor'
+                : ci.itemType === 'clothing' ? 'clothing'
+                : 'general';
+              const name = ci.nameKey ? t(ci.nameKey, { defaultValue: ci.name }) : (() => {
+                const translated = t(`items.${categoryKey}.${ci.name}`);
+                return translated !== `items.${categoryKey}.${ci.name}` ? translated : ci.name;
+              })();
+              return (
+                <span key={ci.id} className="px-2 py-0.5 bg-gray-700 rounded text-xs text-gray-300">
+                  {name}
+                </span>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

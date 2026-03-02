@@ -401,6 +401,7 @@ export default {
       setDamage: 'Sets Damage',
       setAmmo: 'Sets Ammo',
       setFireRate: 'Sets Fire Rate',
+      compatibleItems: 'Compatible Items',
     },
   },
 

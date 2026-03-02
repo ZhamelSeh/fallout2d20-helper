@@ -12,8 +12,8 @@ interface InventoryManagerProps {
   inventory: InventoryItemApi[];
   caps: number;
   carryCapacity: number;
-  onInventoryChange?: () => void;
   onCapsChange?: (newCaps: number) => void;
+  onInventoryChange: (updatedInventory: InventoryItemApi[]) => void;
 }
 
 // Icon mapping for item types
@@ -94,8 +94,8 @@ export function InventoryManager({
   inventory,
   caps,
   carryCapacity,
-  onInventoryChange,
   onCapsChange,
+  onInventoryChange,
 }: InventoryManagerProps) {
   const { t } = useTranslation();
   const { addToInventory, updateInventoryItem, removeFromInventory, installMod, uninstallMod } = useCharactersApi();
@@ -129,8 +129,8 @@ export function InventoryManager({
   const handleAddItem = async (itemId: number, quantity: number) => {
     try {
       setLoading(-1);
-      await addToInventory(characterId, { itemId, quantity, equipped: false });
-      onInventoryChange?.();
+      const newItem = await addToInventory(characterId, { itemId, quantity, equipped: false });
+      onInventoryChange([...inventory, newItem]);
     } catch (err) {
       console.error('Failed to add item:', err);
     } finally {
@@ -145,8 +145,8 @@ export function InventoryManager({
 
     try {
       setLoading(inv.id);
-      await updateInventoryItem(characterId, inv.id, { quantity: newQuantity });
-      onInventoryChange?.();
+      const updated = await updateInventoryItem(characterId, inv.id, { quantity: newQuantity });
+      onInventoryChange(inventory.map(i => i.id === inv.id ? updated : i));
     } catch (err) {
       console.error('Failed to update quantity:', err);
     } finally {
@@ -169,8 +169,8 @@ export function InventoryManager({
 
     try {
       setLoading(inv.id);
-      await updateInventoryItem(characterId, inv.id, update);
-      onInventoryChange?.();
+      const updated = await updateInventoryItem(characterId, inv.id, update);
+      onInventoryChange(inventory.map(i => i.id === inv.id ? updated : i));
     } catch (err) {
       console.error('Failed to toggle equip:', err);
     } finally {
@@ -183,7 +183,7 @@ export function InventoryManager({
     try {
       setLoading(inv.id);
       await removeFromInventory(characterId, inv.id);
-      onInventoryChange?.();
+      onInventoryChange(inventory.filter(i => i.id !== inv.id));
     } catch (err) {
       console.error('Failed to remove item:', err);
     } finally {
@@ -195,9 +195,9 @@ export function InventoryManager({
   const handleInstallMod = async (targetInvId: number, modInventoryId: number) => {
     try {
       setLoading(targetInvId);
-      await installMod(characterId, targetInvId, modInventoryId);
+      const updated = await installMod(characterId, targetInvId, modInventoryId);
       setModPanelOpenFor(null);
-      onInventoryChange?.();
+      onInventoryChange(inventory.map(i => i.id === targetInvId ? updated : i));
     } catch (err) {
       console.error('Failed to install mod:', err);
     } finally {
@@ -209,8 +209,8 @@ export function InventoryManager({
   const handleUninstallMod = async (targetInvId: number, modInventoryId: number) => {
     try {
       setLoading(targetInvId);
-      await uninstallMod(characterId, targetInvId, modInventoryId);
-      onInventoryChange?.();
+      const updated = await uninstallMod(characterId, targetInvId, modInventoryId);
+      onInventoryChange(inventory.map(i => i.id === targetInvId ? updated : i));
     } catch (err) {
       console.error('Failed to uninstall mod:', err);
     } finally {

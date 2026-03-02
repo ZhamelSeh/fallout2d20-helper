@@ -181,6 +181,13 @@ export interface ModEffectApi {
   descriptionKey?: string;
 }
 
+export interface ModCompatibleItem {
+  id: number;
+  name: string;
+  nameKey: string | null;
+  itemType: string;
+}
+
 export interface ModApi extends BaseItemApi {
   slot: string;
   applicableTo: string;
@@ -189,6 +196,7 @@ export interface ModApi extends BaseItemApi {
   requiredPerkRank?: number;
   weightChange: number;
   effects: ModEffectApi[];
+  compatibleItems?: ModCompatibleItem[];
 }
 
 // ===== DISEASES (not items - standalone conditions) =====

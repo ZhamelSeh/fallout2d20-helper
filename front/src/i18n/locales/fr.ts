@@ -401,6 +401,7 @@ export default {
       setDamage: 'Définit dégâts',
       setAmmo: 'Définit munitions',
       setFireRate: 'Définit cadence',
+      compatibleItems: 'Items compatibles',
     },
   },
 
