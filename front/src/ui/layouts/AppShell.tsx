@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Package, Store, Dice6, Home, Book, Users, Calendar, Menu } from 'lucide-react';
+import { Package, Store, Dice6, Home, Book, Users, Calendar, Menu, Bug } from 'lucide-react';
 import { cn } from '../../lib/cn';
 import { MobileNav } from './MobileNav';
 import { LanguageSwitcher } from '../components/shared/LanguageSwitcher';
@@ -18,6 +18,7 @@ const navItems = [
   { path: '/encyclopedia', label: 'nav.encyclopedia', icon: Book },
   { path: '/characters', label: 'nav.characters', icon: Users },
   { path: '/sessions', label: 'nav.sessions', icon: Calendar },
+  { path: '/bestiary', label: 'nav.bestiary', icon: Bug },
 ] as const;
 
 export function AppShell({ children }: AppShellProps) {

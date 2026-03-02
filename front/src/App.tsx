@@ -11,6 +11,7 @@ import {
   CharacterSheetPage,
   SessionsPage,
   SessionDetailPage,
+  BestiaryPage,
 } from './ui/pages';
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
             <Route path="/characters/:id" element={<CharacterSheetPage />} />
             <Route path="/sessions" element={<SessionsPage />} />
             <Route path="/sessions/:id" element={<SessionDetailPage />} />
+            <Route path="/bestiary" element={<BestiaryPage />} />
           </Routes>
             </div>
         </AppShell>

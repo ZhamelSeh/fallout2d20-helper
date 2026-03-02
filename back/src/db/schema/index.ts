@@ -6,3 +6,4 @@ export * from './perks';
 export * from './equipmentPacks';
 export * from './sessions';
 export * from './mods';
+export * from './bestiary';

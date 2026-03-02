@@ -129,5 +129,14 @@ export const equipmentCategoryEnum = pgEnum('equipment_category', [
 
 export const locationChoiceEnum = pgEnum('location_choice', ['left', 'right', 'choice']);
 
+// ===== BESTIARY =====
+export const statBlockTypeEnum = pgEnum('stat_block_type', ['normal', 'creature']);
+
+export const creatureCategoryEnum = pgEnum('creature_category', [
+  'animal', 'abomination', 'insect', 'ghoul', 'superMutant', 'robot', 'human', 'synth', 'alien'
+]);
+
+export const bodyTypeEnum = pgEnum('body_type', ['humanoid', 'quadruped', 'insect', 'serpentine', 'robot']);
+
 // ===== SESSIONS =====
 export const sessionStatusEnum = pgEnum('session_status', ['active', 'paused', 'completed']);

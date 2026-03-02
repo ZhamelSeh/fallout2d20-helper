@@ -941,6 +941,113 @@ export const generatorsApi = {
     }>('/generate/scavenging-tables'),
 };
 
+// ===== BESTIARY API =====
+
+export type StatBlockType = 'normal' | 'creature';
+export type CreatureCategory = 'animal' | 'abomination' | 'insect' | 'ghoul' | 'superMutant' | 'robot' | 'human' | 'synth' | 'alien';
+export type BodyType = 'humanoid' | 'quadruped' | 'insect' | 'serpentine' | 'robot';
+
+export interface BestiaryAttackQuality {
+  quality: string;
+  value?: number | null;
+}
+
+export interface BestiaryAttackApi {
+  id: number;
+  nameKey: string;
+  skill: string;
+  damage: number;
+  damageType: string;
+  damageBonus?: number | null;
+  fireRate?: number | null;
+  range: string;
+  itemId?: number | null;
+  twoHanded: boolean;
+  qualities: BestiaryAttackQuality[];
+}
+
+export interface BestiaryAbilityApi {
+  nameKey: string;
+  descriptionKey: string;
+}
+
+export interface BestiaryDrApi {
+  location: string;
+  drPhysical: number;
+  drEnergy: number;
+  drRadiation: number;
+  drPoison: number;
+}
+
+export interface BestiarySkillApi {
+  skill: string;
+  rank: number;
+  isTagSkill: boolean;
+}
+
+export interface BestiaryInventoryItemApi {
+  itemId: number;
+  quantity: number;
+  equipped: boolean;
+  item: {
+    id: number;
+    name: string;
+    nameKey: string | null;
+    itemType: string;
+  };
+}
+
+export interface BestiarySummaryApi {
+  id: number;
+  slug: string;
+  nameKey: string;
+  statBlockType: StatBlockType;
+  category: CreatureCategory;
+  bodyType: BodyType;
+  level: number;
+  xpReward: number;
+  hp: number;
+  defense: number;
+  initiative: number;
+  source: string;
+}
+
+export interface BestiaryEntryApi extends BestiarySummaryApi {
+  descriptionKey?: string | null;
+  meleeDamageBonus: number;
+  carryCapacity: number;
+  maxLuckPoints: number;
+  wealth?: number | null;
+  attributes: Record<string, number>;
+  skills: BestiarySkillApi[];
+  dr: BestiaryDrApi[];
+  attacks: BestiaryAttackApi[];
+  abilities: BestiaryAbilityApi[];
+  inventory: BestiaryInventoryItemApi[];
+}
+
+export interface InstantiateResult {
+  characterId: number;
+  bestiaryEntryId: number;
+}
+
+export const bestiaryApi = {
+  list: (filters?: { category?: CreatureCategory; search?: string; statBlockType?: StatBlockType }) => {
+    const params = new URLSearchParams();
+    if (filters?.category) params.set('category', filters.category);
+    if (filters?.search) params.set('search', filters.search);
+    if (filters?.statBlockType) params.set('statBlockType', filters.statBlockType);
+    const query = params.toString();
+    return fetchApi<BestiarySummaryApi[]>(`/bestiary${query ? `?${query}` : ''}`);
+  },
+  get: (id: number) => fetchApi<BestiaryEntryApi>(`/bestiary/${id}`),
+  instantiate: (id: number, data: { sessionId?: number; name?: string }) =>
+    fetchApi<InstantiateResult>(`/bestiary/${id}/instantiate`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
 // ===== HEALTH CHECK =====
 
 export const healthApi = {

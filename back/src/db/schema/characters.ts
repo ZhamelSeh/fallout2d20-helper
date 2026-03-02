@@ -101,6 +101,8 @@ export const characters = pgTable('characters', {
   caps: integer('caps').notNull().default(0),
   // Radiation damage (reduces effective max HP)
   radiationDamage: integer('radiation_damage').notNull().default(0),
+  // Bestiary reference (for NPCs instantiated from bestiary)
+  bestiaryEntryId: integer('bestiary_entry_id'),
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
