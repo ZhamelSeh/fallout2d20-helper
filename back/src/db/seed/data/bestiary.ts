@@ -110,7 +110,8 @@ export const BESTIARY_ENTRIES: BestiaryEntryData[] = [
       },
     ],
     inventory: [
-      { itemName: 'Sturdy Clothing', quantity: 1, equipped: true },
+      { itemName: 'Sturdy Clothes', quantity: 1, equipped: true },
+      { itemName: 'Hunting Rifle', quantity: 1, equipped: true },
     ],
   },
 
@@ -299,6 +300,58 @@ export const BESTIARY_ENTRIES: BestiaryEntryData[] = [
       {
         nameKey: 'bestiary.abilities.radResistant.name',
         descriptionKey: 'bestiary.abilities.radResistant.description',
+      },
+    ],
+    inventory: [],
+  },
+
+  {
+    slug: 'yaoGuai',
+    nameKey: 'bestiary.creatures.yaoGuai.name',
+    descriptionKey: 'bestiary.creatures.yaoGuai.description',
+    statBlockType: 'creature',
+    category: 'animal',
+    bodyType: 'quadruped',
+    level: 14,
+    xpReward: 102,
+    hp: 37,
+    defense: 1,
+    initiative: 15,
+    meleeDamageBonus: 0,
+    attributes: {
+      body: 9,
+      mind: 6,
+    },
+    skills: [
+      { skill: 'melee', rank: 5 },
+      { skill: 'ranged', rank: 0 },
+      { skill: 'other', rank: 4 },
+    ],
+    dr: [
+      { location: 'all', drPhysical: 2, drEnergy: 1, drRadiation: -1, drPoison: 2 },
+    ],
+    attacks: [
+      {
+        nameKey: 'bestiary.attacks.bite',
+        skill: 'melee',
+        damage: 10,
+        damageType: 'physical',
+        range: 'close',
+        qualities: [{ quality: 'piercing', value: 1 }],
+      },
+    ],
+    abilities: [
+      {
+        nameKey: 'bestiary.abilities.radImmune.name',
+        descriptionKey: 'bestiary.abilities.radImmune.description',
+      },
+      {
+        nameKey: 'bestiary.abilities.large.name',
+        descriptionKey: 'bestiary.abilities.large.description',
+      },
+      {
+        nameKey: 'bestiary.abilities.aggressive.name',
+        descriptionKey: 'bestiary.abilities.aggressive.description',
       },
     ],
     inventory: [],

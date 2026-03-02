@@ -46,7 +46,13 @@ async function getFullBestiaryEntry(entryId: number) {
       range: bestiaryAttacks.range,
       itemId: bestiaryAttacks.itemId,
       twoHanded: bestiaryAttacks.twoHanded,
-    }).from(bestiaryAttacks).where(eq(bestiaryAttacks.bestiaryEntryId, entryId)),
+      itemName: items.name,
+      itemNameKey: items.nameKey,
+      itemType: items.itemType,
+    })
+      .from(bestiaryAttacks)
+      .leftJoin(items, eq(bestiaryAttacks.itemId, items.id))
+      .where(eq(bestiaryAttacks.bestiaryEntryId, entryId)),
     db.select().from(bestiaryAbilities).where(eq(bestiaryAbilities.bestiaryEntryId, entryId)),
     db.select({
       id: bestiaryInventory.id,
@@ -106,6 +112,12 @@ async function getFullBestiaryEntry(entryId: number) {
       itemId: a.itemId,
       twoHanded: a.twoHanded,
       qualities: a.qualities,
+      item: a.itemId ? {
+        id: a.itemId,
+        name: a.itemName!,
+        nameKey: a.itemNameKey,
+        itemType: a.itemType!,
+      } : null,
     })),
     abilities: abilities.map(a => ({
       nameKey: a.nameKey,

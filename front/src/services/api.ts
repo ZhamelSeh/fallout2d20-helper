@@ -964,6 +964,12 @@ export interface BestiaryAttackApi {
   itemId?: number | null;
   twoHanded: boolean;
   qualities: BestiaryAttackQuality[];
+  item?: {
+    id: number;
+    name: string;
+    nameKey: string | null;
+    itemType: string;
+  } | null;
 }
 
 export interface BestiaryAbilityApi {

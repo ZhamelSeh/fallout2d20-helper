@@ -1670,6 +1670,14 @@ export default {
     qualities: 'Qualités',
     source: 'Source',
     targetNumber: 'SR',
+    fireRateShort: 'cadence de tir',
+    damageTypeShort: {
+      physical: 'de dégâts balistiques',
+      energy: 'de dégâts énergétiques',
+      radiation: 'de dégâts de radiation',
+      poison: 'de dégâts de poison',
+    },
+    immune: 'Imm.',
     physical: 'Physique',
     energy: 'Énergie',
     radiation: 'Radiation',
@@ -1738,6 +1746,10 @@ export default {
         name: 'Goule sauvage',
         description: 'Un humain irradié ayant perdu toute raison, devenu une créature violente et agressive.',
       },
+      yaoGuai: {
+        name: 'Yao Guai',
+        description: 'Ces terrifiantes créatures sont tout ce qu\'il reste de la population d\'ours dans le monde d\'après-guerre. Le yao guai a subi d\'énormes mutations : il présente de plus grandes griffes et une masse musculaire plus importante que son ancêtre.',
+      },
       superMutant: {
         name: 'Super Mutant',
         description: 'Un humain transformé par le Virus à Évolution Forcée, devenu une brute massive et résistante.',
@@ -1779,6 +1791,18 @@ export default {
       mutantBrute: {
         name: 'Brute mutante',
         description: 'Les attaques de mêlée infligent +2 CD de dégâts supplémentaires.',
+      },
+      radImmune: {
+        name: 'Immunisé contre les radiations',
+        description: 'Le yao guai réduit à 0 tous les dégâts de radiation qu\'il subit et ne peut subir aucun dégât ou effet infligé par des radiations.',
+      },
+      large: {
+        name: 'Grand',
+        description: 'Il est plus grand que la majorité des autres personnages et les domine de toute sa taille. Il reçoit +1 PV supplémentaire par niveau, mais sa défense est réduite de 1, jusqu\'à un minimum de 1. De plus, il subit un coup critique uniquement si une attaque lui inflige au moins 7 points de dégâts (après application de la RD) en un seul coup, au lieu de 5 points de dégâts pour les autres créatures.',
+      },
+      aggressive: {
+        name: 'Agressif',
+        description: 'Le yao guai est prompt à attaquer lorsqu\'il sent une proie. Quand il entre en scène, il génère immédiatement 1 point d\'action. Si le yao guai est un allié, ce point est placé dans la réserve du groupe. S\'il est un ennemi, le point rejoint la réserve du MJ.',
       },
     },
   },

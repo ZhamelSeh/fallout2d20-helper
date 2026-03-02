@@ -1671,6 +1671,14 @@ export default {
     qualities: 'Qualities',
     source: 'Source',
     targetNumber: 'TN',
+    fireRateShort: 'fire rate',
+    damageTypeShort: {
+      physical: 'physical damage',
+      energy: 'energy damage',
+      radiation: 'radiation damage',
+      poison: 'poison damage',
+    },
+    immune: 'Imm.',
     physical: 'Physical',
     energy: 'Energy',
     radiation: 'Radiation',
@@ -1739,6 +1747,10 @@ export default {
         name: 'Feral Ghoul',
         description: 'An irradiated human who has lost all reason, becoming a violent and aggressive creature.',
       },
+      yaoGuai: {
+        name: 'Yao Guai',
+        description: 'These terrifying creatures are all that remains of the bear population in the post-war world. The yao guai has undergone enormous mutations: larger claws and far greater muscle mass than its ancestor.',
+      },
       superMutant: {
         name: 'Super Mutant',
         description: 'A human transformed by the Forced Evolutionary Virus, becoming a massive and resistant brute.',
@@ -1780,6 +1792,18 @@ export default {
       mutantBrute: {
         name: 'Mutant Brute',
         description: 'Melee attacks deal +2 CD extra damage.',
+      },
+      radImmune: {
+        name: 'Radiation Immune',
+        description: 'The yao guai reduces all radiation damage to 0 and cannot suffer any damage or effect caused by radiation.',
+      },
+      large: {
+        name: 'Large',
+        description: 'It is larger than most other characters and towers over them. It gains +1 HP per level, but its defense is reduced by 1, to a minimum of 1. Additionally, it only suffers a critical hit if an attack deals at least 7 points of damage (after DR) in a single blow, instead of 5 for other creatures.',
+      },
+      aggressive: {
+        name: 'Aggressive',
+        description: 'The yao guai is quick to attack when it senses prey. When it enters the scene, it immediately generates 1 action point. If the yao guai is an ally, this point goes to the group pool. If it is an enemy, the point goes to the GM pool.',
       },
     },
   },
