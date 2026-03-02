@@ -25,7 +25,7 @@ async function fetchApi<T>(endpoint: string, options?: RequestInit): Promise<T> 
 
 // ===== ITEMS API =====
 
-export type ItemType = 'weapon' | 'armor' | 'powerArmor' | 'robotArmor' | 'clothing' | 'ammunition' | 'syringerAmmo' | 'chem' | 'food' | 'generalGood' | 'oddity' | 'magazine';
+export type ItemType = 'weapon' | 'armor' | 'powerArmor' | 'robotArmor' | 'clothing' | 'ammunition' | 'syringerAmmo' | 'chem' | 'food' | 'generalGood' | 'oddity' | 'magazine' | 'mod';
 
 // Structured effect for consumable items (food, chems, general goods, syringer ammo)
 export interface ItemEffect {
@@ -172,6 +172,33 @@ export interface MagazineApi extends BaseItemApi {
   issues: MagazineIssueApi[];
 }
 
+export interface ModEffectApi {
+  effectType: string;
+  numericValue?: number;
+  qualityName?: string;
+  qualityValue?: number;
+  ammoType?: string;
+  descriptionKey?: string;
+}
+
+export interface ModCompatibleItem {
+  id: number;
+  name: string;
+  nameKey: string | null;
+  itemType: string;
+}
+
+export interface ModApi extends BaseItemApi {
+  slot: string;
+  applicableTo: string;
+  nameAddKey?: string;
+  requiredPerk?: string;
+  requiredPerkRank?: number;
+  weightChange: number;
+  effects: ModEffectApi[];
+  compatibleItems?: ModCompatibleItem[];
+}
+
 // ===== DISEASES (not items - standalone conditions) =====
 
 export interface DiseaseApi {
@@ -298,6 +325,8 @@ export const itemsApi = {
   getMagazines: () => fetchApi<MagazineApi[]>('/items/magazines'),
   getMagazine: (id: number) => fetchApi<MagazineApi>(`/items/magazines/${id}`),
 
+  getMods: () => fetchApi<ModApi[]>('/items/mods'),
+
   // All items
   getAllItems: () => fetchApi<{
     weapons: WeaponApi[];
@@ -312,6 +341,7 @@ export const itemsApi = {
     robotArmors: RobotArmorApi[];
     syringerAmmo: SyringerAmmoApi[];
     oddities: GeneralGoodApi[];
+    mods: ModApi[];
   }>('/items'),
 };
 
@@ -346,6 +376,14 @@ export interface InventoryClothingDetails {
   drPoison?: number | null;
 }
 
+export interface InstalledModSummary {
+  modInventoryId: number;
+  modItemId: number;
+  modName: string;
+  slot: string;
+  nameAddKey?: string;
+}
+
 // Inventory item as returned by API
 export interface InventoryItemApi {
   id: number; // Inventory entry ID
@@ -370,6 +408,10 @@ export interface InventoryItemApi {
   armorDetails?: InventoryArmorDetails | null;
   powerArmorDetails?: InventoryPowerArmorDetails | null;
   clothingDetails?: InventoryClothingDetails | null;
+  // Installed mods
+  installedMods?: InstalledModSummary[];
+  // Compatible mod item IDs (from item_compatible_mods table)
+  compatibleModItemIds?: number[];
 }
 
 export interface CharacterApi {
@@ -487,6 +529,15 @@ export const charactersApi = {
     }),
   removeFromInventory: (characterId: number, inventoryId: number) =>
     fetchApi<null>(`/characters/${characterId}/inventory/${inventoryId}`, {
+      method: 'DELETE',
+    }),
+  installMod: (characterId: number, inventoryId: number, modInventoryId: number) =>
+    fetchApi<InventoryItemApi>(`/characters/${characterId}/inventory/${inventoryId}/mods`, {
+      method: 'POST',
+      body: JSON.stringify({ modInventoryId }),
+    }),
+  uninstallMod: (characterId: number, inventoryId: number, modInventoryId: number) =>
+    fetchApi<InventoryItemApi>(`/characters/${characterId}/inventory/${inventoryId}/mods/${modInventoryId}`, {
       method: 'DELETE',
     }),
 };

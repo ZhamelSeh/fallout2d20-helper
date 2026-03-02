@@ -69,10 +69,10 @@ export function CharacterSheetPage() {
     setIsFormOpen(false);
   };
 
-  // Handle inventory change
-  const handleInventoryChange = async () => {
-    await refetch();
-  };
+  // Handle inventory change (local update, no refetch)
+  const handleInventoryChange = useCallback((updatedInventory: InventoryItemApi[]) => {
+    setCharacter(prev => prev ? { ...prev, inventory: updatedInventory } : prev);
+  }, []);
 
   // Handle caps change
   const handleCapsChange = async (newCaps: number) => {
@@ -136,7 +136,7 @@ export function CharacterSheetPage() {
           </div>
           {/* Tab buttons */}
           <div className="flex gap-1 flex-shrink-0">
-            {[t('characterSheet.tabStats'), t('characterSheet.tabEquipment')].map((label, index) => (
+            {[t('characterSheet.tabStats'), t('inventory.title')].map((label, index) => (
               <button
                 key={index}
                 type="button"
@@ -307,6 +307,15 @@ export function CharacterSheetPage() {
                     </div>
                   </Card>
 
+                  {/* Body Resistance */}
+                  <Card title={t('bodyResistance.title')}>
+                    <BodyResistanceMap
+                      inventory={(character.inventory ?? []) as InventoryItemApi[]}
+                      originId={character.origin}
+                      onPieceHpChange={handlePieceHpChange}
+                    />
+                  </Card>
+
                   {/* Notes */}
                   {character.notes && (
                     <Card title={t('characterSheet.notes')}>
@@ -318,29 +327,17 @@ export function CharacterSheetPage() {
             ),
           },
           {
-            id: 'equipment',
-            label: t('characterSheet.tabEquipment'),
+            id: 'inventory',
+            label: t('inventory.title'),
             content: (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card title={t('bodyResistance.title')}>
-                  <BodyResistanceMap
-                    inventory={(character.inventory ?? []) as InventoryItemApi[]}
-                    originId={character.origin}
-                    onPieceHpChange={handlePieceHpChange}
-                  />
-                </Card>
-
-                <Card title={t('inventory.title')}>
-                  <InventoryManager
-                    characterId={character.id}
-                    inventory={(character.inventory ?? []) as InventoryItemApi[]}
-                    caps={character.caps ?? 0}
-                    carryCapacity={character.carryCapacity}
-                    onInventoryChange={handleInventoryChange}
-                    onCapsChange={handleCapsChange}
-                  />
-                </Card>
-              </div>
+              <InventoryManager
+                characterId={character.id}
+                inventory={(character.inventory ?? []) as InventoryItemApi[]}
+                caps={character.caps ?? 0}
+                carryCapacity={character.carryCapacity}
+                onCapsChange={handleCapsChange}
+                onInventoryChange={handleInventoryChange}
+              />
             ),
           },
         ]}

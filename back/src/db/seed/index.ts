@@ -3,6 +3,8 @@ import { seedAllItems } from './seedItems';
 import { seedAllPerks } from './seedPerks';
 import { seedAllOrigins } from './seedOrigins';
 import { seedAllEquipmentPacks } from './seedEquipmentPacks';
+import { seedMods } from './seedMods';
+import { seedItemCompatibility } from './seedItemModCompatibility';
 
 async function seed() {
   console.log('Starting database seed...\n');
@@ -23,6 +25,14 @@ async function seed() {
 
     // 4. Equipment packs (depends on items - uses itemId lookups)
     await seedAllEquipmentPacks();
+    console.log('');
+
+    // 5. Mods (depends on items table)
+    await seedMods();
+    console.log('');
+
+    // 6. Item-mod compatibility (depends on items + mods being seeded)
+    await seedItemCompatibility();
     console.log('');
 
     console.log('Database seed completed successfully!');

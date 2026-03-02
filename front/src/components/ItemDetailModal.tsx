@@ -3,10 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { Modal } from './Modal';
 import { getRarityColor } from '../generators/utils';
-import { itemsApi, type ItemType, type ItemEffect, type WeaponApi, type ArmorApi, type PowerArmorApi, type ClothingApi, type ChemApi, type FoodApi, type AmmunitionApi, type GeneralGoodApi, type RobotArmorApi, type SyringerAmmoApi, type MagazineApi, type DiseaseApi, type PerkApi } from '../services/api';
+import { itemsApi, type ItemType, type ItemEffect, type WeaponApi, type ArmorApi, type PowerArmorApi, type ClothingApi, type ChemApi, type FoodApi, type AmmunitionApi, type GeneralGoodApi, type RobotArmorApi, type SyringerAmmoApi, type MagazineApi, type DiseaseApi, type PerkApi, type ModApi, type ModCompatibleItem } from '../services/api';
 import { EffectDisplay } from './EffectDisplay';
 
-type AnyItemApi = WeaponApi | ArmorApi | PowerArmorApi | RobotArmorApi | ClothingApi | AmmunitionApi | SyringerAmmoApi | ChemApi | FoodApi | GeneralGoodApi | MagazineApi;
+type AnyItemApi = WeaponApi | ArmorApi | PowerArmorApi | RobotArmorApi | ClothingApi | AmmunitionApi | SyringerAmmoApi | ChemApi | FoodApi | GeneralGoodApi | MagazineApi | ModApi;
 
 // Wrapper type for encyclopedia entries that can be items, diseases, perks, or weapon qualities
 export type EncyclopediaEntry =
@@ -91,6 +91,7 @@ export function ItemDetailModal({ isOpen, onClose, itemId, itemType, entry }: It
       : type === 'ammunition' ? 'ammunition'
       : type === 'syringerAmmo' ? 'ammunition'
       : type === 'magazine' ? 'magazines'
+      : type === 'mod' ? 'mods'
       : 'general';
     const translated = t(`items.${categoryKey}.${itemData.name}`);
     if (translated !== `items.${categoryKey}.${itemData.name}`) return translated;
@@ -167,6 +168,7 @@ export function ItemDetailModal({ isOpen, onClose, itemId, itemType, entry }: It
           {effectiveItemType === 'food' && <FoodDetails item={effectiveItem as FoodApi} />}
           {(effectiveItemType === 'generalGood' || effectiveItemType === 'oddity') && <GeneralGoodDetails item={effectiveItem as GeneralGoodApi} />}
           {effectiveItemType === 'magazine' && <MagazineDetails item={effectiveItem as MagazineApi} />}
+          {effectiveItemType === 'mod' && <ModDetails item={effectiveItem as ModApi} />}
         </div>
       ) : null}
     </Modal>
@@ -552,40 +554,27 @@ function GeneralGoodDetails({ item }: { item: GeneralGoodApi }) {
 
 function MagazineDetails({ item }: { item: MagazineApi }) {
   const { t } = useTranslation();
+  const issue = item.issues?.[0];
 
   return (
     <div className="space-y-3">
-      {/* Perk description */}
+      {/* d20 range badge (for individual issue items) */}
+      {issue && (
+        <div className="flex items-center gap-2 text-sm">
+          <span className="text-vault-yellow-dark">d20 :</span>
+          <span className="inline-flex items-center justify-center bg-vault-yellow text-vault-gray font-bold rounded px-2 py-0.5 min-w-[2.5rem] text-xs">
+            {issue.d20Min === issue.d20Max
+              ? issue.d20Min
+              : `${issue.d20Min}-${issue.d20Max}`}
+          </span>
+        </div>
+      )}
+
+      {/* Perk/effect description */}
       {item.perkDescriptionKey && (
         <div className="text-sm">
           <h4 className="text-vault-yellow font-bold mb-1">{t('itemDetail.perkBonus')}</h4>
           <p className="text-gray-300">{t(item.perkDescriptionKey)}</p>
-        </div>
-      )}
-
-      {/* Issues as cards */}
-      {item.issues && item.issues.length > 0 && (
-        <div>
-          <h4 className="text-vault-yellow font-bold text-sm mb-2">{t('itemDetail.issues')}</h4>
-          <div className="space-y-2 max-h-72 overflow-y-auto pr-1">
-            {item.issues.map((issue, i) => (
-              <div key={i} className="bg-vault-gray-light/20 rounded-lg px-3 py-2 border border-vault-gray-light/30">
-                <div className="flex items-start gap-2">
-                  <span className="inline-flex items-center justify-center bg-vault-yellow text-vault-gray font-bold rounded px-2 py-0.5 min-w-[2.5rem] text-xs shrink-0 mt-0.5">
-                    {issue.d20Min === issue.d20Max
-                      ? issue.d20Min
-                      : `${issue.d20Min}-${issue.d20Max}`}
-                  </span>
-                  <div className="min-w-0">
-                    <span className="text-white text-sm font-medium">
-                      {issue.issueNameKey ? t(issue.issueNameKey, { defaultValue: issue.issueName }) : issue.issueName}
-                    </span>
-                    <p className="text-gray-400 text-xs mt-0.5">{t(issue.effectDescriptionKey)}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
       )}
     </div>
@@ -729,6 +718,100 @@ function PerkDetails({ perk }: { perk: PerkApi }) {
             {prereqs.notForRobots && (
               <div className="text-red-400">{t('itemDetail.notForRobots')}</div>
             )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ModDetails({ item }: { item: ModApi }) {
+  const { t } = useTranslation();
+
+  const formatEffect = (e: ModApi['effects'][number]): string => {
+    switch (e.effectType) {
+      case 'damageBonus':
+        return `${t('itemDetail.mod.damageBonus')}: ${e.numericValue && e.numericValue > 0 ? '+' : ''}${e.numericValue}`;
+      case 'fireRateBonus':
+        return `${t('itemDetail.mod.fireRateBonus')}: ${e.numericValue && e.numericValue > 0 ? '+' : ''}${e.numericValue}`;
+      case 'rangeChange':
+        return `${t('itemDetail.mod.rangeChange')}: ${e.numericValue && e.numericValue > 0 ? '+' : ''}${e.numericValue}`;
+      case 'gainQuality':
+        return `${t('itemDetail.mod.gainQuality')}: ${t(`qualities.${e.qualityName}.name`)}${e.qualityValue ? ` ${e.qualityValue}` : ''}`;
+      case 'loseQuality':
+        return `${t('itemDetail.mod.loseQuality')}: ${t(`qualities.${e.qualityName}.name`)}`;
+      case 'setDamage':
+        return `${t('itemDetail.mod.setDamage')}: ${e.numericValue}`;
+      case 'setAmmo':
+        return `${t('itemDetail.mod.setAmmo')}: ${e.ammoType}`;
+      case 'setFireRate':
+        return `${t('itemDetail.mod.setFireRate')}: ${e.numericValue}`;
+      case 'special':
+        return e.descriptionKey ? t(e.descriptionKey, { defaultValue: e.descriptionKey }) : '';
+      default:
+        return e.effectType;
+    }
+  };
+
+  return (
+    <div className="space-y-3 text-sm">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <span className="text-vault-yellow-dark">{t('itemDetail.mod.slot')}: </span>
+          <span className="text-white">{t(`modSlots.${item.slot}`, { defaultValue: item.slot })}</span>
+        </div>
+        <div>
+          <span className="text-vault-yellow-dark">{t('itemDetail.mod.applicableTo')}: </span>
+          <span className="text-white">{t(`skills.${item.applicableTo}`, { defaultValue: item.applicableTo })}</span>
+        </div>
+        {item.weightChange !== 0 && (
+          <div>
+            <span className="text-vault-yellow-dark">{t('itemDetail.mod.weightChange')}: </span>
+            <span className={item.weightChange > 0 ? 'text-red-400' : 'text-green-400'}>
+              {item.weightChange > 0 ? '+' : ''}{item.weightChange} {t('common.labels.lbs')}
+            </span>
+          </div>
+        )}
+        {item.requiredPerk && (
+          <div>
+            <span className="text-vault-yellow-dark">{t('itemDetail.mod.requiredPerk')}: </span>
+            <span className="text-white">{t(`perks.${item.requiredPerk}.name`, { defaultValue: item.requiredPerk })}</span>
+            {item.requiredPerkRank && <span className="text-gray-400"> ({t('itemDetail.mod.rank')} {item.requiredPerkRank})</span>}
+          </div>
+        )}
+      </div>
+
+      {item.effects.length > 0 && (
+        <div>
+          <h4 className="text-vault-yellow font-bold mb-2">{t('itemDetail.mod.effects')}</h4>
+          <ul className="space-y-1">
+            {item.effects.map((e, i) => (
+              <li key={i} className="text-gray-200">• {formatEffect(e)}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {item.compatibleItems && item.compatibleItems.length > 0 && (
+        <div>
+          <h4 className="text-vault-yellow font-bold mb-2">{t('itemDetail.mod.compatibleItems')}</h4>
+          <div className="flex flex-wrap gap-1">
+            {item.compatibleItems.map((ci: ModCompatibleItem) => {
+              const categoryKey = ci.itemType === 'weapon' ? 'weapons'
+                : ci.itemType === 'armor' ? 'armor'
+                : ci.itemType === 'powerArmor' ? 'armor'
+                : ci.itemType === 'clothing' ? 'clothing'
+                : 'general';
+              const name = ci.nameKey ? t(ci.nameKey, { defaultValue: ci.name }) : (() => {
+                const translated = t(`items.${categoryKey}.${ci.name}`);
+                return translated !== `items.${categoryKey}.${ci.name}` ? translated : ci.name;
+              })();
+              return (
+                <span key={ci.id} className="px-2 py-0.5 bg-gray-700 rounded text-xs text-gray-300">
+                  {name}
+                </span>
+              );
+            })}
           </div>
         </div>
       )}

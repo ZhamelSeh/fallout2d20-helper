@@ -1,0 +1,2893 @@
+export type ModSlot =
+  | 'culasse' | 'canon' | 'chargeur' | 'poignee' | 'crosse' | 'viseur' | 'bouche'
+  | 'condensateur' | 'parabole'
+  | 'carburant' | 'reservoir' | 'buse'
+  | 'lame'
+  | 'material' | 'functionality'
+  | 'improvement'
+  | 'modification'
+  | 'amelioration' | 'systeme' | 'blindage'
+  | 'internal';
+
+export type ModApplicableTo =
+  | 'smallGuns' | 'energyWeapons' | 'bigGuns' | 'meleeWeapons' | 'unarmed'
+  | 'armor' | 'clothing' | 'powerArmor' | 'robot';
+
+export type ModEffectType =
+  | 'damageBonus' | 'fireRateBonus' | 'rangeChange'
+  | 'gainQuality' | 'loseQuality'
+  | 'setDamage' | 'setAmmo' | 'setFireRate'
+  | 'special'
+  | 'ballisticResistance' | 'energyResistance' | 'radiationResistance'
+  | 'carryCapacity'
+  | 'hpBonus';
+
+export interface ModEffectEntry {
+  effectType: ModEffectType;
+  numericValue?: number;
+  qualityName?: string;
+  qualityValue?: number;
+  ammoType?: string;
+  descriptionKey?: string;
+}
+
+export interface ModEntry {
+  name: string;
+  nameKey?: string;
+  slot: ModSlot;
+  applicableTo: ModApplicableTo;
+  /** Text appended to the item name when installed (null = no name change) */
+  nameAddKey?: string;
+  /** Weight delta on the target item when installed (can be negative) */
+  weightChange: number;
+  /** Cost of this mod as an item */
+  cost: number;
+  requiredPerk?: string;
+  requiredPerkRank?: number;
+  requiredPerk2?: string;
+  requiredPerkRank2?: number;
+  effects: ModEffectEntry[];
+}
+
+// ===== MODS DES ARMES LÉGÈRES (Small Guns) =====
+// All small guns mods use the Réparation skill + optional perk to install.
+
+export const SMALL_GUNS_MODS: ModEntry[] = [
+
+  // ----- MODS DE CULASSE -----
+  {
+    name: 'Renforcée', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.renforcee.nameAdd',
+    weightChange: 0, cost: 20,
+    effects: [{ effectType: 'damageBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Puissante', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.puissante.nameAdd',
+    weightChange: 0.5, cost: 25, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 2 }],
+  },
+  {
+    name: 'Avancée', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.avancee.nameAdd',
+    weightChange: 1, cost: 35, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 3 },
+      { effectType: 'fireRateBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Calibrée', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.calibree.nameAdd',
+    weightChange: 0, cost: 25,
+    effects: [{ effectType: 'gainQuality', qualityName: 'vicious' }],
+  },
+  {
+    name: 'Automatique', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.automatique.nameAdd',
+    weightChange: 0.5, cost: 30, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: -1 },
+      { effectType: 'fireRateBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'burst' },
+      { effectType: 'gainQuality', qualityName: 'inaccurate' },
+    ],
+  },
+  {
+    name: 'Haute sensibilité', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.hauteSensibilite.nameAdd',
+    weightChange: 0, cost: 20, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Culasse .38', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.culasse38.nameAdd',
+    weightChange: 1.5, cost: 20, requiredPerk: 'gunNut', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'setDamage', numericValue: 4 },
+      { effectType: 'setAmmo', ammoType: '.38' },
+    ],
+  },
+  {
+    name: 'Culasse .308', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.culasse308.nameAdd',
+    weightChange: 2, cost: 40, requiredPerk: 'gunNut', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'setDamage', numericValue: 7 },
+      { effectType: 'setAmmo', ammoType: '.308' },
+    ],
+  },
+  {
+    name: 'Culasse .45', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.culasse45.nameAdd',
+    weightChange: 1, cost: 19, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'setDamage', numericValue: 4 },
+      { effectType: 'fireRateBonus', numericValue: 1 },
+      { effectType: 'setAmmo', ammoType: '.45' },
+    ],
+  },
+  {
+    name: 'Culasse .50', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.culasse50.nameAdd',
+    weightChange: 2, cost: 30, requiredPerk: 'gunNut', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'setDamage', numericValue: 8 },
+      { effectType: 'gainQuality', qualityName: 'vicious' },
+      { effectType: 'setAmmo', ammoType: '.50' },
+    ],
+  },
+  {
+    name: 'Culasse perforante', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.culassePerforante.nameAdd',
+    weightChange: 0.5, cost: 25, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 }],
+  },
+  {
+    name: 'Culasse rapide', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.culasseRapide.nameAdd',
+    weightChange: 0, cost: 15, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Culasse optimisée', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.culasseOptimisee.nameAdd',
+    weightChange: 0, cost: 20,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Culasse automatique à piston', slot: 'culasse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.culasse.culasseAutoPiston.nameAdd',
+    weightChange: 1, cost: 75, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'fireRateBonus', numericValue: 2 },
+      { effectType: 'rangeChange', numericValue: -1 },
+    ],
+  },
+
+  // ----- MODS DE CANON -----
+  {
+    name: 'Canon compact', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonCompact.nameAdd',
+    weightChange: -0.5, cost: 0,
+    effects: [{ effectType: 'gainQuality', qualityName: 'inaccurate' }],
+  },
+  {
+    name: 'Canon extra-lourd', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonExtraLourd.nameAdd',
+    weightChange: 0, cost: 10, requiredPerk: 'gunNut', requiredPerkRank: 3,
+    effects: [{ effectType: 'gainQuality', qualityName: 'reliable' }],
+  },
+  {
+    name: 'Canon long', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonLong.nameAdd',
+    weightChange: 1, cost: 20,
+    effects: [
+      { effectType: 'loseQuality', qualityName: 'closeQuarters' },
+      { effectType: 'rangeChange', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Canon à ouvertures', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonOuvertures.nameAdd',
+    weightChange: 0.5, cost: 35, requiredPerk: 'gunNut', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'rangeChange', numericValue: 1 },
+      { effectType: 'fireRateBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Canon ventilé', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonVentile.nameAdd',
+    weightChange: 0.5, cost: 36, requiredPerk: 'gunNut', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'rangeChange', numericValue: 1 },
+      { effectType: 'fireRateBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'reliable' },
+    ],
+  },
+  {
+    name: 'Canon scié', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonScie.nameAdd',
+    weightChange: -1, cost: 3,
+    effects: [
+      { effectType: 'loseQuality', qualityName: 'twoHanded' },
+      { effectType: 'gainQuality', qualityName: 'closeQuarters' },
+    ],
+  },
+  {
+    name: 'Canon protégé', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonProtege.nameAdd',
+    weightChange: 0, cost: 37, requiredPerk: 'gunNut', requiredPerkRank: 3,
+    effects: [{ effectType: 'damageBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Canon court', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonCourt.nameAdd',
+    weightChange: -0.5, cost: 5,
+    effects: [{ effectType: 'rangeChange', numericValue: -1 }],
+  },
+  {
+    name: 'Canon raccourci', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonRaccourci.nameAdd',
+    weightChange: -0.5, cost: 3,
+    effects: [
+      { effectType: 'loseQuality', qualityName: 'twoHanded' },
+      { effectType: 'gainQuality', qualityName: 'closeQuarters' },
+    ],
+  },
+  {
+    name: 'Canon à ailettes', slot: 'canon', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.canon.canonAilettes.nameAdd',
+    weightChange: 1, cost: 15, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'rangeChange', numericValue: 1 },
+    ],
+  },
+
+  // ----- MODS DE CHARGEUR -----
+  {
+    name: 'Grand chargeur', slot: 'chargeur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.chargeur.grandChargeur.nameAdd',
+    weightChange: 0.5, cost: 0, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'fireRateBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'unreliable' },
+    ],
+  },
+  {
+    name: 'Chargeur à éjection rapide', slot: 'chargeur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.chargeur.chargeurEjectionRapide.nameAdd',
+    weightChange: 0, cost: 8, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'gainQuality', qualityName: 'reliable' }],
+  },
+  {
+    name: 'Grand chargeur à éjection rapide', slot: 'chargeur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.chargeur.grandChargeurEjectionRapide.nameAdd',
+    weightChange: 0.5, cost: 23, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+
+  // ----- MODS DE POIGNÉE -----
+  {
+    name: 'Poignée confort', slot: 'poignee', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.poignee.poigneeConfort.nameAdd',
+    weightChange: 0, cost: 6,
+    effects: [{ effectType: 'loseQuality', qualityName: 'inaccurate' }],
+  },
+  {
+    name: 'Poignée de tireur d\'élite', slot: 'poignee', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.poignee.poigneeTireurElite.nameAdd',
+    weightChange: 0, cost: 10, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'loseQuality', qualityName: 'inaccurate' },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+
+  // ----- MODS DE CROSSE -----
+  {
+    name: 'Crosse standard', slot: 'crosse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.crosse.crosseStandard.nameAdd',
+    weightChange: 0.5, cost: 10,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'twoHanded' },
+      { effectType: 'loseQuality', qualityName: 'inaccurate' },
+      { effectType: 'loseQuality', qualityName: 'closeQuarters' },
+    ],
+  },
+  {
+    name: 'Crosse complète', slot: 'crosse', applicableTo: 'smallGuns',
+    weightChange: 0.5, cost: 10,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'twoHanded' },
+      { effectType: 'loseQuality', qualityName: 'inaccurate' },
+    ],
+  },
+  {
+    name: 'Crosse de tireur d\'élite', slot: 'crosse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.crosse.crosseTireurElite.nameAdd',
+    weightChange: 1, cost: 20, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'twoHanded' },
+      { effectType: 'loseQuality', qualityName: 'inaccurate' },
+      { effectType: 'gainQuality', qualityName: 'accurate' },
+      { effectType: 'loseQuality', qualityName: 'closeQuarters' },
+    ],
+  },
+  {
+    name: 'Crosse à compensateur de recul', slot: 'crosse', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.crosse.crosseCompensateur.nameAdd',
+    weightChange: 1, cost: 3, requiredPerk: 'gunNut', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'twoHanded' },
+      { effectType: 'loseQuality', qualityName: 'inaccurate' },
+      { effectType: 'fireRateBonus', numericValue: 1 },
+      { effectType: 'loseQuality', qualityName: 'closeQuarters' },
+    ],
+  },
+
+  // ----- MODS DE VISEUR -----
+  {
+    name: 'Viseur laser', slot: 'viseur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.viseur.viseurLaser.nameAdd',
+    weightChange: 0, cost: 14,
+    effects: [{ effectType: 'special', descriptionKey: 'mods.effects.rerollLocationDie' }],
+  },
+  {
+    name: 'Lunette courte', slot: 'viseur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.viseur.lunetteCourte.nameAdd',
+    weightChange: 0.5, cost: 11,
+    effects: [{ effectType: 'gainQuality', qualityName: 'accurate' }],
+  },
+  {
+    name: 'Lunette longue', slot: 'viseur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.viseur.lunetteLongue.nameAdd',
+    weightChange: 0.5, cost: 29, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'accurate' },
+      { effectType: 'rangeChange', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Lunette de vision nocturne courte', slot: 'viseur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.viseur.lunetteNocturne.nameAdd',
+    weightChange: 0.5, cost: 38, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'accurate' },
+      { effectType: 'gainQuality', qualityName: 'nightVision' },
+    ],
+  },
+  {
+    name: 'Lunette de vision nocturne longue', slot: 'viseur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.viseur.lunetteNocturneLongue.nameAdd',
+    weightChange: 0.5, cost: 50, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'accurate' },
+      { effectType: 'gainQuality', qualityName: 'nightVision' },
+      { effectType: 'rangeChange', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Lunette de reconnaissance', slot: 'viseur', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.viseur.lunetteReconnaissance.nameAdd',
+    weightChange: 0.5, cost: 59, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'accurate' },
+      { effectType: 'gainQuality', qualityName: 'recon' },
+    ],
+  },
+
+  // ----- MODS DE BOUCHE -----
+  {
+    name: 'Baïonnette', slot: 'bouche', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.bouche.baionnette.nameAdd',
+    weightChange: 1, cost: 10,
+    effects: [{ effectType: 'special', descriptionKey: 'mods.effects.bayonet' }],
+  },
+  {
+    name: 'Compensateur', slot: 'bouche', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.bouche.compensateur.nameAdd',
+    weightChange: 0.5, cost: 15, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'loseQuality', qualityName: 'inaccurate' }],
+  },
+  {
+    name: 'Frein de bouche', slot: 'bouche', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.bouche.freinDeBouche.nameAdd',
+    weightChange: 0.5, cost: 30, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'loseQuality', qualityName: 'inaccurate' },
+      { effectType: 'fireRateBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Silencieux', slot: 'bouche', applicableTo: 'smallGuns',
+    nameAddKey: 'mods.smallGuns.bouche.silencieux.nameAdd',
+    weightChange: 1, cost: 45, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'gainQuality', qualityName: 'silent' }],
+  },
+];
+
+// ===== MODS DES ARMES À ÉNERGIE (Energy Weapons) =====
+// All energy weapons mods use the Sciences skill + optional perk to install.
+
+export const ENERGY_WEAPONS_MODS: ModEntry[] = [
+
+  // ----- MODS DE CONDENSATEUR -----
+  {
+    name: 'Amplificateur d\'ondes Bêta', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.amplificateurOndes.nameAdd',
+    weightChange: 0, cost: 30,
+    effects: [{ effectType: 'gainQuality', qualityName: 'persistent' }],
+  },
+  {
+    name: 'Condensateur amélioré', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.condensateurAmeliore.nameAdd',
+    weightChange: 0, cost: 35,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'fireRateBonus', numericValue: -1 },
+    ],
+  },
+  {
+    name: 'Stimulateur de photons', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.stimulateurPhotons.nameAdd',
+    weightChange: 0, cost: 30, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [{ effectType: 'gainQuality', qualityName: 'vicious' }],
+  },
+  {
+    name: 'Agitateur de photons', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.agitateurPhotons.nameAdd',
+    weightChange: 0.5, cost: 35, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'vicious' },
+    ],
+  },
+
+  // ----- MODS DE CANON -----
+  {
+    name: 'Canon court à fixation', slot: 'canon', applicableTo: 'energyWeapons',
+    weightChange: 0, cost: 6,
+    effects: [{ effectType: 'special', descriptionKey: 'mods.effects.acceptsMouthMod' }],
+  },
+  {
+    name: 'Diviseur', slot: 'canon', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.canon.diviseur.nameAdd',
+    weightChange: 0.5, cost: 31,
+    effects: [
+      { effectType: 'damageBonus', numericValue: -1 },
+      { effectType: 'gainQuality', qualityName: 'blast' },
+      { effectType: 'gainQuality', qualityName: 'inaccurate' },
+    ],
+  },
+  {
+    name: 'Canon automatique', slot: 'canon', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.canon.canonAutomatique.nameAdd',
+    weightChange: 0.5, cost: 24, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: -1 },
+      { effectType: 'loseQuality', qualityName: 'closeQuarters' },
+      { effectType: 'rangeChange', numericValue: 1 },
+      { effectType: 'fireRateBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Canon long à fixation', slot: 'canon', applicableTo: 'energyWeapons',
+    weightChange: 1, cost: 25, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'loseQuality', qualityName: 'closeQuarters' },
+      { effectType: 'rangeChange', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.acceptsMouthMod' },
+    ],
+  },
+  {
+    name: 'Canon amélioré', slot: 'canon', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.canon.canonAmeliore.nameAdd',
+    weightChange: 0.5, cost: 26, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Canon de précision', slot: 'canon', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.canon.canonPrecision.nameAdd',
+    weightChange: 1, cost: 30, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'loseQuality', qualityName: 'closeQuarters' },
+      { effectType: 'rangeChange', numericValue: 1 },
+      { effectType: 'fireRateBonus', numericValue: -1 },
+    ],
+  },
+  {
+    name: 'Canon lance-flammes', slot: 'canon', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.canon.canonLanceFlammes.nameAdd',
+    weightChange: 0.5, cost: 35, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: -2 },
+      { effectType: 'fireRateBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'blast' },
+      { effectType: 'gainQuality', qualityName: 'burst' },
+      { effectType: 'rangeChange', numericValue: -1 },
+      { effectType: 'gainQuality', qualityName: 'inaccurate' },
+    ],
+  },
+
+  // ----- MODS DE CROSSE (energy weapon version — also removes closeQuarters) -----
+  // Note: 'Crosse standard', 'Crosse de tireur d\'élite', 'Crosse à compensateur de recul'
+  //       are shared with small guns (updated above to include loseCloseQuarters).
+  // 'Crosse complète' has fundamentally different effects for energy weapons:
+  {
+    name: 'Crosse complète (énergie)', slot: 'crosse', applicableTo: 'energyWeapons',
+    weightChange: 0.5, cost: 15,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+      { effectType: 'loseQuality', qualityName: 'closeQuarters' },
+    ],
+  },
+
+  // ----- MODS DE BOUCHE -----
+  {
+    name: 'Diviseur de rayon', slot: 'bouche', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.bouche.diviseurRayon.nameAdd',
+    weightChange: 0.5, cost: 15, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: -1 },
+      { effectType: 'gainQuality', qualityName: 'blast' },
+      { effectType: 'fireRateBonus', numericValue: -1 },
+      { effectType: 'gainQuality', qualityName: 'inaccurate' },
+      { effectType: 'rangeChange', numericValue: -1 },
+    ],
+  },
+  {
+    name: 'Concentrateur de faisceau', slot: 'bouche', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.bouche.concentrateurFaisceau.nameAdd',
+    weightChange: 0.5, cost: 20, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [{ effectType: 'rangeChange', numericValue: 1 }],
+  },
+  {
+    name: 'Lentille à gyrocompensation', slot: 'bouche', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.bouche.lentilleGyrocompensation.nameAdd',
+    weightChange: 0.5, cost: 25, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'fireRateBonus', numericValue: 1 },
+      { effectType: 'loseQuality', qualityName: 'inaccurate' },
+    ],
+  },
+
+  // ----- MODS DE CONDENSATEUR RÉSERVÉS AU MOUSQUET LASER -----
+  {
+    name: 'Condensateur à trois charges', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.troisCharges.nameAdd',
+    weightChange: 0, cost: 4,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.laserMusket3charges' },
+    ],
+  },
+  {
+    name: 'Condensateur à quatre charges', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.quatreCharges.nameAdd',
+    weightChange: 0.5, cost: 8, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'special', descriptionKey: 'mods.effects.laserMusket4charges' },
+    ],
+  },
+  {
+    name: 'Condensateur à cinq charges', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.cinqCharges.nameAdd',
+    weightChange: 0.5, cost: 12, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 3 },
+      { effectType: 'special', descriptionKey: 'mods.effects.laserMusket5charges' },
+    ],
+  },
+  {
+    name: 'Condensateur à six charges', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.sixCharges.nameAdd',
+    weightChange: 1, cost: 16, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 4 },
+      { effectType: 'special', descriptionKey: 'mods.effects.laserMusket6charges' },
+    ],
+  },
+
+  // ----- MODS DE PARABOLE (Pistolet Gamma uniquement) -----
+  {
+    name: 'Parabole à renfoncement', slot: 'parabole', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.parabole.parabolaRenfoncement.nameAdd',
+    weightChange: 1, cost: 72, requiredPerk: 'science', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'rangeChange', numericValue: 1 },
+    ],
+  },
+
+  // ----- MODS DE BOUCHE PISTOLET GAMMA -----
+  {
+    name: 'Antenne de transmission électrique', slot: 'bouche', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.bouche.antenneTransmission.nameAdd',
+    weightChange: 0, cost: 30, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'setDamage', numericValue: 7 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+      { effectType: 'gainQuality', qualityName: 'radioactive' },
+    ],
+  },
+  {
+    name: 'Répéteur de signal', slot: 'bouche', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.bouche.repeteurSignal.nameAdd',
+    weightChange: 0, cost: 60, requiredPerk: 'science', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'fireRateBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'burst' },
+      { effectType: 'loseQuality', qualityName: 'blast' },
+    ],
+  },
+];
+
+// ===== MODS DES ARMES LOURDES (Big Guns) =====
+// All big guns mods use the Réparation skill + optional perk to install.
+
+export const BIG_GUNS_MODS: ModEntry[] = [
+
+  // ===== MODS DU LANCE-FLAMMES =====
+
+  // ----- MOD DE CARBURANT -----
+  {
+    name: 'Réservoir à napalm', slot: 'carburant', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.carburant.reservoirNapalm.nameAdd',
+    weightChange: 3.5, cost: 59, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 1 }],
+  },
+
+  // ----- MOD DE CANON -----
+  // "Canon long" pour le lance-flammes a des effets différents du Canon long armes légères
+  {
+    name: 'Canon long (lance-flammes)', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.canonLong.nameAdd',
+    weightChange: 1, cost: 28, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'loseQuality', qualityName: 'inaccurate' }],
+  },
+
+  // ----- MODS DE RÉSERVOIR À PROPERGOL -----
+  {
+    name: 'Grand réservoir', slot: 'reservoir', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.reservoir.grandReservoir.nameAdd',
+    weightChange: 1.5, cost: 28, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Réservoir géant', slot: 'reservoir', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.reservoir.reservoirGeant.nameAdd',
+    weightChange: 3, cost: 34, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 2 }],
+  },
+
+  // ----- MODS DE BUSE -----
+  {
+    name: 'Buse de compression', slot: 'buse', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.buse.buseCompression.nameAdd',
+    weightChange: 0, cost: 22, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Buse de vaporisation', slot: 'buse', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.buse.buseVaporisation.nameAdd',
+    weightChange: 0, cost: 47, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'vicious' },
+    ],
+  },
+
+  // ----- MODS DE CROSSE -----
+  // "Crosse à compensateur de recul" for big guns has different cost/effects than the smallGuns version
+  {
+    name: 'Crosse à compensateur de recul (lourd)', slot: 'crosse', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.crosse.crosseCompensateur.nameAdd',
+    weightChange: 1, cost: 40,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+
+  // ----- MODS DE VISEUR -----
+  {
+    name: 'Viseur d\'Artilleur', slot: 'viseur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.viseur.viseurArtilleur.nameAdd',
+    weightChange: 0.5, cost: 5,
+    effects: [{ effectType: 'special', descriptionKey: 'mods.effects.rerollLocationDie' }],
+  },
+
+  // ----- MODS DE BOUCHE -----
+  {
+    name: 'Module d\'électrification', slot: 'bouche', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.bouche.moduleElectrification.nameAdd',
+    weightChange: 0.5, cost: 70, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'vicious' },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+  {
+    name: 'Module de combustion', slot: 'bouche', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.bouche.moduleCombustion.nameAdd',
+    weightChange: 0.5, cost: 130, requiredPerk: 'gunNut', requiredPerkRank: 3,
+    effects: [{ effectType: 'gainQuality', qualityName: 'persistent' }],
+  },
+
+  // ===== MODS DU LASER GATLING =====
+  // Ces mods s'installent avec la compétence Sciences.
+  // Leurs noms ressemblent aux mods d'armes à énergie mais stats distinctes → suffixe (Gatling)
+
+  // ----- MODS DE CONDENSATEUR -----
+  {
+    name: 'Stimulateur de photons (Gatling)', slot: 'condensateur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.energyWeapons.condensateur.stimulateurPhotons.nameAdd',
+    weightChange: 0.5, cost: 19, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [{ effectType: 'gainQuality', qualityName: 'vicious' }],
+  },
+  {
+    name: 'Amplificateur d\'ondes Bêta (Gatling)', slot: 'condensateur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.energyWeapons.condensateur.amplificateurOndes.nameAdd',
+    weightChange: 0.5, cost: 57,
+    effects: [{ effectType: 'gainQuality', qualityName: 'persistent' }],
+  },
+  {
+    name: 'Condensateur amélioré (Gatling)', slot: 'condensateur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.energyWeapons.condensateur.condensateurAmeliore.nameAdd',
+    weightChange: 0.5, cost: 94,
+    effects: [{ effectType: 'damageBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Agitateur de photons (Gatling)', slot: 'condensateur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.energyWeapons.condensateur.agitateurPhotons.nameAdd',
+    weightChange: 1.5, cost: 132, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'vicious' },
+    ],
+  },
+
+  // ----- MOD DE CANON -----
+  {
+    name: 'Canons à chargement', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.canonsChargement.nameAdd',
+    weightChange: 5, cost: 357, requiredPerk: 'science', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 4 },
+      { effectType: 'fireRateBonus', numericValue: -3 },
+      { effectType: 'rangeChange', numericValue: 1 },
+    ],
+  },
+
+  // ----- MOD DE VISEUR -----
+  {
+    name: 'Viseur laser (Gatling)', slot: 'viseur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.smallGuns.viseur.viseurLaser.nameAdd',
+    weightChange: 0.5, cost: 169, requiredPerk: 'science', requiredPerkRank: 4,
+    effects: [{ effectType: 'loseQuality', qualityName: 'inaccurate' }],
+  },
+
+  // ----- MOD DE BUSE -----
+  {
+    name: 'Concentrateur de faisceau (Gatling)', slot: 'buse', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.energyWeapons.bouche.concentrateurFaisceau.nameAdd',
+    weightChange: 0, cost: 22,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+      { effectType: 'rangeChange', numericValue: 1 },
+    ],
+  },
+
+  // ===== MODS DU MINIGUN =====
+
+  // ----- MODS DE CANON -----
+  {
+    name: 'Canon grande vitesse', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.canonGrandeVitesse.nameAdd',
+    weightChange: 2.5, cost: 45, requiredPerk: 'gunNut', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'fireRateBonus', numericValue: 1 },
+      { effectType: 'rangeChange', numericValue: -1 },
+    ],
+  },
+  {
+    // Distinct du "Triple canon" du Lance-missiles (effets différents)
+    name: 'Triple canon (minigun)', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.tripleCanonMinigun.nameAdd',
+    weightChange: 1.5, cost: 75, requiredPerk: 'gunNut', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'fireRateBonus', numericValue: -2 },
+    ],
+  },
+
+  // ----- MOD DE VISEUR -----
+  {
+    // Distinct du "Viseur d'Artilleur" du Junk Jet (perd Imprécis vs relance dé de loc)
+    name: 'Viseur d\'Artilleur (minigun)', slot: 'viseur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.smallGuns.viseur.viseurLaser.nameAdd',
+    weightChange: 0.5, cost: 68,
+    effects: [{ effectType: 'loseQuality', qualityName: 'inaccurate' }],
+  },
+
+  // ----- MOD DE BOUCHE -----
+  {
+    name: 'Broyeur', slot: 'bouche', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.bouche.baionnette.nameAdd',
+    weightChange: 2.5, cost: 5, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'special', descriptionKey: 'mods.effects.minigunGrinder' }],
+  },
+
+  // ===== MODS DU LANCE-MISSILES =====
+
+  // ----- MODS DE CANON -----
+  {
+    name: 'Triple canon', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.tripleCanon.nameAdd',
+    weightChange: 8, cost: 143, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Quadruple canon', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.quadrupleCanon.nameAdd',
+    weightChange: 10, cost: 218, requiredPerk: 'gunNut', requiredPerkRank: 3,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 2 }],
+  },
+
+  // ----- MODS DE VISEUR -----
+  {
+    name: 'Lunette (lance-missiles)', slot: 'viseur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.viseur.lunette.nameAdd',
+    weightChange: 3, cost: 143, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'gainQuality', qualityName: 'accurate' }],
+  },
+  {
+    name: 'Lunette de vision nocturne (lance-missiles)', slot: 'viseur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.viseur.lunetteVisionNocturne.nameAdd',
+    weightChange: 3, cost: 248, requiredPerk: 'gunNut', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'accurate' },
+      { effectType: 'gainQuality', qualityName: 'nightVision' },
+    ],
+  },
+  {
+    name: 'Ordinateur de visée', slot: 'viseur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.viseur.ordinateurVisee.nameAdd',
+    weightChange: 3.5, cost: 293, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'special', descriptionKey: 'mods.effects.aimingComputer' }],
+  },
+
+  // ----- MODS DE BOUCHE -----
+  {
+    // Différente de la Baïonnette armes légères (stats et effets distincts)
+    name: 'Baïonnette (lance-missiles)', slot: 'bouche', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.bouche.baionnette.nameAdd',
+    weightChange: 0.5, cost: 30,
+    effects: [{ effectType: 'special', descriptionKey: 'mods.effects.bayonetLauncher' }],
+  },
+  {
+    name: 'Stabilisateur', slot: 'bouche', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.bouche.stabilisateur.nameAdd',
+    weightChange: 1, cost: 60, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [{ effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 }],
+  },
+];
+
+// ===== MODS DES ARMES DE MÊLÉE (Melee Weapons) =====
+// All melee weapon mods use the Réparation skill + optional perk to install.
+
+export const MELEE_WEAPONS_MODS: ModEntry[] = [
+
+  // ===== MODS DE L'ÉPÉE =====
+  {
+    name: 'Lame dentelée (épée)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameDentelee.nameAdd',
+    weightChange: 0, cost: 25, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [{ effectType: 'gainQuality', qualityName: 'persistent' }],
+  },
+  {
+    name: 'Lame électrifiée', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameElectrifiee.nameAdd',
+    weightChange: 0, cost: 50, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+  {
+    name: 'Lame dentelée électrifiée', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameDenteleeElectrifiee.nameAdd',
+    weightChange: 0, cost: 75, requiredPerk: 'blacksmith', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+  {
+    name: 'Module d\'étourdissement', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.moduleEtourdissement.nameAdd',
+    weightChange: 0, cost: 100, requiredPerk: 'blacksmith', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+      { effectType: 'gainQuality', qualityName: 'stun' },
+    ],
+  },
+
+  // ===== MODS DU COUTEAU DE COMBAT =====
+  {
+    // Distinct de la Lame dentelée (épée) — effets et coût différents
+    name: 'Lame dentelée (couteau)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameDentelee.nameAdd',
+    weightChange: 0, cost: 12, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+  {
+    name: 'Lame furtive', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameFurtive.nameAdd',
+    weightChange: 0, cost: 18, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+      { effectType: 'special', descriptionKey: 'mods.effects.stealthBonus2' },
+    ],
+  },
+
+  // ===== MODS DE LA MACHETTE =====
+  {
+    // Distinct des autres Lame dentelée — +2 dégâts, coût différent
+    name: 'Lame dentelée (machette)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameDentelee.nameAdd',
+    weightChange: 0, cost: 12, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MODS DE L'ÉVENTREUR =====
+  {
+    name: 'Lame courbe', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameCourbe.nameAdd',
+    weightChange: 0.5, cost: 15,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.disarm2AP' },
+    ],
+  },
+  {
+    name: 'Lame rallongée', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameRallongee.nameAdd',
+    weightChange: 1.5, cost: 25, requiredPerk: 'blacksmith', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MOD DU FLAMBEUR =====
+  {
+    name: 'Jets de flammes supplémentaires', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.jetsFlammesSupplementaires.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'blacksmith', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MOD DU CRAN D'ARRÊT =====
+  {
+    // Distinct des autres Lame dentelée — coût 10, Forgeron 1
+    name: 'Lame dentelée (cran)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lameDentelee.nameAdd',
+    weightChange: 0, cost: 10, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MODS DE LA BATTE DE BASEBALL =====
+  {
+    name: 'Barbelé', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.barbele.nameAdd',
+    weightChange: 0, cost: 5,
+    effects: [{ effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 }],
+  },
+  {
+    name: 'À pointes', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aPointes.nameAdd',
+    weightChange: 0.5, cost: 7,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'Affûté', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.affute.nameAdd',
+    weightChange: 0.5, cost: 7,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+  {
+    name: 'À chaînes', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aChaines.nameAdd',
+    weightChange: 0.5, cost: 10, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 2 }],
+  },
+  {
+    name: 'À lames', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aLames.nameAdd',
+    weightChange: 1, cost: 12, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MODS DE LA PLANCHE =====
+  {
+    name: 'À pointes (planche)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aPointes.nameAdd',
+    weightChange: 0.5, cost: 6,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'Perforant', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.perforant.nameAdd',
+    weightChange: 0.5, cost: 9, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 2 }],
+  },
+  {
+    name: 'À lames (planche)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aLames.nameAdd',
+    weightChange: 1, cost: 10, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MODS DU TUYAU DE PLOMB =====
+  {
+    name: 'À pointes (tuyau)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aPointes.nameAdd',
+    weightChange: 0.5, cost: 4,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'Lourd', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lourd.nameAdd',
+    weightChange: 1, cost: 11, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [{ effectType: 'damageBonus', numericValue: 2 }],
+  },
+
+  // ===== MODS DE LA CLÉ SERRE-TUBE =====
+  {
+    name: 'À crochets', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aCrochets.nameAdd',
+    weightChange: 0, cost: 9,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.disarm2AP' },
+    ],
+  },
+  {
+    // Distinct de Lourd (tuyau) — poids +3,5, nameAdd "Alourdissement"
+    name: 'Lourd (clé)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.alourdissement.nameAdd',
+    weightChange: 3.5, cost: 12, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 2 }],
+  },
+  {
+    // Distinct de Perforant (planche) — ajoute aussi Perforant 1
+    name: 'Perforant (clé)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.perforant.nameAdd',
+    weightChange: 0.5, cost: 13, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    // nameAdd "Poids" — réutilise la clé de Lourd (tuyau)
+    name: 'Extralourd', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lourd.nameAdd',
+    weightChange: 1, cost: 22, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [{ effectType: 'damageBonus', numericValue: 3 }],
+  },
+
+  // ===== MODS DE LA QUEUE DE BILLARD =====
+  {
+    name: 'Barbelé (queue)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.barbele.nameAdd',
+    weightChange: 0, cost: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'Affûté (queue)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.affute.nameAdd',
+    weightChange: 0, cost: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MODS DU ROULEAU À PÂTISSERIE =====
+  {
+    name: 'À pointes (rouleau)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aPointes.nameAdd',
+    weightChange: 0, cost: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'Affûté (rouleau)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.affute.nameAdd',
+    weightChange: 0, cost: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MODS DE LA MATRAQUE =====
+  {
+    name: 'Électrifié', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.electrifie.nameAdd',
+    weightChange: 0, cost: 15, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+  {
+    // nameAdd "KO" — distinct du Module d'étourdissement (épée)
+    name: 'Module d\'étourdissement (matraque)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.ko.nameAdd',
+    weightChange: 0, cost: 30, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 3 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+
+  // ===== MODS DE LA MASSE =====
+  {
+    name: 'Perforant (masse)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.perforant.nameAdd',
+    weightChange: 2.5, cost: 18, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'Lourd (masse)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.lourd.nameAdd',
+    weightChange: 4.5, cost: 30, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [{ effectType: 'damageBonus', numericValue: 2 }],
+  },
+
+  // ===== MODS DE LA SUPER MASSE =====
+  {
+    name: 'Bobine thermique', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.bobineThermique.nameAdd',
+    weightChange: 0, cost: 180, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+  {
+    // Mêmes effets que Module d'étourdissement (épée) mais coût différent
+    name: 'Module d\'étourdissement (super masse)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.moduleEtourdissement.nameAdd',
+    weightChange: 0, cost: 360, requiredPerk: 'blacksmith', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'stun' },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+
+  // ===== MOD DU DÉMONTE-PNEU =====
+  {
+    name: 'À lames (démonte-pneu)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aLames.nameAdd',
+    weightChange: 0.5, cost: 12, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MODS DE LA CANNE =====
+  {
+    name: 'Barbelé (canne)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.barbele.nameAdd',
+    weightChange: 0, cost: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'À pointes (canne)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aPointes.nameAdd',
+    weightChange: 0, cost: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+
+  // ===== MODS DU GANT DE BOXE =====
+  {
+    // Pas de damageBonus — seulement Perforant 1
+    name: 'À pointes (gant)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.aPointes.nameAdd',
+    weightChange: 0, cost: 3,
+    effects: [{ effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 }],
+  },
+  {
+    name: 'Perforant (gant)', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.perforant.nameAdd',
+    weightChange: 0, cost: 4, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'Revêtement en plomb', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.revetementPlomb.nameAdd',
+    weightChange: 0.5, cost: 7, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 2 }],
+  },
+
+  // ===== MOD DU GANTELET D'ÉCORCHEUR =====
+  {
+    name: 'Griffe supplémentaire', slot: 'lame', applicableTo: 'meleeWeapons',
+    nameAddKey: 'mods.meleeWeapons.lame.griffeSupplementaire.nameAdd',
+    weightChange: 1, cost: 22,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.disarm2AP' },
+    ],
+  },
+
+  // ===== MODS DU POING AMÉRICAIN =====
+  {
+    name: 'Affûté (poing)', slot: 'lame', applicableTo: 'unarmed',
+    nameAddKey: 'mods.meleeWeapons.lame.affute.nameAdd',
+    weightChange: 0, cost: 3,
+    effects: [{ effectType: 'gainQuality', qualityName: 'persistent' }],
+  },
+  {
+    name: 'À pointes (poing)', slot: 'lame', applicableTo: 'unarmed',
+    nameAddKey: 'mods.meleeWeapons.lame.aPointes.nameAdd',
+    weightChange: 0, cost: 3,
+    effects: [{ effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 }],
+  },
+  {
+    name: 'Perforant (poing)', slot: 'lame', applicableTo: 'unarmed',
+    nameAddKey: 'mods.meleeWeapons.lame.perforant.nameAdd',
+    weightChange: 0, cost: 4, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'À lames (poing)', slot: 'lame', applicableTo: 'unarmed',
+    nameAddKey: 'mods.meleeWeapons.lame.aLames.nameAdd',
+    weightChange: 0, cost: 5, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+
+  // ===== MODS DU POING ASSISTÉ =====
+  {
+    name: 'Perforant (poing assisté)', slot: 'lame', applicableTo: 'unarmed',
+    nameAddKey: 'mods.meleeWeapons.lame.perforant.nameAdd',
+    weightChange: 0.5, cost: 45, requiredPerk: 'blacksmith', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 },
+    ],
+  },
+  {
+    name: 'Bobine thermique (poing assisté)', slot: 'lame', applicableTo: 'unarmed',
+    nameAddKey: 'mods.meleeWeapons.lame.bobineThermique.nameAdd',
+    weightChange: 0, cost: 100, requiredPerk: 'blacksmith', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+];
+
+// ===== MODS D'AMÉLIORATION D'ARMURE =====
+// All armor improvement & material mods use the Réparation skill + optional perk to install.
+// Perk "Armurier" = armorer, "Scientifique" = science
+
+export const ARMOR_MODS: ModEntry[] = [
+
+  // ===== AMÉLIORATIONS — TOUTES LES LOCALISATIONS =====
+  {
+    name: 'Structure légère', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.structureLegere.nameAdd',
+    weightChange: -1, cost: 1,
+    effects: [],
+  },
+  {
+    name: 'Poches', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.poches.nameAdd',
+    weightChange: 1, cost: 1,
+    effects: [
+      { effectType: 'carryCapacity', numericValue: 10 },
+    ],
+  },
+  {
+    name: 'Larges poches', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.largesPoches.nameAdd',
+    weightChange: 1, cost: 5,
+    effects: [
+      { effectType: 'carryCapacity', numericValue: 20 },
+    ],
+  },
+  {
+    name: 'Revêtement en plomb', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.revetementPlomb.nameAdd',
+    weightChange: 2, cost: 5, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'radiationResistance', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Structure ultra légère', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.structureUltraLegere.nameAdd',
+    weightChange: -3, cost: 7, requiredPerk: 'armorer', requiredPerkRank: 3,
+    effects: [],
+  },
+
+  // ===== AMÉLIORATIONS — BUSTE UNIQUEMENT =====
+  {
+    name: 'Rembourrage', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.rembourrage.nameAdd',
+    weightChange: 2, cost: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.blastResist2' },
+    ],
+  },
+  {
+    name: 'Revêtement amianté', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.revetementAmiante.nameAdd',
+    weightChange: 2, cost: 3, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'special', descriptionKey: 'mods.effects.ignoreEnergyPersistent' },
+    ],
+  },
+  {
+    name: 'Densifié', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.densifie.nameAdd',
+    weightChange: 2, cost: 7, requiredPerk: 'armorer', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.blastResist4' },
+    ],
+  },
+  {
+    name: 'BioCommMesh', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.bioCommMesh.nameAdd',
+    weightChange: 1, cost: 9, requiredPerk: 'armorer', requiredPerkRank: 4, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.chemDurationDouble' },
+    ],
+  },
+  {
+    name: 'Pneumatique', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.pneumatique.nameAdd',
+    weightChange: 1, cost: 9, requiredPerk: 'armorer', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.stunRequires2Effects' },
+    ],
+  },
+
+  // ===== AMÉLIORATIONS — BRAS UNIQUEMENT =====
+  {
+    name: 'Bagarreur', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.bagarreur.nameAdd',
+    weightChange: 0.5, cost: 1, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.unarmedDamageBonus1' },
+    ],
+  },
+  {
+    name: 'Renforcé (bras)', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.renforce.nameAdd',
+    weightChange: 0.5, cost: 1, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.meleeResist2' },
+    ],
+  },
+  {
+    name: 'Stabilisé', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.stabilise.nameAdd',
+    weightChange: 0.5, cost: 1, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.aimRangedDamageBonus1' },
+    ],
+  },
+  {
+    name: 'Aérodynamique', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.aerodynamique.nameAdd',
+    weightChange: 0, cost: 1, requiredPerk: 'armorer', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.melee4APBonusDamage' },
+    ],
+  },
+  {
+    name: 'Alourdi', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.alourdi.nameAdd',
+    weightChange: 0.5, cost: 3, requiredPerk: 'armorer', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.meleePiercing1' },
+    ],
+  },
+
+  // ===== AMÉLIORATIONS — JAMBES UNIQUEMENT =====
+  {
+    name: 'Amortissement', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.amortissement.nameAdd',
+    weightChange: 0, cost: 1, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.fallResist2' },
+    ],
+  },
+  {
+    name: 'Silencieux (jambes)', slot: 'functionality', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.functionality.silencieux.nameAdd',
+    weightChange: 0, cost: 2, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.sneakReroll' },
+    ],
+  },
+
+  // ===== MATÉRIAUX — ARMURE DE PILLARD =====
+  {
+    name: 'Soudé', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.soude.nameAdd',
+    weightChange: 0.5, cost: 3,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Trempé', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.trempe.nameAdd',
+    weightChange: 0.5, cost: 6,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Renforcé (raider)', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.renforce.nameAdd',
+    weightChange: 1, cost: 9, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Étayé', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.etaye.nameAdd',
+    weightChange: 1.5, cost: 12, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 4 },
+      { effectType: 'energyResistance', numericValue: 4 },
+    ],
+  },
+
+  // ===== MATÉRIAUX — ARMURE DE CUIR =====
+  {
+    name: 'Cuir bouilli', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.cuirBouilli.nameAdd',
+    weightChange: 0.5, cost: 5,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Cuir armé', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.cuirArme.nameAdd',
+    weightChange: 0.5, cost: 10,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Cuir traité', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.cuirTraite.nameAdd',
+    weightChange: 0.5, cost: 15, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Cuir ombré', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.cuirOmbre.nameAdd',
+    weightChange: 0.5, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'special', descriptionKey: 'mods.effects.shadowed' },
+    ],
+  },
+  {
+    name: 'Cuir clouté', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.cuirCloute.nameAdd',
+    weightChange: 1, cost: 25, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 4 },
+      { effectType: 'energyResistance', numericValue: 4 },
+    ],
+  },
+
+  // ===== MATÉRIAUX — ARMURE DE MÉTAL =====
+  {
+    name: 'Métal peint', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.metalPeint.nameAdd',
+    weightChange: 0.5, cost: 10,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Métal émaillé', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.metalEmaille.nameAdd',
+    weightChange: 1, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Métal ombré', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.metalOmbre.nameAdd',
+    weightChange: 0.5, cost: 25, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'special', descriptionKey: 'mods.effects.shadowed' },
+    ],
+  },
+  {
+    name: 'Métal allié', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.metalAllie.nameAdd',
+    weightChange: 1.5, cost: 30, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Métal poli', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.metalPoli.nameAdd',
+    weightChange: 2, cost: 40, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 4 },
+      { effectType: 'energyResistance', numericValue: 4 },
+    ],
+  },
+
+  // ===== MATÉRIAUX — ARMURE DE COMBAT =====
+  {
+    name: 'Renforcé (combat)', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.renforce.nameAdd',
+    weightChange: 0.5, cost: 15,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Ombré', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.ombre.nameAdd',
+    weightChange: 0.5, cost: 15, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.shadowed' },
+    ],
+  },
+  {
+    name: 'Fibre de verre', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.fibreDeVerre.nameAdd',
+    weightChange: 0.5, cost: 30, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Polymère', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.polymere.nameAdd',
+    weightChange: 1, cost: 45, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+    ],
+  },
+
+  // ===== MATÉRIAUX — ARMURE DE SYNTHÉTIQUE =====
+  {
+    name: 'Stratifié', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.stratifie.nameAdd',
+    weightChange: 0.5, cost: 5,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Résineux', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.resineux.nameAdd',
+    weightChange: 0.5, cost: 10, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Microfibre de carbone', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.microfibreCarbone.nameAdd',
+    weightChange: 1, cost: 15, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Nanofilament', slot: 'material', applicableTo: 'armor',
+    nameAddKey: 'mods.armor.material.nanofilament.nameAdd',
+    weightChange: 1.5, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 4 },
+      { effectType: 'energyResistance', numericValue: 4 },
+    ],
+  },
+];
+
+// ===== MODS DE VÊTEMENTS =====
+
+export const CLOTHING_MODS: ModEntry[] = [
+
+  // ===== TISSU BALISTIQUE =====
+  {
+    name: 'Tissu balistique', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.tissuBalistique.nameAdd',
+    weightChange: 0, cost: 20,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Tissu balistique Mk II', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.tissuBalistiqueMk2.nameAdd',
+    weightChange: 0, cost: 30, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Tissu balistique Mk III', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.tissuBalistiqueMk3.nameAdd',
+    weightChange: 0, cost: 40, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 4 },
+      { effectType: 'energyResistance', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Tissu balistique Mk IV', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.tissuBalistiqueMk4.nameAdd',
+    weightChange: 0, cost: 50, requiredPerk: 'armorer', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 5 },
+      { effectType: 'energyResistance', numericValue: 5 },
+    ],
+  },
+  {
+    name: 'Tissu balistique Mk V', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.tissuBalistiqueMk5.nameAdd',
+    weightChange: 0, cost: 60, requiredPerk: 'armorer', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 6 },
+      { effectType: 'energyResistance', numericValue: 6 },
+    ],
+  },
+
+  // ===== MODS DE LA COMBINAISON D'ABRI =====
+  {
+    name: 'Revêtement isolant', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.revetementIsolant.nameAdd',
+    weightChange: 0, cost: 10,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Revêtement traité', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.revetementTraite.nameAdd',
+    weightChange: 0.5, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'radiationResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Revêtement résistant', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.revetementResistant.nameAdd',
+    weightChange: 0.5, cost: 30, requiredPerk: 'armorer', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'radiationResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Revêtement protecteur', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.revetementProtecteur.nameAdd',
+    weightChange: 0.5, cost: 40, requiredPerk: 'armorer', requiredPerkRank: 4, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'radiationResistance', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Revêtement blindé', slot: 'modification', applicableTo: 'clothing',
+    nameAddKey: 'mods.clothing.revetementBlinde.nameAdd',
+    weightChange: 0.5, cost: 50, requiredPerk: 'armorer', requiredPerkRank: 4, requiredPerk2: 'science', requiredPerkRank2: 4,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'radiationResistance', numericValue: 3 },
+    ],
+  },
+];
+
+// ===== MODS D'ARMURE ASSISTÉE =====
+// Perk "Armurier" = armorer, "Scientifique" = science, "Forgeron" = blacksmith
+
+export const POWER_ARMOR_MODS: ModEntry[] = [
+
+  // ===== MODS DE SYSTÈME — TÊTE =====
+  {
+    name: 'Épurateur de radiations', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.epurateurRadiations.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.radiationPurifier' },
+    ],
+  },
+  {
+    name: 'Détecteur', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.detecteur.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.sensor' },
+    ],
+  },
+  {
+    name: 'ATH de visée', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.athVisee.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.targetingHud' },
+    ],
+  },
+  {
+    name: 'Base de données interne', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.baseDonnees.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.internalDatabase' },
+    ],
+  },
+
+  // ===== MODS DE SYSTÈME — BUSTE =====
+  {
+    name: 'Barre d\'armature soudée', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.barreArmature.nameAdd',
+    weightChange: 1, cost: 25, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.weldenRebar' },
+    ],
+  },
+  {
+    name: 'Noyau de réacteur', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.noyauReacteur.nameAdd',
+    weightChange: 1, cost: 100, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.reactorCore' },
+    ],
+  },
+  {
+    name: 'Purificateur sanguin', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.purificateurSanguin.nameAdd',
+    weightChange: 1, cost: 100, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.bloodCleanser' },
+    ],
+  },
+  {
+    name: 'Protocoles d\'urgence', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.protocolesUrgence.nameAdd',
+    weightChange: 1, cost: 100, requiredPerk: 'science', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.emergencyProtocols' },
+    ],
+  },
+  {
+    name: 'Servomoteurs de déplacement assisté', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.servomoteursAssiste.nameAdd',
+    weightChange: 1, cost: 100, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.motionAssistServos' },
+    ],
+  },
+  {
+    name: 'Dynamo cinétique', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.dynamoCinetique.nameAdd',
+    weightChange: 1, cost: 100, requiredPerk: 'science', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.kineticDynamo' },
+    ],
+  },
+  {
+    name: 'Pompe médicale', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.pompeMedicale.nameAdd',
+    weightChange: 1, cost: 100, requiredPerk: 'science', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.medicalPump' },
+    ],
+  },
+  {
+    name: 'Plaques réactives', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.plaquesReactives.nameAdd',
+    weightChange: 1, cost: 100, requiredPerk: 'armorer', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.reactivePlates' },
+    ],
+  },
+  {
+    name: 'Bobines Tesla', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.bobinesTesla.nameAdd',
+    weightChange: 1, cost: 100, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.teslaCoils' },
+    ],
+  },
+  {
+    name: 'Stealth Boy', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.stealthBoy.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'science', requiredPerkRank: 4,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.stealthBoy' },
+    ],
+  },
+  {
+    name: 'Jetpack', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.jetpack.nameAdd',
+    weightChange: 0.5, cost: 500, requiredPerk: 'armorer', requiredPerkRank: 4, requiredPerk2: 'science', requiredPerkRank2: 4,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.jetpack' },
+    ],
+  },
+
+  // ===== MODS DE SYSTÈME — BRAS =====
+  {
+    name: 'Poing rouillé', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.poingRouille.nameAdd',
+    weightChange: 0.5, cost: 50, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+  {
+    name: 'Bracelets hydrauliques', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.braceletsHydrauliques.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'blacksmith', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.hydraulicBracers' },
+    ],
+  },
+  {
+    name: 'Bracelets optimisés', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.braceletsOptimises.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'blacksmith', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.optimizedBracers' },
+    ],
+  },
+  {
+    name: 'Bracelets Tesla', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.braceletsTesla.nameAdd',
+    weightChange: 0.5, cost: 150, requiredPerk: 'blacksmith', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.teslaBracers' },
+    ],
+  },
+
+  // ===== MODS DE SYSTÈME — JAMBES =====
+  {
+    name: 'Amortisseurs calibrés', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.amortisseursCalibres.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'carryCapacity', numericValue: 25 },
+    ],
+  },
+  {
+    name: 'Évent d\'explosion', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.eventExplosion.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.explosionVent' },
+    ],
+  },
+  {
+    name: 'Servomoteurs à vitesse surmultipliée', slot: 'systeme', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.systeme.servomoteursVitesse.nameAdd',
+    weightChange: 0.5, cost: 100, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.overdriveServos' },
+    ],
+  },
+
+  // ===== MODS DE BLINDAGE — TOUTES LOCALISATIONS =====
+  // Note: coût et poids doublés pour le buste (géré côté frontend)
+  // L'armure de pillard ne peut PAS utiliser les blindages
+  {
+    name: 'Blindage en titane', slot: 'blindage', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.blindage.titane.nameAdd',
+    weightChange: 0.5, cost: 10, requiredPerk: 'armorer', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Blindage en plomb', slot: 'blindage', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.blindage.plomb.nameAdd',
+    weightChange: 1, cost: 10, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'radiationResistance', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Revêtement photovoltaïque', slot: 'blindage', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.blindage.photovoltaique.nameAdd',
+    weightChange: 0.5, cost: 10, requiredPerk: 'science', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.pa.photovoltaic' },
+    ],
+  },
+  {
+    name: 'Revêtement antigel', slot: 'blindage', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.blindage.antigel.nameAdd',
+    weightChange: 0.5, cost: 10, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Blindage prismatique', slot: 'blindage', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.blindage.prismatique.nameAdd',
+    weightChange: 1, cost: 10, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Blindage antiexplosion', slot: 'blindage', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.blindage.antiexplosion.nameAdd',
+    weightChange: 0.5, cost: 10, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'special', descriptionKey: 'mods.effects.blastResist2' },
+    ],
+  },
+
+  // ===== AMÉLIORATIONS — ARMURE ASSISTÉE DE PILLARD =====
+  {
+    name: 'Casque Raider II', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.raider2.casque.nameAdd',
+    weightChange: 0.5, cost: 5, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Plastron Raider II', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.raider2.plastron.nameAdd',
+    weightChange: 1, cost: 10, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Brassard Raider II', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.raider2.brassard.nameAdd',
+    weightChange: 1, cost: 7, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Jambière Raider II', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.raider2.jambiere.nameAdd',
+    weightChange: 1, cost: 7, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+];
+
+// ===== AMÉLIORATIONS — ARMURE ASSISTÉE T-45 =====
+
+export const T45_IMPROVEMENT_MODS: ModEntry[] = [
+  // --- T-45b ---
+  {
+    name: 'Casque T-45b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45b.casque.nameAdd',
+    weightChange: 0.5, cost: 3, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [{ effectType: 'hpBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Plastron T-45b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45b.plastron.nameAdd',
+    weightChange: 0.5, cost: 7, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [{ effectType: 'hpBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Brassard T-45b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45b.brassard.nameAdd',
+    weightChange: 0.5, cost: 7, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Jambière T-45b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45b.jambiere.nameAdd',
+    weightChange: 0.5, cost: 7, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  // --- T-45c ---
+  {
+    name: 'Casque T-45c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45c.casque.nameAdd',
+    weightChange: 0.5, cost: 6, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Plastron T-45c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45c.plastron.nameAdd',
+    weightChange: 1, cost: 14, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [{ effectType: 'hpBonus', numericValue: 4 }],
+  },
+  {
+    name: 'Brassard T-45c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45c.brassard.nameAdd',
+    weightChange: 1, cost: 10, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Jambière T-45c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45c.jambiere.nameAdd',
+    weightChange: 1, cost: 10, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  // --- T-45d ---
+  {
+    name: 'Casque T-45d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45d.casque.nameAdd',
+    weightChange: 1, cost: 9, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Plastron T-45d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45d.plastron.nameAdd',
+    weightChange: 1.5, cost: 21, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 5 },
+    ],
+  },
+  {
+    name: 'Brassard T-45d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45d.brassard.nameAdd',
+    weightChange: 1, cost: 15, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Jambière T-45d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45d.jambiere.nameAdd',
+    weightChange: 1, cost: 15, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  // --- T-45e ---
+  {
+    name: 'Casque T-45e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45e.casque.nameAdd',
+    weightChange: 1, cost: 12, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Plastron T-45e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45e.plastron.nameAdd',
+    weightChange: 2, cost: 28, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 7 },
+    ],
+  },
+  {
+    name: 'Brassard T-45e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45e.brassard.nameAdd',
+    weightChange: 1.5, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Jambière T-45e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45e.jambiere.nameAdd',
+    weightChange: 1.5, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  // --- T-45f ---
+  {
+    name: 'Casque T-45f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45f.casque.nameAdd',
+    weightChange: 1.5, cost: 15, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Plastron T-45f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45f.plastron.nameAdd',
+    weightChange: 2.5, cost: 35, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 8 },
+    ],
+  },
+  {
+    name: 'Brassard T-45f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45f.brassard.nameAdd',
+    weightChange: 2, cost: 25, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 4 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Jambière T-45f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t45f.jambiere.nameAdd',
+    weightChange: 2, cost: 25, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 3 },
+      { effectType: 'energyResistance', numericValue: 4 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+];
+
+// ===== AMÉLIORATIONS — ARMURE ASSISTÉE T-51 =====
+
+export const T51_IMPROVEMENT_MODS: ModEntry[] = [
+  // --- T-51b ---
+  {
+    name: 'Casque T-51b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51b.casque.nameAdd',
+    weightChange: 0.5, cost: 4, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [{ effectType: 'hpBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Plastron T-51b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51b.plastron.nameAdd',
+    weightChange: 0.5, cost: 9, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Brassard T-51b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51b.brassard.nameAdd',
+    weightChange: 0.5, cost: 6, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [{ effectType: 'hpBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Jambière T-51b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51b.jambiere.nameAdd',
+    weightChange: 0.5, cost: 6, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [{ effectType: 'hpBonus', numericValue: 1 }],
+  },
+  // --- T-51c ---
+  {
+    name: 'Casque T-51c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51c.casque.nameAdd',
+    weightChange: 0.5, cost: 8, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Plastron T-51c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51c.plastron.nameAdd',
+    weightChange: 1, cost: 18, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Brassard T-51c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51c.brassard.nameAdd',
+    weightChange: 1, cost: 13, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Jambière T-51c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51c.jambiere.nameAdd',
+    weightChange: 1, cost: 13, requiredPerk: 'armorer', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  // --- T-51d ---
+  {
+    name: 'Casque T-51d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51d.casque.nameAdd',
+    weightChange: 1, cost: 12, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Plastron T-51d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51d.plastron.nameAdd',
+    weightChange: 1.5, cost: 27, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Brassard T-51d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51d.brassard.nameAdd',
+    weightChange: 1, cost: 19, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Jambière T-51d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51d.jambiere.nameAdd',
+    weightChange: 1, cost: 19, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  // --- T-51e ---
+  {
+    name: 'Casque T-51e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51e.casque.nameAdd',
+    weightChange: 1, cost: 16, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Plastron T-51e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51e.plastron.nameAdd',
+    weightChange: 2, cost: 36, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 6 },
+    ],
+  },
+  {
+    name: 'Brassard T-51e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51e.brassard.nameAdd',
+    weightChange: 1.5, cost: 26, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Jambière T-51e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51e.jambiere.nameAdd',
+    weightChange: 1.5, cost: 26, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  // --- T-51f ---
+  {
+    name: 'Casque T-51f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51f.casque.nameAdd',
+    weightChange: 1.5, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Plastron T-51f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51f.plastron.nameAdd',
+    weightChange: 2.5, cost: 45, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 7 },
+    ],
+  },
+  {
+    name: 'Brassard T-51f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51f.brassard.nameAdd',
+    weightChange: 2, cost: 32, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Jambière T-51f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t51f.jambiere.nameAdd',
+    weightChange: 2, cost: 32, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+];
+
+// ===== AMÉLIORATIONS — ARMURE ASSISTÉE T-60 =====
+
+export const T60_IMPROVEMENT_MODS: ModEntry[] = [
+  // --- T-60b (aucune aptitude requise) ---
+  {
+    name: 'Casque T-60b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60b.casque.nameAdd',
+    weightChange: 0.5, cost: 32,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Plastron T-60b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60b.plastron.nameAdd',
+    weightChange: 0.5, cost: 37,
+    effects: [{ effectType: 'hpBonus', numericValue: 2 }],
+  },
+  {
+    name: 'Brassard T-60b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60b.brassard.nameAdd',
+    weightChange: 0.5, cost: 35,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Jambière T-60b', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60b.jambiere.nameAdd',
+    weightChange: 0.5, cost: 35,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  // --- T-60c ---
+  {
+    name: 'Casque T-60c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60c.casque.nameAdd',
+    weightChange: 1.5, cost: 64, requiredPerk: 'armorer', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Plastron T-60c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60c.plastron.nameAdd',
+    weightChange: 1, cost: 74, requiredPerk: 'armorer', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Brassard T-60c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60c.brassard.nameAdd',
+    weightChange: 1, cost: 70, requiredPerk: 'armorer', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Jambière T-60c', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60c.jambiere.nameAdd',
+    weightChange: 1, cost: 70, requiredPerk: 'armorer', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  // --- T-60d ---
+  {
+    name: 'Casque T-60d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60d.casque.nameAdd',
+    weightChange: 1, cost: 96, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Plastron T-60d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60d.plastron.nameAdd',
+    weightChange: 1.5, cost: 111, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 5 },
+    ],
+  },
+  {
+    name: 'Brassard T-60d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60d.brassard.nameAdd',
+    weightChange: 1, cost: 105, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Jambière T-60d', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60d.jambiere.nameAdd',
+    weightChange: 1, cost: 105, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  // --- T-60e ---
+  {
+    name: 'Casque T-60e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60e.casque.nameAdd',
+    weightChange: 1, cost: 128, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Plastron T-60e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60e.plastron.nameAdd',
+    weightChange: 2, cost: 148, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 7 },
+    ],
+  },
+  {
+    name: 'Brassard T-60e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60e.brassard.nameAdd',
+    weightChange: 1.5, cost: 140, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Jambière T-60e', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60e.jambiere.nameAdd',
+    weightChange: 1.5, cost: 140, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  // --- T-60f ---
+  {
+    name: 'Casque T-60f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60f.casque.nameAdd',
+    weightChange: 1.5, cost: 160, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Plastron T-60f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60f.plastron.nameAdd',
+    weightChange: 2.5, cost: 185, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 8 },
+    ],
+  },
+  {
+    name: 'Brassard T-60f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60f.brassard.nameAdd',
+    weightChange: 2, cost: 175, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Jambière T-60f', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.t60f.jambiere.nameAdd',
+    weightChange: 2, cost: 175, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+];
+
+// ===== AMÉLIORATIONS — ARMURE ASSISTÉE X-01 =====
+
+export const X01_IMPROVEMENT_MODS: ModEntry[] = [
+  // --- Mk II (aucune aptitude requise) ---
+  {
+    name: 'Casque Mk II', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk2.casque.nameAdd',
+    weightChange: 0.5, cost: 7,
+    effects: [{ effectType: 'hpBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Plastron Mk II', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk2.plastron.nameAdd',
+    weightChange: 0.5, cost: 14,
+    effects: [{ effectType: 'hpBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Brassard Mk II', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk2.brassard.nameAdd',
+    weightChange: 0.5, cost: 10,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Jambière Mk II', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk2.jambiere.nameAdd',
+    weightChange: 0.5, cost: 10,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+    ],
+  },
+  // --- Mk III ---
+  {
+    name: 'Casque Mk III', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk3.casque.nameAdd',
+    weightChange: 0.5, cost: 14, requiredPerk: 'armorer', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Plastron Mk III', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk3.plastron.nameAdd',
+    weightChange: 1, cost: 28, requiredPerk: 'armorer', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Brassard Mk III', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk3.brassard.nameAdd',
+    weightChange: 1, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  {
+    name: 'Jambière Mk III', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk3.jambiere.nameAdd',
+    weightChange: 1, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 1 },
+    ],
+  },
+  // --- Mk IV ---
+  {
+    name: 'Casque Mk IV', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk4.casque.nameAdd',
+    weightChange: 1, cost: 21, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Plastron Mk IV', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk4.plastron.nameAdd',
+    weightChange: 1.5, cost: 42, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Brassard Mk IV', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk4.brassard.nameAdd',
+    weightChange: 1, cost: 30, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Jambière Mk IV', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk4.jambiere.nameAdd',
+    weightChange: 1, cost: 30, requiredPerk: 'armorer', requiredPerkRank: 2, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  // --- Mk V ---
+  {
+    name: 'Casque Mk V', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk5.casque.nameAdd',
+    weightChange: 1, cost: 28, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 1 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Plastron Mk V', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk5.plastron.nameAdd',
+    weightChange: 2, cost: 56, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 1 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Brassard Mk V', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk5.brassard.nameAdd',
+    weightChange: 1.5, cost: 40, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  {
+    name: 'Jambière Mk V', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk5.jambiere.nameAdd',
+    weightChange: 1.5, cost: 40, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 2 },
+    ],
+  },
+  // --- Mk VI ---
+  {
+    name: 'Casque Mk VI', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk6.casque.nameAdd',
+    weightChange: 1.5, cost: 35, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 3 },
+    ],
+  },
+  {
+    name: 'Plastron Mk VI', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk6.plastron.nameAdd',
+    weightChange: 2.5, cost: 70, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 2 },
+      { effectType: 'hpBonus', numericValue: 5 },
+    ],
+  },
+  {
+    name: 'Brassard Mk VI', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk6.brassard.nameAdd',
+    weightChange: 2, cost: 50, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+  {
+    name: 'Jambière Mk VI', slot: 'amelioration', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.amelioration.mk6.jambiere.nameAdd',
+    weightChange: 2, cost: 50, requiredPerk: 'armorer', requiredPerkRank: 3, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'ballisticResistance', numericValue: 2 },
+      { effectType: 'energyResistance', numericValue: 3 },
+      { effectType: 'hpBonus', numericValue: 4 },
+    ],
+  },
+
+  // --- Mod de blindage exclusif X-01 : Protection IEM ---
+  {
+    name: 'Protection IEM', slot: 'blindage', applicableTo: 'powerArmor',
+    nameAddKey: 'mods.powerArmor.blindage.protectionIem.nameAdd',
+    weightChange: 0.5, cost: 20, requiredPerk: 'armorer', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'energyResistance', numericValue: 2 },
+    ],
+  },
+];
+
+// All mods combined
+export const ALL_MODS: ModEntry[] = [
+  ...SMALL_GUNS_MODS,
+  ...ENERGY_WEAPONS_MODS,
+  ...BIG_GUNS_MODS,
+  ...MELEE_WEAPONS_MODS,
+  ...ARMOR_MODS,
+  ...CLOTHING_MODS,
+  ...POWER_ARMOR_MODS,
+  ...T45_IMPROVEMENT_MODS,
+  ...T51_IMPROVEMENT_MODS,
+  ...T60_IMPROVEMENT_MODS,
+  ...X01_IMPROVEMENT_MODS,
+];
