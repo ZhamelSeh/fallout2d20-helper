@@ -12,6 +12,8 @@ import {
   characterExerciseBonuses,
   characterConditions,
   characterInventory,
+  characterDr,
+  characterTraits,
   items,
   armors,
   powerArmors,
@@ -20,6 +22,7 @@ import {
   inventoryItemMods,
   itemCompatibleMods,
   mods,
+  bestiaryAttributes,
 } from '../db/schema/index';
 
 const router = Router();
@@ -195,7 +198,7 @@ async function getFullCharacter(characterId: number) {
   const [character] = await db.select().from(characters).where(eq(characters.id, characterId));
   if (!character) return null;
 
-  const [special, skills, tagSkills, survivorTraits, perks, giftedBonuses, exerciseBonuses, conditions] =
+  const [special, skills, tagSkills, survivorTraits, perks, giftedBonuses, exerciseBonuses, conditions, drRows, traitRows] =
     await Promise.all([
       db.select().from(characterSpecial).where(eq(characterSpecial.characterId, characterId)),
       db.select().from(characterSkills).where(eq(characterSkills.characterId, characterId)),
@@ -205,9 +208,21 @@ async function getFullCharacter(characterId: number) {
       db.select().from(characterGiftedBonuses).where(eq(characterGiftedBonuses.characterId, characterId)),
       db.select().from(characterExerciseBonuses).where(eq(characterExerciseBonuses.characterId, characterId)),
       db.select().from(characterConditions).where(eq(characterConditions.characterId, characterId)),
+      db.select().from(characterDr).where(eq(characterDr.characterId, characterId)),
+      db.select().from(characterTraits).where(eq(characterTraits.characterId, characterId)),
     ]);
 
   const inventory = await getCharacterInventory(characterId);
+
+  // Fetch creature attributes from bestiary if applicable
+  let creatureAttributes: Record<string, number> | undefined;
+  if (character.statBlockType === 'creature' && character.bestiaryEntryId) {
+    const attrRows = await db
+      .select({ attribute: bestiaryAttributes.attribute, value: bestiaryAttributes.value })
+      .from(bestiaryAttributes)
+      .where(eq(bestiaryAttributes.bestiaryEntryId, character.bestiaryEntryId));
+    creatureAttributes = Object.fromEntries(attrRows.map((a) => [a.attribute, a.value]));
+  }
 
   return {
     ...character,
@@ -221,6 +236,21 @@ async function getFullCharacter(characterId: number) {
     conditions: conditions.map((c) => c.condition),
     inventory,
     radiationDamage: character.radiationDamage ?? 0,
+    creatureAttributes,
+    dr: drRows.map((d) => ({
+      location: d.location,
+      drPhysical: d.drPhysical,
+      drEnergy: d.drEnergy,
+      drRadiation: d.drRadiation,
+      drPoison: d.drPoison,
+    })),
+    traits: traitRows.map((t) => ({
+      id: t.id,
+      name: t.name,
+      description: t.description,
+      nameKey: t.nameKey,
+      descriptionKey: t.descriptionKey,
+    })),
   };
 }
 
@@ -292,6 +322,7 @@ router.post('/', async (req, res) => {
         currentLuckPoints: data.currentLuckPoints ?? data.maxLuckPoints,
         caps: data.caps ?? 0,
         radiationDamage: data.radiationDamage ?? 0,
+        statBlockType: data.statBlockType ?? 'normal',
       })
       .returning();
 
@@ -389,6 +420,33 @@ router.post('/', async (req, res) => {
       );
     }
 
+    // Insert fixed DR entries
+    if (data.dr && data.dr.length > 0) {
+      await db.insert(characterDr).values(
+        data.dr.map((d: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }) => ({
+          characterId,
+          location: d.location,
+          drPhysical: d.drPhysical,
+          drEnergy: d.drEnergy,
+          drRadiation: d.drRadiation,
+          drPoison: d.drPoison,
+        }))
+      );
+    }
+
+    // Insert character traits
+    if (data.traits && data.traits.length > 0) {
+      await db.insert(characterTraits).values(
+        data.traits.map((t: { name: string; description: string; nameKey?: string; descriptionKey?: string }) => ({
+          characterId,
+          name: t.name,
+          description: t.description,
+          nameKey: t.nameKey ?? null,
+          descriptionKey: t.descriptionKey ?? null,
+        }))
+      );
+    }
+
     // Return full character
     const fullCharacter = await getFullCharacter(characterId);
     res.status(201).json(fullCharacter);
@@ -429,6 +487,7 @@ router.put('/:id', async (req, res) => {
         currentLuckPoints: data.currentLuckPoints,
         caps: data.caps,
         radiationDamage: data.radiationDamage,
+        statBlockType: data.statBlockType,
         updatedAt: new Date(),
       })
       .where(eq(characters.id, id));
@@ -558,6 +617,39 @@ router.put('/:id', async (req, res) => {
       }
     }
 
+    // Update fixed DR (delete + re-insert)
+    if (data.dr !== undefined) {
+      await db.delete(characterDr).where(eq(characterDr.characterId, id));
+      if (data.dr.length > 0) {
+        await db.insert(characterDr).values(
+          data.dr.map((d: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }) => ({
+            characterId: id,
+            location: d.location,
+            drPhysical: d.drPhysical,
+            drEnergy: d.drEnergy,
+            drRadiation: d.drRadiation,
+            drPoison: d.drPoison,
+          }))
+        );
+      }
+    }
+
+    // Update character traits (delete + re-insert)
+    if (data.traits !== undefined) {
+      await db.delete(characterTraits).where(eq(characterTraits.characterId, id));
+      if (data.traits.length > 0) {
+        await db.insert(characterTraits).values(
+          data.traits.map((t: { name: string; description: string; nameKey?: string; descriptionKey?: string }) => ({
+            characterId: id,
+            name: t.name,
+            description: t.description,
+            nameKey: t.nameKey ?? null,
+            descriptionKey: t.descriptionKey ?? null,
+          }))
+        );
+      }
+    }
+
     // Return updated character
     const fullCharacter = await getFullCharacter(id);
     res.json(fullCharacter);
@@ -618,6 +710,7 @@ router.post('/:id/duplicate', async (req, res) => {
         maxLuckPoints: character.maxLuckPoints,
         currentLuckPoints: character.currentLuckPoints,
         caps: character.caps,
+        statBlockType: character.statBlockType,
       })
       .returning();
 
@@ -705,6 +798,33 @@ router.post('/:id/duplicate', async (req, res) => {
           quantity: inv.quantity,
           equipped: inv.equipped,
           equippedLocation: inv.equippedLocation as any,
+        }))
+      );
+    }
+
+    // Copy fixed DR
+    if (character.dr && character.dr.length > 0) {
+      await db.insert(characterDr).values(
+        character.dr.map((d) => ({
+          characterId: newId,
+          location: d.location,
+          drPhysical: d.drPhysical,
+          drEnergy: d.drEnergy,
+          drRadiation: d.drRadiation,
+          drPoison: d.drPoison,
+        }))
+      );
+    }
+
+    // Copy character traits
+    if (character.traits && character.traits.length > 0) {
+      await db.insert(characterTraits).values(
+        character.traits.map((t) => ({
+          characterId: newId,
+          name: t.name,
+          description: t.description,
+          nameKey: t.nameKey ?? null,
+          descriptionKey: t.descriptionKey ?? null,
         }))
       );
     }

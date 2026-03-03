@@ -167,6 +167,11 @@ export function CharacterForm({
   const [originOptionTagSkill, setOriginOptionTagSkill] = useState<SkillName | null>(null);
   const [notes, setNotes] = useState('');
 
+  // NPC-specific: stat block type, fixed DR, traits
+  const [statBlockType, setStatBlockType] = useState<'normal' | 'creature'>('normal');
+  const [formDr, setFormDr] = useState<{ location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[]>([]);
+  const [formTraits, setFormTraits] = useState<{ name: string; description: string; nameKey?: string | null; descriptionKey?: string | null }[]>([]);
+
   // Equipment Pack
   const [selectedPackId, setSelectedPackId] = useState<string | null>(null);
   // Equipment choices: key = "packId-index", value = selected option index
@@ -422,6 +427,16 @@ export function CharacterForm({
       });
     }
 
+    // Conditional: NPC DR & Traits
+    if (type === 'NPC') {
+      steps.push({
+        id: 'npcDrTraits',
+        labelKey: 'characters.drAndTraits',
+        badge: formDr.length > 0 || formTraits.length > 0 ? `${formDr.length > 0 ? 'DR' : ''}${formDr.length > 0 && formTraits.length > 0 ? '+' : ''}${formTraits.length > 0 ? formTraits.length : ''}` : undefined,
+        badgeColor: 'default' as const,
+      });
+    }
+
     steps.push({
       id: 'notes',
       labelKey: 'characters.notes',
@@ -429,7 +444,7 @@ export function CharacterForm({
     });
 
     return steps;
-  }, [name, type, origin, survivorTraits.length, specialPointsRemaining, skillPointsRemaining, perks.length, currentPerkChoices, maxPerkChoices, isCreateMode, selectedPack]);
+  }, [name, type, origin, survivorTraits.length, specialPointsRemaining, skillPointsRemaining, perks.length, currentPerkChoices, maxPerkChoices, isCreateMode, selectedPack, formDr.length, formTraits.length]);
 
   // Clamp currentStep when steps change
   useEffect(() => {
@@ -489,6 +504,9 @@ export function CharacterForm({
         setOriginOptionTagSkill(detectedOption ?? null);
         setPerks(character.perks);
         setNotes(character.notes);
+        setStatBlockType(character.statBlockType ?? 'normal');
+        setFormDr(character.dr ?? []);
+        setFormTraits(character.traits?.map(t => ({ name: t.name, description: t.description, nameKey: t.nameKey, descriptionKey: t.descriptionKey })) ?? []);
         setSelectedPackId(null);
         setEquipmentChoices({});
       } else {
@@ -523,6 +541,9 @@ export function CharacterForm({
         setTagSkills([]);
         setPerks([]);
         setNotes('');
+        setStatBlockType('normal');
+        setFormDr([]);
+        setFormTraits([]);
       }
     }
   }, [isOpen, character, defaultType]);
@@ -860,6 +881,9 @@ export function CharacterForm({
       notes,
       inventory: isEditMode ? character?.inventory : inventory,
       caps: startingCaps,
+      statBlockType: type === 'NPC' ? statBlockType : 'normal',
+      dr: type === 'NPC' ? formDr : [],
+      traits: type === 'NPC' ? formTraits.filter(t => t.name.trim()) : [],
     };
 
     onSave(characterData);
@@ -947,6 +971,22 @@ export function CharacterForm({
               className="w-full px-3 py-3 bg-gray-800 border border-vault-yellow-dark rounded text-white text-base"
             />
           </div>
+
+          {type === 'NPC' && (
+            <div>
+              <label className="block text-sm text-gray-400 mb-1">
+                {t('characters.statBlockType')}
+              </label>
+              <select
+                value={statBlockType}
+                onChange={(e) => setStatBlockType(e.target.value as 'normal' | 'creature')}
+                className="w-full px-3 py-3 bg-gray-800 border border-vault-yellow-dark rounded text-white text-base"
+              >
+                <option value="normal">{t('characters.statBlockTypes.normal')}</option>
+                <option value="creature">{t('characters.statBlockTypes.creature')}</option>
+              </select>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -1745,6 +1785,177 @@ export function CharacterForm({
               </p>
             </div>
           )}
+        </div>
+      );
+    }
+
+    // Step: NPC DR & Traits (conditional)
+    if (type === 'NPC') {
+      const ALL_LOCATIONS = ['head', 'torso', 'armLeft', 'armRight', 'legLeft', 'legRight'] as const;
+      const DR_TYPES = ['drPhysical', 'drEnergy', 'drRadiation', 'drPoison'] as const;
+
+      const initializeDr = () => {
+        if (formDr.length === 0) {
+          setFormDr(ALL_LOCATIONS.map(loc => ({
+            location: loc,
+            drPhysical: 0,
+            drEnergy: 0,
+            drRadiation: 0,
+            drPoison: 0,
+          })));
+        }
+      };
+
+      const updateDrValue = (location: string, field: string, value: number) => {
+        setFormDr(prev => prev.map(d =>
+          d.location === location ? { ...d, [field]: value } : d
+        ));
+      };
+
+      const toggleImmune = (location: string, field: string) => {
+        setFormDr(prev => prev.map(d => {
+          if (d.location !== location) return d;
+          const currentVal = (d as any)[field] as number;
+          return { ...d, [field]: currentVal === -1 ? 0 : -1 };
+        }));
+      };
+
+      const addTrait = () => {
+        setFormTraits(prev => [...prev, { name: '', description: '' }]);
+      };
+
+      const removeTrait = (index: number) => {
+        setFormTraits(prev => prev.filter((_, i) => i !== index));
+      };
+
+      const updateTrait = (index: number, field: 'name' | 'description', value: string) => {
+        setFormTraits(prev => prev.map((t, i) => i === index ? { ...t, [field]: value } : t));
+      };
+
+      panels.push(
+        <div key="npcDrTraits" className="space-y-6">
+          {/* DR Section */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-vault-yellow uppercase">{t('characters.drEditor')}</h3>
+              {formDr.length === 0 && (
+                <button
+                  type="button"
+                  onClick={initializeDr}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-vault-blue text-vault-yellow border border-vault-yellow-dark rounded text-sm hover:bg-vault-blue/80 cursor-pointer"
+                >
+                  <Plus size={14} />
+                  {t('common.add')}
+                </button>
+              )}
+            </div>
+
+            {formDr.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-700">
+                      <th className="text-left text-gray-400 py-1 px-2">{t('bodyResistance.title')}</th>
+                      {DR_TYPES.map(dt => (
+                        <th key={dt} className="text-center text-gray-400 py-1 px-1 text-xs">{t(`bodyResistance.${dt}`)}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {formDr.map(row => (
+                      <tr key={row.location} className="border-b border-gray-800">
+                        <td className="py-1.5 px-2 text-vault-yellow font-bold text-xs">{t(`bodyLocations.${row.location}`)}</td>
+                        {DR_TYPES.map(dt => {
+                          const val = (row as any)[dt] as number;
+                          const isImmune = val === -1;
+                          return (
+                            <td key={dt} className="py-1.5 px-1 text-center">
+                              <div className="flex flex-col items-center gap-0.5">
+                                <input
+                                  type="number"
+                                  value={isImmune ? '' : val}
+                                  onChange={(e) => updateDrValue(row.location, dt, parseInt(e.target.value) || 0)}
+                                  disabled={isImmune}
+                                  min={0}
+                                  inputMode="numeric"
+                                  className="w-12 px-1 py-1 bg-gray-800 border border-gray-700 rounded text-white text-center text-xs disabled:opacity-40"
+                                />
+                                <label className="flex items-center gap-0.5 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={isImmune}
+                                    onChange={() => toggleImmune(row.location, dt)}
+                                    className="w-3 h-3 accent-purple-500"
+                                  />
+                                  <span className="text-[10px] text-purple-400">{t('characters.immune')}</span>
+                                </label>
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <button
+                  type="button"
+                  onClick={() => setFormDr([])}
+                  className="mt-2 text-xs text-red-400 hover:text-red-300 cursor-pointer"
+                >
+                  {t('common.clear')}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Traits Section */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-bold text-vault-yellow uppercase">{t('characters.traits')}</h3>
+              <button
+                type="button"
+                onClick={addTrait}
+                className="flex items-center gap-1 px-3 py-1.5 bg-vault-blue text-vault-yellow border border-vault-yellow-dark rounded text-sm hover:bg-vault-blue/80 cursor-pointer"
+              >
+                <Plus size={14} />
+                {t('characters.addTrait')}
+              </button>
+            </div>
+
+            {formTraits.length === 0 && (
+              <p className="text-gray-500 text-sm italic">{t('characters.noTraits')}</p>
+            )}
+
+            <div className="space-y-3">
+              {formTraits.map((trait, idx) => (
+                <div key={idx} className="p-3 bg-gray-800 rounded border border-gray-700 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={trait.name}
+                      onChange={(e) => updateTrait(idx, 'name', e.target.value)}
+                      placeholder={t('characters.traitName')}
+                      className="flex-1 px-2 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeTrait(idx)}
+                      className="p-1.5 text-red-400 hover:bg-red-900/30 rounded cursor-pointer"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <textarea
+                    value={trait.description}
+                    onChange={(e) => updateTrait(idx, 'description', e.target.value)}
+                    placeholder={t('characters.traitDescription')}
+                    rows={2}
+                    className="w-full px-2 py-2 bg-gray-700 border border-gray-600 rounded text-white text-sm resize-none"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       );
     }

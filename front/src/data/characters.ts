@@ -331,6 +331,21 @@ export interface Character {
   // Notes
   notes: string;
 
+  // Stat block type (normal or creature)
+  statBlockType?: 'normal' | 'creature';
+
+  // Bestiary entry ID (for creatures instantiated from bestiary)
+  bestiaryEntryId?: number | null;
+
+  // Creature attributes (body/mind) from bestiary
+  creatureAttributes?: Record<string, number>;
+
+  // Fixed DR for NPCs
+  dr?: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[];
+
+  // Custom traits/abilities
+  traits?: { id?: number; name: string; description: string; nameKey?: string | null; descriptionKey?: string | null }[];
+
   // Timestamps
   createdAt: number;
   updatedAt: number;

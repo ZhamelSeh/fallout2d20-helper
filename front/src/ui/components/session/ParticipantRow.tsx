@@ -6,6 +6,12 @@ import { HPBar } from '../character/HPBar';
 import { OriginIcon } from '../character/OriginIcon';
 import { ItemDetailModal } from '../../../components/ItemDetailModal';
 import { SKILL_ATTRIBUTES } from '../../../domain/rules/skillRules';
+import { SPECIAL_COLORS } from '../../../data/specialColors';
+
+const CREATURE_ATTR_COLORS: Record<string, string> = {
+  body: 'var(--color-special-strength)',
+  mind: 'var(--color-special-intelligence)',
+};
 
 interface ParticipantRowProps {
   participant: SessionParticipantApi;
@@ -44,6 +50,7 @@ export function ParticipantRow({
   const [selectedWeaponId, setSelectedWeaponId] = useState<number | null>(null);
 
   const { character, combatStatus, turnOrder } = participant;
+  const isCreature = character.statBlockType === 'creature';
 
   const statusIcons: Record<CombatantStatus, React.ElementType | null> = {
     active: null,
@@ -105,7 +112,9 @@ export function ParticipantRow({
 
         {/* Name and type */}
         <div className="flex-1 min-w-0">
-          <h4 className="text-vault-yellow font-bold truncate">{character.name}</h4>
+          <h4 className="text-vault-yellow font-bold truncate">
+            {(() => { const tr = t(character.name); return tr !== character.name ? tr : character.name; })()}
+          </h4>
           <div className="flex items-center gap-2 text-xs text-gray-400">
             <span>{character.type === 'pc' ? t('characters.pc') : t('characters.npc')}</span>
             <span>Nv. {character.level}</span>
@@ -117,15 +126,32 @@ export function ParticipantRow({
           </div>
         </div>
 
-        {/* SPECIAL mini summary */}
-        <div className="hidden md:flex gap-1">
-          {specialLetters.map((letter, i) => (
-            <div key={letter} className="text-center w-5">
-              <span className="text-[10px] text-vault-yellow-dark block">{letter}</span>
-              <span className="text-xs text-white font-mono">{character.special?.[specialKeys[i]] ?? 5}</span>
-            </div>
-          ))}
-        </div>
+        {/* Attributes mini summary */}
+        {isCreature && character.creatureAttributes ? (
+          <div className="hidden md:flex gap-2">
+            {Object.entries(character.creatureAttributes).map(([key, val]) => {
+              const color = CREATURE_ATTR_COLORS[key] ?? '#4DBDB8';
+              return (
+                <div key={key} className="text-center" style={{ borderBottom: `2px solid ${color}` }}>
+                  <span className="text-[10px] font-bold block" style={{ color }}>{t(`bestiary.creatureAttributes.${key}`)}</span>
+                  <span className="text-xs text-white font-mono font-bold">{val}</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="hidden md:flex gap-1">
+            {specialLetters.map((letter, i) => {
+              const color = SPECIAL_COLORS[specialKeys[i]];
+              return (
+                <div key={letter} className="text-center w-5" style={{ borderBottom: `2px solid ${color}` }}>
+                  <span className="text-[10px] font-bold block" style={{ color }}>{letter}</span>
+                  <span className="text-xs text-white font-mono">{character.special?.[specialKeys[i]] ?? 5}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* HP Bar */}
         <div className="w-28">

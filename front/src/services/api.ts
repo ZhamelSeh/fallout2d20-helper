@@ -414,6 +414,22 @@ export interface InventoryItemApi {
   compatibleModItemIds?: number[];
 }
 
+export interface CharacterDrApi {
+  location: string;
+  drPhysical: number;
+  drEnergy: number;
+  drRadiation: number;
+  drPoison: number;
+}
+
+export interface CharacterTraitApi {
+  id: number;
+  name: string;
+  description: string;
+  nameKey?: string | null;
+  descriptionKey?: string | null;
+}
+
 export interface CharacterApi {
   id: number;
   name: string;
@@ -431,6 +447,9 @@ export interface CharacterApi {
   currentLuckPoints: number;
   caps: number;
   radiationDamage: number;
+  statBlockType: 'normal' | 'creature';
+  bestiaryEntryId?: number | null;
+  creatureAttributes?: Record<string, number>;
   createdAt: string;
   updatedAt: string;
   // Relations
@@ -443,6 +462,8 @@ export interface CharacterApi {
   exerciseBonuses: string[];
   conditions: string[];
   inventory: InventoryItemApi[];
+  dr: CharacterDrApi[];
+  traits: CharacterTraitApi[];
 }
 
 export interface CreateCharacterData {
@@ -461,6 +482,7 @@ export interface CreateCharacterData {
   currentLuckPoints?: number;
   caps?: number;
   radiationDamage?: number;
+  statBlockType?: 'normal' | 'creature';
   special: Record<string, number>;
   skills?: Record<string, number>;
   tagSkills?: string[];
@@ -469,6 +491,8 @@ export interface CreateCharacterData {
   giftedBonusAttributes?: string[];
   exerciseBonuses?: string[];
   inventory?: { itemId: number; quantity?: number; equipped?: boolean; equippedLocation?: string }[];
+  dr?: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[];
+  traits?: { name: string; description: string; nameKey?: string; descriptionKey?: string }[];
 }
 
 export interface AddInventoryData {
@@ -717,10 +741,12 @@ export interface SessionParticipantCharacter {
   radiationDamage: number;
   maxLuckPoints: number;
   currentLuckPoints: number;
+  statBlockType?: 'normal' | 'creature';
   special: Record<string, number>;
   skills: Record<string, number>;
   conditions: string[];
   equippedWeapons: SessionEquippedWeapon[];
+  creatureAttributes?: Record<string, number>;
 }
 
 export interface SessionParticipantApi {

@@ -527,6 +527,19 @@ export default {
     originTrait: 'Origin Trait',
     activeSurvivorTraits: 'Active Survivor Traits',
     noPerks: 'No perks selected.',
+    traits: 'Traits',
+    addTrait: 'Add a trait',
+    traitName: 'Trait name',
+    traitDescription: 'Trait description',
+    noTraits: 'No traits.',
+    statBlockType: 'Stat block type',
+    statBlockTypes: {
+      normal: 'Normal',
+      creature: 'Creature',
+    },
+    drEditor: 'Damage Resistance (DR)',
+    drAndTraits: 'DR & Traits',
+    immune: 'Imm.',
     addGiftedBonus: 'Add Gifted bonus (+1)',
     removeGiftedBonus: 'Remove Gifted bonus',
     giftedBonusDesc: 'Gifted trait: choose {{count}}/{{max}} attributes for +1 bonus.',
@@ -727,6 +740,7 @@ export default {
     drPoison: 'DR Poi.',
     hp: 'HP',
     damaged: 'Damaged',
+    immune: 'Imm.',
   },
 
   armorSets: {
@@ -949,6 +963,9 @@ export default {
     noNotes: 'No notes',
     tabStats: 'Stats',
     tabEquipment: 'Equipment',
+    attacks: 'Attacks',
+    creatureAttributes: 'Attributes',
+    creatureSkills: 'Skills',
   },
 
   sessions: {

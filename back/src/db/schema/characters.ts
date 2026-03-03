@@ -7,7 +7,8 @@ import {
   survivorTraitIdEnum,
   characterTypeEnum,
   conditionEnum,
-  bodyLocationEnum
+  bodyLocationEnum,
+  statBlockTypeEnum,
 } from './enums';
 import { items } from './items';
 
@@ -101,6 +102,8 @@ export const characters = pgTable('characters', {
   caps: integer('caps').notNull().default(0),
   // Radiation damage (reduces effective max HP)
   radiationDamage: integer('radiation_damage').notNull().default(0),
+  // Stat block type: 'normal' (default) or 'creature'
+  statBlockType: statBlockTypeEnum('stat_block_type').default('normal').notNull(),
   // Bestiary reference (for NPCs instantiated from bestiary)
   bestiaryEntryId: integer('bestiary_entry_id'),
   // Timestamps
@@ -180,6 +183,27 @@ export const characterInventory = pgTable('character_inventory', {
   currentHp: integer('current_hp'),
 });
 
+// ===== CHARACTER DR (fixed DR for NPCs) =====
+export const characterDr = pgTable('character_dr', {
+  id: serial('id').primaryKey(),
+  characterId: integer('character_id').references(() => characters.id, { onDelete: 'cascade' }).notNull(),
+  location: varchar('location', { length: 20 }).notNull(),
+  drPhysical: integer('dr_physical').notNull().default(0),
+  drEnergy: integer('dr_energy').notNull().default(0),
+  drRadiation: integer('dr_radiation').notNull().default(0),
+  drPoison: integer('dr_poison').notNull().default(0),
+});
+
+// ===== CHARACTER TRAITS (custom abilities/traits) =====
+export const characterTraits = pgTable('character_traits', {
+  id: serial('id').primaryKey(),
+  characterId: integer('character_id').references(() => characters.id, { onDelete: 'cascade' }).notNull(),
+  name: varchar('name', { length: 200 }).notNull(),
+  description: text('description').notNull(),
+  nameKey: varchar('name_key', { length: 200 }),
+  descriptionKey: varchar('description_key', { length: 200 }),
+});
+
 // ===== RELATIONS =====
 
 export const charactersRelations = relations(characters, ({ one, many }) => ({
@@ -196,6 +220,8 @@ export const charactersRelations = relations(characters, ({ one, many }) => ({
   exerciseBonuses: many(characterExerciseBonuses),
   conditions: many(characterConditions),
   inventory: many(characterInventory),
+  dr: many(characterDr),
+  traits: many(characterTraits),
 }));
 
 export const characterSpecialRelations = relations(characterSpecial, ({ one }) => ({
@@ -262,5 +288,19 @@ export const characterInventoryRelations = relations(characterInventory, ({ one 
   item: one(items, {
     fields: [characterInventory.itemId],
     references: [items.id],
+  }),
+}));
+
+export const characterDrRelations = relations(characterDr, ({ one }) => ({
+  character: one(characters, {
+    fields: [characterDr.characterId],
+    references: [characters.id],
+  }),
+}));
+
+export const characterTraitsRelations = relations(characterTraits, ({ one }) => ({
+  character: one(characters, {
+    fields: [characterTraits.characterId],
+    references: [characters.id],
   }),
 }));

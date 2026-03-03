@@ -16,10 +16,70 @@ import {
   characterSkills,
   characterTagSkills,
   characterInventory,
+  characterDr,
+  characterTraits,
   sessionParticipants,
 } from '../db/schema/index';
 
 const router = Router();
+
+const ALL_BODY_LOCATIONS = ['head', 'torso', 'armLeft', 'armRight', 'legLeft', 'legRight'] as const;
+
+// Helper: copy bestiary DR to character DR, expanding 'all' → 6 locations
+async function copyBestiaryDrToCharacter(
+  characterId: number,
+  drEntries: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[]
+) {
+  if (drEntries.length === 0) return;
+
+  const rows: { characterId: number; location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[] = [];
+
+  for (const dr of drEntries) {
+    if (dr.location === 'all') {
+      for (const loc of ALL_BODY_LOCATIONS) {
+        rows.push({
+          characterId,
+          location: loc,
+          drPhysical: dr.drPhysical,
+          drEnergy: dr.drEnergy,
+          drRadiation: dr.drRadiation,
+          drPoison: dr.drPoison,
+        });
+      }
+    } else {
+      rows.push({
+        characterId,
+        location: dr.location,
+        drPhysical: dr.drPhysical,
+        drEnergy: dr.drEnergy,
+        drRadiation: dr.drRadiation,
+        drPoison: dr.drPoison,
+      });
+    }
+  }
+
+  if (rows.length > 0) {
+    await db.insert(characterDr).values(rows);
+  }
+}
+
+// Helper: copy bestiary abilities → character traits
+async function copyBestiaryAbilitiesToTraits(
+  characterId: number,
+  abilities: { nameKey: string; descriptionKey: string }[]
+) {
+  if (abilities.length === 0) return;
+
+  await db.insert(characterTraits).values(
+    abilities.map(a => ({
+      characterId,
+      name: a.nameKey,
+      description: a.descriptionKey,
+      nameKey: a.nameKey,
+      descriptionKey: a.descriptionKey,
+    }))
+  );
+}
 
 // Helper to get full bestiary entry details
 async function getFullBestiaryEntry(entryId: number) {
@@ -244,6 +304,7 @@ router.post('/:id/instantiate', async (req, res) => {
         carryCapacity: entry.carryCapacity,
         maxLuckPoints: entry.maxLuckPoints,
         currentLuckPoints: entry.maxLuckPoints,
+        statBlockType: entry.statBlockType,
         bestiaryEntryId: entry.id,
       }).returning();
 
@@ -282,6 +343,12 @@ router.post('/:id/instantiate', async (req, res) => {
         });
       }
 
+      // Copy DR from bestiary
+      await copyBestiaryDrToCharacter(newChar.id, entry.dr);
+
+      // Copy abilities as character traits
+      await copyBestiaryAbilitiesToTraits(newChar.id, entry.abilities);
+
       // Add to session if requested
       if (sessionId) {
         await db.insert(sessionParticipants).values({
@@ -306,6 +373,7 @@ router.post('/:id/instantiate', async (req, res) => {
         carryCapacity: entry.carryCapacity,
         maxLuckPoints: entry.maxLuckPoints,
         currentLuckPoints: entry.maxLuckPoints,
+        statBlockType: entry.statBlockType,
         bestiaryEntryId: entry.id,
       }).returning();
 
@@ -328,6 +396,12 @@ router.post('/:id/instantiate', async (req, res) => {
           equipped: inv.equipped,
         });
       }
+
+      // Copy DR from bestiary
+      await copyBestiaryDrToCharacter(newChar.id, entry.dr);
+
+      // Copy abilities as character traits
+      await copyBestiaryAbilitiesToTraits(newChar.id, entry.abilities);
 
       // Add to session if requested
       if (sessionId) {

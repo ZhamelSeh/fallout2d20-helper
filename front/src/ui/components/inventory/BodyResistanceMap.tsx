@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Minus, Plus, AlertTriangle } from 'lucide-react';
-import type { InventoryItemApi } from '../../../services/api';
+import type { InventoryItemApi, CharacterDrApi } from '../../../services/api';
 
 type BodyLocation = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
 
@@ -23,6 +23,8 @@ interface BodyResistanceMapProps {
   showPoison?: boolean;
   originId?: string;
   onPieceHpChange?: (inventoryId: number, newHp: number) => void;
+  /** Fixed DR for NPCs — when provided, displays these values directly instead of calculating from inventory */
+  fixedDr?: CharacterDrApi[];
 }
 
 // Hit location ranges for reference
@@ -35,11 +37,12 @@ const HIT_LOCATIONS: Record<BodyLocation, string> = {
   legRight: '18-20',
 };
 
-export function BodyResistanceMap({ inventory, showPoison = false, originId, onPieceHpChange }: BodyResistanceMapProps) {
+export function BodyResistanceMap({ inventory, showPoison = false, originId, onPieceHpChange, fixedDr }: BodyResistanceMapProps) {
   const { t } = useTranslation();
   const isMisterHandy = originId === 'misterHandy';
+  const isFixedDr = fixedDr && fixedDr.length > 0;
 
-  // Calculate DR for each body location based on equipped items
+  // Calculate DR for each body location based on equipped items (or use fixedDr for NPCs)
   const locationDR = useMemo(() => {
     const dr: Record<BodyLocation, LocationDR> = {
       head: { physical: 0, energy: 0, radiation: 0, poison: 0 },
@@ -49,6 +52,20 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
       legLeft: { physical: 0, energy: 0, radiation: 0, poison: 0 },
       legRight: { physical: 0, energy: 0, radiation: 0, poison: 0 },
     };
+
+    // If fixedDr is provided (NPC), use those values directly
+    if (fixedDr && fixedDr.length > 0) {
+      for (const fd of fixedDr) {
+        if (fd.location in dr) {
+          const loc = fd.location as BodyLocation;
+          dr[loc].physical = fd.drPhysical;
+          dr[loc].energy = fd.drEnergy;
+          dr[loc].radiation = fd.drRadiation;
+          dr[loc].poison = fd.drPoison;
+        }
+      }
+      return dr;
+    }
 
     // Process equipped items
     for (const inv of inventory) {
@@ -130,7 +147,7 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
     }
 
     return dr;
-  }, [inventory]);
+  }, [inventory, fixedDr]);
 
   // Handle HP change for power armor pieces
   const handleHpChange = (inventoryId: number, currentHp: number, maxHp: number, delta: number) => {
@@ -146,12 +163,25 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
     return t(`bodyLocations.${location}`);
   };
 
+  // Format a DR value — handle -1 as "Imm." (immune)
+  const formatDrValue = (value: number): string => {
+    if (value === -1) return t('bodyResistance.immune', 'Imm.');
+    return String(value);
+  };
+
+  const getDrColor = (value: number, normalColor: string): string => {
+    if (value === -1) return 'text-purple-400';
+    if (value > 0) return normalColor;
+    return 'text-gray-600';
+  };
+
   // Render a single location box
   const LocationBox = ({ location }: { location: BodyLocation }) => {
     const data = locationDR[location];
-    const hasValues = data.physical > 0 || data.energy > 0 || data.radiation > 0;
-    const hasPowerArmor = data.paMaxHp !== undefined;
-    const isDamaged = data.paDamaged;
+    const hasValues = data.physical > 0 || data.physical === -1 || data.energy > 0 || data.energy === -1 || data.radiation > 0 || data.radiation === -1;
+    const hasPowerArmor = !isFixedDr && data.paMaxHp !== undefined;
+    const isDamaged = !isFixedDr && data.paDamaged;
+    const showPoisonCell = isFixedDr || showPoison;
 
     return (
       <div className={`bg-vault-gray border rounded-lg overflow-hidden ${
@@ -173,28 +203,25 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
           <div className="flex justify-between">
             <span className="text-gray-400">{t('bodyResistance.drPhysical')}</span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' :
-              data.physical > 0 ? 'text-vault-yellow' : 'text-gray-600'
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.physical, 'text-vault-yellow')
             }`}>
-              {data.physical}
+              {formatDrValue(data.physical)}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">{t('bodyResistance.drRadiation')}</span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' :
-              data.radiation > 0 ? 'text-yellow-400' : 'text-gray-600'
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.radiation, 'text-yellow-400')
             }`}>
-              {data.radiation}
+              {formatDrValue(data.radiation)}
             </span>
           </div>
           <div className="flex justify-between">
             <span className="text-gray-400">{t('bodyResistance.drEnergy')}</span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' :
-              data.energy > 0 ? 'text-blue-400' : 'text-gray-600'
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.energy, 'text-blue-400')
             }`}>
-              {data.energy}
+              {formatDrValue(data.energy)}
             </span>
           </div>
 
@@ -209,11 +236,11 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
                 {data.paCurrentHp ?? data.paMaxHp}/{data.paMaxHp}
               </span>
             </div>
-          ) : showPoison ? (
+          ) : showPoisonCell ? (
             <div className="flex justify-between">
               <span className="text-gray-400">{t('bodyResistance.drPoison')}</span>
-              <span className={`font-mono font-bold ${data.poison > 0 ? 'text-green-400' : 'text-gray-600'}`}>
-                {data.poison}
+              <span className={`font-mono font-bold ${getDrColor(data.poison, 'text-green-400')}`}>
+                {formatDrValue(data.poison)}
               </span>
             </div>
           ) : (

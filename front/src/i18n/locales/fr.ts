@@ -526,6 +526,19 @@ export default {
     originTrait: 'Trait d\'origine',
     activeSurvivorTraits: 'Traits de Survivant actifs',
     noPerks: 'Aucune aptitude sélectionnée.',
+    traits: 'Traits',
+    addTrait: 'Ajouter un trait',
+    traitName: 'Nom du trait',
+    traitDescription: 'Description du trait',
+    noTraits: 'Aucun trait.',
+    statBlockType: 'Type de bloc de stats',
+    statBlockTypes: {
+      normal: 'Normal',
+      creature: 'Créature',
+    },
+    drEditor: 'Résistances aux dégâts (DR)',
+    drAndTraits: 'DR & Traits',
+    immune: 'Imm.',
     addGiftedBonus: 'Ajouter le bonus Doué (+1)',
     removeGiftedBonus: 'Retirer le bonus Doué',
     giftedBonusDesc: 'Trait Doué: choisissez {{count}}/{{max}} attributs pour le bonus +1.',
@@ -726,6 +739,7 @@ export default {
     drPoison: 'RD poi.',
     hp: 'PV',
     damaged: 'Endommagé',
+    immune: 'Imm.',
   },
 
   armorSets: {
@@ -948,6 +962,9 @@ export default {
     noNotes: 'Aucune note',
     tabStats: 'Stats',
     tabEquipment: 'Équipement',
+    attacks: 'Attaques',
+    creatureAttributes: 'Attributs',
+    creatureSkills: 'Compétences',
   },
 
   sessions: {

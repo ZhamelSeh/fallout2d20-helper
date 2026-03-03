@@ -49,6 +49,11 @@ function apiToFrontend(apiChar: CharacterApi): Character {
     inventory: apiChar.inventory ?? [],
     perks: apiChar.perks,
     notes: '',
+    statBlockType: apiChar.statBlockType ?? 'normal',
+    bestiaryEntryId: apiChar.bestiaryEntryId ?? null,
+    creatureAttributes: apiChar.creatureAttributes,
+    dr: apiChar.dr ?? [],
+    traits: apiChar.traits ?? [],
     createdAt: new Date(apiChar.createdAt).getTime(),
     updatedAt: new Date(apiChar.updatedAt).getTime(),
   };
@@ -83,6 +88,14 @@ function frontendToApi(char: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>):
       quantity: inv.quantity,
       equipped: inv.equipped,
       equippedLocation: inv.equippedLocation,
+    })),
+    statBlockType: char.statBlockType,
+    dr: char.dr,
+    traits: char.traits?.map(t => ({
+      name: t.name,
+      description: t.description,
+      nameKey: t.nameKey ?? undefined,
+      descriptionKey: t.descriptionKey ?? undefined,
     })),
   };
 }

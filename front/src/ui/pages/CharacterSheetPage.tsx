@@ -8,7 +8,13 @@ import type { Character } from '../../data/characters';
 import { SPECIAL_ATTRIBUTES, SKILL_NAMES, SKILL_ATTRIBUTES, ORIGINS, SURVIVOR_TRAITS } from '../../data/characters';
 import { SPECIAL_COLORS } from '../../data/specialColors';
 import { PERKS } from '../../data/perks';
-import type { InventoryItemApi } from '../../services/api';
+import type { InventoryItemApi, BestiaryEntryApi } from '../../services/api';
+import { bestiaryApi } from '../../services/api';
+
+const CREATURE_ATTR_COLORS: Record<string, string> = {
+  body: 'var(--color-special-strength)',
+  mind: 'var(--color-special-intelligence)',
+};
 
 interface LocationState {
   from?: string;
@@ -23,6 +29,7 @@ export function CharacterSheetPage() {
   const { getCharacter, updateCharacter, updateInventoryItem, refetch, characters, loading, error } = useCharactersApi();
 
   const [character, setCharacter] = useState<Character | null>(null);
+  const [bestiaryEntry, setBestiaryEntry] = useState<BestiaryEntryApi | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [activeTab, setActiveTab] = useState(0);
 
@@ -48,6 +55,17 @@ export function CharacterSheetPage() {
       setCharacter(found ?? null);
     }
   }, [id, characters, loading, getCharacter]);
+
+  // Fetch bestiary entry for creature stat blocks
+  useEffect(() => {
+    if (character?.statBlockType === 'creature' && character.bestiaryEntryId) {
+      bestiaryApi.get(character.bestiaryEntryId).then(setBestiaryEntry).catch(() => setBestiaryEntry(null));
+    } else {
+      setBestiaryEntry(null);
+    }
+  }, [character?.statBlockType, character?.bestiaryEntryId]);
+
+  const isCreature = character?.statBlockType === 'creature' && bestiaryEntry != null;
 
   // Get origin data
   const origin = useMemo(() => {
@@ -172,78 +190,170 @@ export function CharacterSheetPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Column 1 */}
                 <div className="space-y-6">
-                  {/* S.P.E.C.I.A.L. */}
-                  <Card title={t('characterSheet.special')}>
-                    <div className="grid grid-cols-7 gap-2 text-center">
-                      {SPECIAL_ATTRIBUTES.map((attr, i) => {
-                        const letter = ['S', 'P', 'E', 'C', 'I', 'A', 'L'][i];
-                        const value = character.special[attr];
-                        const hasGiftedBonus = character.giftedBonusAttributes?.includes(attr);
-                        const exerciseCount = character.exerciseBonuses?.filter(a => a === attr).length ?? 0;
+                  {isCreature ? (
+                    <>
+                      {/* Creature Attributes (Body / Mind) */}
+                      <Card title={t('characterSheet.creatureAttributes')}>
+                        <div className="flex gap-4">
+                          {Object.entries(bestiaryEntry.attributes).map(([key, val]) => {
+                            const color = CREATURE_ATTR_COLORS[key] ?? '#4DBDB8';
+                            return (
+                              <div key={key} className="flex flex-col items-center p-2 bg-gray-800 rounded min-w-[64px]" style={{ borderBottom: `2px solid ${color}` }}>
+                                <span className="text-xs font-bold" style={{ color }}>{t(`bestiary.creatureAttributes.${key}`)}</span>
+                                <span className="text-2xl text-white font-mono font-bold">{val}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
 
-                        return (
-                          <div key={attr} className="flex flex-col items-center p-2 bg-gray-800 rounded" style={{ borderBottom: `2px solid ${SPECIAL_COLORS[attr]}` }}>
-                            <span className="text-xs font-bold" style={{ color: SPECIAL_COLORS[attr] }}>{letter}</span>
-                            <span className="text-2xl text-white font-mono font-bold">{value}</span>
-                            <span className="text-xs text-gray-500">{t(`special.${attr}`)}</span>
-                            <div className="flex gap-0.5 mt-1">
-                              {hasGiftedBonus && <Sparkles size={10} className="text-green-400" />}
-                              {exerciseCount > 0 && <Dumbbell size={10} className="text-blue-400" />}
+                      {/* Derived Stats */}
+                      <Card title={t('characterSheet.derivedStats')}>
+                        <div className="grid grid-cols-2 gap-4">
+                          <StatDisplay icon={Heart} label={t('characters.hp')} value={`${character.currentHp}/${character.maxHp}`} color="var(--color-special-endurance)" />
+                          <StatDisplay icon={Shield} label={t('characters.defense')} value={character.defense} color="var(--color-special-agility)" />
+                          <StatDisplay icon={Zap} label={t('characters.initiative')} value={character.initiative} color="var(--color-special-perception)" />
+                          {character.meleeDamageBonus > 0 && (
+                            <StatDisplay icon={Swords} label={t('characters.meleeDamageBonus')} value={`+${character.meleeDamageBonus} CD`} color="var(--color-special-strength)" />
+                          )}
+                        </div>
+                      </Card>
+
+                      {/* Creature Skills (Melee / Ranged / Other) */}
+                      <Card title={t('characterSheet.creatureSkills')}>
+                        <div className="flex gap-3 flex-wrap">
+                          {bestiaryEntry.skills.map(s => (
+                            <div key={s.skill} className="flex flex-col items-center p-2 bg-gray-800 rounded min-w-[64px]" style={{ borderBottom: '2px solid #E8706A' }}>
+                              <span className="text-xs font-bold" style={{ color: '#E8706A' }}>{t(`bestiary.creatureSkills.${s.skill}`)}</span>
+                              <span className="text-2xl text-white font-mono font-bold">{s.rank}</span>
                             </div>
+                          ))}
+                        </div>
+                      </Card>
+
+                      {/* Attacks */}
+                      {bestiaryEntry.attacks.length > 0 && (
+                        <Card title={t('characterSheet.attacks')}>
+                          <div className="space-y-2">
+                            {bestiaryEntry.attacks.map(attack => {
+                              const attackName = attack.item
+                                ? (attack.item.nameKey ? (t(attack.item.nameKey) !== attack.item.nameKey ? t(attack.item.nameKey) : attack.item.name) : attack.item.name)
+                                : t(attack.nameKey);
+                              const bodyAttr = bestiaryEntry.attributes['body'] ?? 0;
+                              const skillData = bestiaryEntry.skills.find(s => s.skill === attack.skill);
+                              const tn = bodyAttr + (skillData?.rank ?? 0);
+                              const attrLabel = t('bestiary.creatureAttributes.body');
+                              const skillLabel = t(`bestiary.creatureSkills.${attack.skill}`);
+                              const qualitiesParts = attack.qualities.map(q => {
+                                const name = t(`qualities.${q.quality}.name`);
+                                return q.value ? `${name} ${q.value}` : name;
+                              });
+
+                              return (
+                                <div key={attack.id} className="bg-vault-blue/50 rounded p-3">
+                                  <div className="text-sm">
+                                    <span className="text-vault-yellow font-bold uppercase">{attackName}</span>
+                                    <span className="text-gray-400"> : </span>
+                                    <span className="text-white font-bold">{attrLabel}</span>
+                                    <span className="text-gray-400"> + </span>
+                                    <span className="text-white">{skillLabel}</span>
+                                    <span className="text-gray-400"> (</span>
+                                    <span className="text-vault-yellow-dark">{t('bestiary.targetNumber')} {tn}</span>
+                                    <span className="text-gray-400">), </span>
+                                    <span className="text-white">{attack.damage} </span>
+                                    <Dice6 size={12} className="inline text-vault-yellow" />
+                                    <span className="text-gray-400"> {t(`bestiary.damageTypeShort.${attack.damageType}`)}</span>
+                                    {attack.fireRate !== null && attack.fireRate !== undefined && (
+                                      <span className="text-gray-400">, {t('bestiary.fireRateShort')} {attack.fireRate}</span>
+                                    )}
+                                    <span className="text-gray-400">, {t(`ranges.${attack.range}`)}</span>
+                                    {qualitiesParts.length > 0 && (
+                                      <span className="text-gray-400">, {qualitiesParts.join(', ')}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
-                    </div>
-                  </Card>
+                        </Card>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      {/* S.P.E.C.I.A.L. */}
+                      <Card title={t('characterSheet.special')}>
+                        <div className="grid grid-cols-7 gap-2 text-center">
+                          {SPECIAL_ATTRIBUTES.map((attr, i) => {
+                            const letter = ['S', 'P', 'E', 'C', 'I', 'A', 'L'][i];
+                            const value = character.special[attr];
+                            const hasGiftedBonus = character.giftedBonusAttributes?.includes(attr);
+                            const exerciseCount = character.exerciseBonuses?.filter(a => a === attr).length ?? 0;
 
-                  {/* Derived Stats */}
-                  <Card title={t('characterSheet.derivedStats')}>
-                    <div className="grid grid-cols-2 gap-4">
-                      <StatDisplay icon={Heart} label={t('characters.hp')} value={`${character.currentHp}/${character.maxHp}`} color="text-red-400" />
-                      <StatDisplay icon={Shield} label={t('characters.defense')} value={character.defense} color="text-blue-400" />
-                      <StatDisplay icon={Zap} label={t('characters.initiative')} value={character.initiative} color="text-yellow-400" />
-                      <StatDisplay icon={Sparkles} label={t('characters.luckPoints')} value={`${character.currentLuckPoints}/${character.maxLuckPoints}`} color="text-purple-400" />
-                      <StatDisplay icon={Swords} label={t('characters.meleeDamageBonus')} value={`+${character.meleeDamageBonus} CD`} color="text-orange-400" />
-                      <StatDisplay icon={Package} label={t('characters.carryCapacity')} value={`${character.carryCapacity} ${t('common.labels.lbs')}`} color="text-gray-400" />
-                    </div>
-                  </Card>
+                            return (
+                              <div key={attr} className="flex flex-col items-center p-2 bg-gray-800 rounded" style={{ borderBottom: `2px solid ${SPECIAL_COLORS[attr]}` }}>
+                                <span className="text-xs font-bold" style={{ color: SPECIAL_COLORS[attr] }}>{letter}</span>
+                                <span className="text-2xl text-white font-mono font-bold">{value}</span>
+                                <span className="text-xs text-gray-500">{t(`special.${attr}`)}</span>
+                                <div className="flex gap-0.5 mt-1">
+                                  {hasGiftedBonus && <Sparkles size={10} className="text-green-400" />}
+                                  {exerciseCount > 0 && <Dumbbell size={10} className="text-blue-400" />}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
 
-                  {/* Skills */}
-                  <Card title={t('characterSheet.skillsList')}>
-                    <div className="grid grid-cols-2 gap-2">
-                      {SKILL_NAMES.map(skill => {
-                        const rank = character.skills[skill] ?? 0;
-                        const linkedAttr = SKILL_ATTRIBUTES[skill];
-                        const attrValue = character.special[linkedAttr];
-                        const tn = attrValue + rank;
-                        const isTag = character.tagSkills?.includes(skill);
-                        const color = SPECIAL_COLORS[linkedAttr] ?? '#6b7280';
+                      {/* Derived Stats */}
+                      <Card title={t('characterSheet.derivedStats')}>
+                        <div className="grid grid-cols-2 gap-4">
+                          <StatDisplay icon={Heart} label={t('characters.hp')} value={`${character.currentHp}/${character.maxHp}`} color="var(--color-special-endurance)" />
+                          <StatDisplay icon={Shield} label={t('characters.defense')} value={character.defense} color="var(--color-special-agility)" />
+                          <StatDisplay icon={Zap} label={t('characters.initiative')} value={character.initiative} color="var(--color-special-perception)" />
+                          <StatDisplay icon={Sparkles} label={t('characters.luckPoints')} value={`${character.currentLuckPoints}/${character.maxLuckPoints}`} color="var(--color-special-luck)" />
+                          <StatDisplay icon={Swords} label={t('characters.meleeDamageBonus')} value={`+${character.meleeDamageBonus} CD`} color="var(--color-special-strength)" />
+                          <StatDisplay icon={Package} label={t('characters.carryCapacity')} value={`${character.carryCapacity} ${t('common.labels.lbs')}`} color="var(--color-special-charisma)" />
+                        </div>
+                      </Card>
 
-                        return (
-                          <div
-                            key={skill}
-                            className={`flex items-center gap-2 p-2 rounded ${
-                              isTag ? 'bg-vault-blue border border-vault-yellow-dark' : 'bg-gray-800'
-                            }`}
-                          >
-                            {isTag && <Star size={12} className="text-vault-yellow flex-shrink-0" fill="currentColor" />}
-                            <span className={`flex-1 text-sm ${isTag ? 'text-vault-yellow font-bold' : 'text-white'}`}>
-                              {t(`skills.${skill}`)}
-                            </span>
-                            <span
-                              className="text-xs font-bold font-mono uppercase w-7 text-center flex-shrink-0 rounded px-0.5"
-                              style={{ color, backgroundColor: `${color}22` }}
-                            >
-                              {linkedAttr.substring(0, 3)}
-                            </span>
-                            <span className="text-xs text-gray-500 w-4 text-center flex-shrink-0">{rank}</span>
-                            <Dice6 size={12} className="text-gray-500 flex-shrink-0" />
-                            <span className="text-sm text-vault-yellow font-mono w-6 text-center flex-shrink-0">{tn}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </Card>
+                      {/* Skills */}
+                      <Card title={t('characterSheet.skillsList')}>
+                        <div className="grid grid-cols-2 gap-2">
+                          {SKILL_NAMES.map(skill => {
+                            const rank = character.skills[skill] ?? 0;
+                            const linkedAttr = SKILL_ATTRIBUTES[skill];
+                            const attrValue = character.special[linkedAttr];
+                            const tn = attrValue + rank;
+                            const isTag = character.tagSkills?.includes(skill);
+                            const color = SPECIAL_COLORS[linkedAttr] ?? '#6b7280';
+
+                            return (
+                              <div
+                                key={skill}
+                                className={`flex items-center gap-2 p-2 rounded ${
+                                  isTag ? 'bg-vault-blue border border-vault-yellow-dark' : 'bg-gray-800'
+                                }`}
+                              >
+                                {isTag && <Star size={12} className="text-vault-yellow flex-shrink-0" fill="currentColor" />}
+                                <span className={`flex-1 text-sm ${isTag ? 'text-vault-yellow font-bold' : 'text-white'}`}>
+                                  {t(`skills.${skill}`)}
+                                </span>
+                                <span
+                                  className="text-xs font-bold font-mono uppercase w-7 text-center flex-shrink-0 rounded px-0.5"
+                                  style={{ color, backgroundColor: `${color}22` }}
+                                >
+                                  {linkedAttr.substring(0, 3)}
+                                </span>
+                                <span className="text-xs text-gray-500 w-4 text-center flex-shrink-0">{rank}</span>
+                                <Dice6 size={12} className="text-gray-500 flex-shrink-0" />
+                                <span className="text-sm text-vault-yellow font-mono w-6 text-center flex-shrink-0">{tn}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </Card>
+                    </>
+                  )}
                 </div>
 
                 {/* Column 2 */}
@@ -276,6 +386,24 @@ export function CharacterSheetPage() {
                         </div>
                       )}
 
+                      {character.traits && character.traits.length > 0 && (
+                        <div>
+                          <h4 className="text-xs text-gray-400 uppercase tracking-wide mb-2">{t('characters.traits')}</h4>
+                          <div className="space-y-2">
+                            {character.traits.map((trait, idx) => {
+                              const displayName = trait.nameKey ? (t(trait.nameKey) !== trait.nameKey ? t(trait.nameKey) : trait.name) : trait.name;
+                              const displayDesc = trait.descriptionKey ? (t(trait.descriptionKey) !== trait.descriptionKey ? t(trait.descriptionKey) : trait.description) : trait.description;
+                              return (
+                                <div key={trait.id ?? idx} className="p-3 bg-vault-blue rounded border border-vault-yellow-dark">
+                                  <span className="text-vault-yellow font-bold">{displayName}</span>
+                                  <p className="text-xs text-gray-300 mt-1">{displayDesc}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+
                       {character.perks && character.perks.length > 0 && (
                         <div>
                           <h4 className="text-xs text-gray-400 uppercase tracking-wide mb-2">{t('characters.perks')}</h4>
@@ -301,7 +429,7 @@ export function CharacterSheetPage() {
                         </div>
                       )}
 
-                      {!origin && activeSurvivorTraits.length === 0 && (!character.perks || character.perks.length === 0) && (
+                      {!origin && activeSurvivorTraits.length === 0 && (!character.perks || character.perks.length === 0) && (!character.traits || character.traits.length === 0) && (
                         <p className="text-gray-400 text-sm italic">{t('characters.noPerks')}</p>
                       )}
                     </div>
@@ -313,6 +441,7 @@ export function CharacterSheetPage() {
                       inventory={(character.inventory ?? []) as InventoryItemApi[]}
                       originId={character.origin}
                       onPieceHpChange={handlePieceHpChange}
+                      fixedDr={character.type === 'NPC' && character.dr && character.dr.length > 0 ? character.dr : undefined}
                     />
                   </Card>
 
@@ -360,13 +489,13 @@ interface StatDisplayProps {
   icon: React.ElementType;
   label: string;
   value: string | number;
-  color: string;
+  color: string; // CSS color value (e.g. var(--color-special-endurance))
 }
 
 function StatDisplay({ icon: Icon, label, value, color }: StatDisplayProps) {
   return (
     <div className="flex items-center gap-3 p-3 bg-gray-800 rounded">
-      <Icon size={20} className={color} />
+      <Icon size={20} style={{ color }} />
       <div>
         <span className="text-xs text-gray-400 block">{label}</span>
         <span className="text-white font-bold">{value}</span>

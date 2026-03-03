@@ -95,6 +95,11 @@ export interface Character {
   conditions: Condition[];
   inventory: InventoryItem[];
   notes?: string;
+  statBlockType?: 'normal' | 'creature';
+  bestiaryEntryId?: number | null;
+  creatureAttributes?: Record<string, number>;
+  dr?: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[];
+  traits?: { id?: number; name: string; description: string; nameKey?: string | null; descriptionKey?: string | null }[];
 }
 
 export interface CreateCharacterData {
@@ -121,6 +126,9 @@ export interface CreateCharacterData {
   giftedBonusAttributes?: string[];
   exerciseBonuses?: string[];
   inventory?: { itemId: number; quantity?: number; equipped?: boolean; equippedLocation?: string }[];
+  statBlockType?: 'normal' | 'creature';
+  dr?: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[];
+  traits?: { name: string; description: string; nameKey?: string; descriptionKey?: string }[];
 }
 
 export interface AddInventoryData {
