@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/index';
-import { eq, ilike, and, or, sql } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import {
   bestiaryEntries,
   bestiaryAttributes,
@@ -221,7 +221,7 @@ async function getFullBestiaryEntry(entryId: number) {
 // GET /api/bestiary — List all entries (summary)
 router.get('/', async (req, res) => {
   try {
-    const { category, search, statBlockType } = req.query;
+    const { category, statBlockType } = req.query;
 
     const conditions = [];
 
@@ -231,15 +231,6 @@ router.get('/', async (req, res) => {
 
     if (statBlockType && typeof statBlockType === 'string') {
       conditions.push(eq(bestiaryEntries.statBlockType, statBlockType as any));
-    }
-
-    if (search && typeof search === 'string') {
-      conditions.push(
-        or(
-          ilike(bestiaryEntries.slug, `%${search}%`),
-          ilike(bestiaryEntries.nameKey, `%${search}%`),
-        )!
-      );
     }
 
     const entries = await db

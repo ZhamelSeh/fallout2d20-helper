@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bug, Search, Plus } from 'lucide-react';
+import { Bug, Search, Plus, ChevronUp, ChevronDown } from 'lucide-react';
 import { Card } from '../../components/Card';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '../primitives/Select';
 import { useBestiary } from '../../hooks/useBestiary';
@@ -20,6 +20,11 @@ export function BestiaryPage() {
   const [categoryFilter, setCategoryFilter] = useState<CreatureCategory | 'all'>('all');
   const [typeFilter, setTypeFilter] = useState<StatBlockType | 'all'>('all');
 
+  // Sort state
+  type SortField = 'name' | 'level' | 'hp' | 'defense' | 'initiative' | 'xpReward';
+  const [sortField, setSortField] = useState<SortField>('level');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+
   // Modal state
   const [selectedEntry, setSelectedEntry] = useState<BestiaryEntryApi | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -28,14 +33,46 @@ export function BestiaryPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editEntry, setEditEntry] = useState<BestiaryEntryApi | null>(null);
 
-  // Apply filters
+  // Apply server-side filters (category, statBlockType only)
   useEffect(() => {
-    const filters: { category?: CreatureCategory; search?: string; statBlockType?: StatBlockType } = {};
+    const filters: { category?: CreatureCategory; statBlockType?: StatBlockType } = {};
     if (categoryFilter !== 'all') filters.category = categoryFilter;
     if (typeFilter !== 'all') filters.statBlockType = typeFilter;
-    if (search.trim()) filters.search = search.trim();
     loadEntries(Object.keys(filters).length > 0 ? filters : undefined);
-  }, [categoryFilter, typeFilter, search, loadEntries]);
+  }, [categoryFilter, typeFilter, loadEntries]);
+
+  // Client-side search + sort
+  const filteredAndSortedEntries = useMemo(() => {
+    let result = entries;
+
+    // Filter by translated name + slug
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      result = result.filter(entry => {
+        const translatedName = t(entry.nameKey).toLowerCase();
+        const slug = entry.slug.toLowerCase();
+        return translatedName.includes(q) || slug.includes(q);
+      });
+    }
+
+    // Sort
+    const dir = sortDirection === 'asc' ? 1 : -1;
+    return [...result].sort((a, b) => {
+      if (sortField === 'name') {
+        return dir * t(a.nameKey).localeCompare(t(b.nameKey));
+      }
+      return dir * ((a[sortField] ?? 0) - (b[sortField] ?? 0));
+    });
+  }, [entries, search, sortField, sortDirection, t]);
+
+  const handleSortClick = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   const handleEntryClick = async (entry: BestiarySummaryApi) => {
     try {
@@ -150,6 +187,36 @@ export function BestiaryPage() {
           </div>
         </Card>
 
+        {/* Sort pills */}
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-vault-yellow-dark text-sm font-medium">{t('bestiary.sortBy')}</span>
+          {([
+            { field: 'name' as SortField, label: t('common.labels.name') },
+            { field: 'level' as SortField, label: t('bestiary.level') },
+            { field: 'hp' as SortField, label: t('bestiary.hp') },
+            { field: 'defense' as SortField, label: t('bestiary.defense') },
+            { field: 'initiative' as SortField, label: t('bestiary.initiative') },
+            { field: 'xpReward' as SortField, label: t('bestiary.xpReward') },
+          ]).map(({ field, label }) => {
+            const isActive = sortField === field;
+            return (
+              <button
+                key={field}
+                type="button"
+                onClick={() => handleSortClick(field)}
+                className={`flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium transition-colors ${
+                  isActive
+                    ? 'bg-vault-yellow text-vault-blue'
+                    : 'bg-vault-gray border border-vault-yellow-dark text-vault-yellow-dark hover:border-vault-yellow hover:text-vault-yellow'
+                }`}
+              >
+                {label}
+                {isActive && (sortDirection === 'asc' ? <ChevronUp size={14} /> : <ChevronDown size={14} />)}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Content */}
         {loading ? (
           <Card>
@@ -170,9 +237,16 @@ export function BestiaryPage() {
               <p className="text-gray-400">{t('bestiary.noEntries')}</p>
             </div>
           </Card>
+        ) : filteredAndSortedEntries.length === 0 ? (
+          <Card>
+            <div className="text-center py-12">
+              <Bug size={48} className="mx-auto text-vault-yellow-dark mb-4" />
+              <p className="text-gray-400">{t('bestiary.noResults')}</p>
+            </div>
+          </Card>
         ) : (
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
-            {entries.map(entry => (
+            {filteredAndSortedEntries.map(entry => (
               <BestiaryCard
                 key={entry.id}
                 entry={entry}

@@ -1673,6 +1673,8 @@ export default {
   bestiary: {
     title: 'BESTIAIRE',
     searchPlaceholder: 'Rechercher un PNJ ou une créature...',
+    sortBy: 'Trier par',
+    noResults: 'Aucun résultat pour cette recherche',
     addToSession: 'Ajouter à la session',
     instantiate: 'Instancier',
     noEntries: 'Aucune entrée dans le bestiaire',

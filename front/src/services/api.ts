@@ -1118,10 +1118,9 @@ export interface CreateBestiaryEntryData {
 }
 
 export const bestiaryApi = {
-  list: (filters?: { category?: CreatureCategory; search?: string; statBlockType?: StatBlockType }) => {
+  list: (filters?: { category?: CreatureCategory; statBlockType?: StatBlockType }) => {
     const params = new URLSearchParams();
     if (filters?.category) params.set('category', filters.category);
-    if (filters?.search) params.set('search', filters.search);
     if (filters?.statBlockType) params.set('statBlockType', filters.statBlockType);
     const query = params.toString();
     return fetchApi<BestiarySummaryApi[]>(`/bestiary${query ? `?${query}` : ''}`);

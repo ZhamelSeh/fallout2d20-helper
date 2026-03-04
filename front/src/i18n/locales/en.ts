@@ -1674,6 +1674,8 @@ export default {
   bestiary: {
     title: 'BESTIARY',
     searchPlaceholder: 'Search NPC or creature...',
+    sortBy: 'Sort by',
+    noResults: 'No results for this search',
     addToSession: 'Add to session',
     instantiate: 'Instantiate',
     noEntries: 'No bestiary entries',
