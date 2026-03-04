@@ -94,7 +94,7 @@ export function CharacterCard({
             {displayName}
           </h3>
           <p className="text-xs text-gray-300">
-            {character.type === 'pc' ? t('characters.pc') : t('characters.npc')} Nv.{character.level}
+            {character.type === 'PC' ? t('characters.pc') : t('characters.npc')} Nv.{character.level}
             {origin && (
               <span className="ml-1 text-vault-yellow-dark">
                 ({t(origin.nameKey)})

@@ -1,18 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Bug, Search, Filter } from 'lucide-react';
+import { Bug, Search, Filter, Plus } from 'lucide-react';
 import { Card } from '../../components/Card';
 import { useBestiary } from '../../hooks/useBestiary';
 import { BestiaryDetailModal } from '../components/bestiary/BestiaryDetailModal';
+import { BestiaryCreateModal } from '../components/bestiary/BestiaryCreateModal';
 import { InstantiateCreatureModal } from '../components/bestiary/InstantiateCreatureModal';
-import type { BestiarySummaryApi, BestiaryEntryApi, CreatureCategory, StatBlockType } from '../../services/api';
+import type { BestiarySummaryApi, BestiaryEntryApi, CreateBestiaryEntryData, CreatureCategory, StatBlockType } from '../../services/api';
 
 const CATEGORIES: (CreatureCategory | 'all')[] = ['all', 'human', 'ghoul', 'superMutant', 'synth', 'robot', 'animal', 'abomination', 'insect', 'alien'];
 const STAT_BLOCK_TYPES: (StatBlockType | 'all')[] = ['all', 'normal', 'creature'];
 
 export function BestiaryPage() {
   const { t } = useTranslation();
-  const { entries, loading, error, loadEntries, getEntry, instantiate } = useBestiary();
+  const { entries, loading, error, loadEntries, getEntry, instantiate, createEntry, updateEntry, deleteEntry } = useBestiary();
 
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<CreatureCategory | 'all'>('all');
@@ -23,6 +24,8 @@ export function BestiaryPage() {
   const [detailOpen, setDetailOpen] = useState(false);
   const [instantiateEntry, setInstantiateEntry] = useState<BestiaryEntryApi | null>(null);
   const [instantiateOpen, setInstantiateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editEntry, setEditEntry] = useState<BestiaryEntryApi | null>(null);
 
   // Apply filters
   useEffect(() => {
@@ -53,6 +56,27 @@ export function BestiaryPage() {
     await instantiate(entry.id, { sessionId, name });
   };
 
+  const handleCreateSave = async (data: CreateBestiaryEntryData) => {
+    await createEntry(data);
+  };
+
+  const handleEditSave = async (data: CreateBestiaryEntryData) => {
+    if (editEntry) {
+      await updateEntry(editEntry.id, data);
+    }
+  };
+
+  const handleEditRequest = (entry: BestiaryEntryApi) => {
+    setDetailOpen(false);
+    setEditEntry(entry);
+    setCreateOpen(true);
+  };
+
+  const handleDeleteRequest = async (entry: BestiaryEntryApi) => {
+    setDetailOpen(false);
+    await deleteEntry(entry.id);
+  };
+
   return (
     <>
       <div className="max-w-6xl mx-auto space-y-6">
@@ -60,9 +84,17 @@ export function BestiaryPage() {
         <Card>
           <div className="flex items-center gap-3">
             <Bug className="text-vault-yellow" size={32} />
-            <h1 className="text-2xl font-bold text-vault-yellow">
+            <h1 className="text-2xl font-bold text-vault-yellow flex-1">
               {t('bestiary.title')}
             </h1>
+            <button
+              type="button"
+              onClick={() => { setEditEntry(null); setCreateOpen(true); }}
+              className="flex items-center gap-1 px-3 py-1.5 bg-vault-yellow text-vault-blue font-bold rounded hover:bg-vault-yellow-light transition-colors text-sm"
+            >
+              <Plus size={16} />
+              {t('bestiary.form.custom')}
+            </button>
           </div>
         </Card>
 
@@ -170,6 +202,16 @@ export function BestiaryPage() {
         isOpen={detailOpen}
         onClose={() => setDetailOpen(false)}
         onInstantiate={handleInstantiateRequest}
+        onEdit={handleEditRequest}
+        onDelete={handleDeleteRequest}
+      />
+
+      {/* Create/Edit Modal */}
+      <BestiaryCreateModal
+        isOpen={createOpen}
+        onClose={() => { setCreateOpen(false); setEditEntry(null); }}
+        onSave={editEntry ? handleEditSave : handleCreateSave}
+        editEntry={editEntry}
       />
 
       {/* Instantiate Modal */}
@@ -193,7 +235,10 @@ function BestiaryCard({ entry, onClick }: { entry: BestiarySummaryApi; onClick: 
       className="bg-vault-gray border-2 border-vault-yellow-dark rounded-lg p-4 text-left hover:border-vault-yellow transition-colors w-full"
     >
       <div className="flex items-start justify-between mb-2">
-        <h3 className="text-vault-yellow font-bold">{t(entry.nameKey)}</h3>
+        <h3 className="text-vault-yellow font-bold">
+          {entry.emoji && <span className="mr-1">{entry.emoji}</span>}
+          {t(entry.nameKey)}
+        </h3>
         <span className="text-xs bg-vault-blue px-2 py-0.5 rounded text-vault-yellow-dark shrink-0 ml-2">
           {t(`bestiary.statBlockTypes.${entry.statBlockType}`)}
         </span>

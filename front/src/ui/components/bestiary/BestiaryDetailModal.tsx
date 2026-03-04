@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Modal } from '../../../components/Modal';
 import { ItemDetailModal } from '../../../components/ItemDetailModal';
-import { Shield, Swords, Sparkles, Package, Heart, Zap, Star, Dice6 } from 'lucide-react';
+import { Shield, Swords, Sparkles, Package, Heart, Zap, Star, Dice6, Edit2, Trash2 } from 'lucide-react';
 import { SPECIAL_COLORS } from '../../../data/specialColors';
 import { SKILL_ATTRIBUTES } from '../../../data/characters';
 import type { BestiaryEntryApi, ItemType } from '../../../services/api';
@@ -15,6 +15,8 @@ interface BestiaryDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onInstantiate?: (entry: BestiaryEntryApi) => void;
+  onEdit?: (entry: BestiaryEntryApi) => void;
+  onDelete?: (entry: BestiaryEntryApi) => void;
 }
 
 const SPECIAL_ORDER = ['strength', 'perception', 'endurance', 'charisma', 'intelligence', 'agility', 'luck'];
@@ -33,7 +35,7 @@ function getCategoryKey(itemType: string): string {
   }
 }
 
-export function BestiaryDetailModal({ entry, isOpen, onClose, onInstantiate }: BestiaryDetailModalProps) {
+export function BestiaryDetailModal({ entry, isOpen, onClose, onInstantiate, onEdit, onDelete }: BestiaryDetailModalProps) {
   const { t } = useTranslation();
 
   // Item detail modal state
@@ -70,7 +72,7 @@ export function BestiaryDetailModal({ entry, isOpen, onClose, onInstantiate }: B
 
   return (
     <>
-      <Modal isOpen={isOpen} onClose={onClose} title={t(entry.nameKey)}>
+      <Modal isOpen={isOpen} onClose={onClose} title={`${entry.emoji ? entry.emoji + ' ' : ''}${t(entry.nameKey)}`}>
         <div className="space-y-6">
           {/* Description */}
           {entry.descriptionKey && (
@@ -293,17 +295,43 @@ export function BestiaryDetailModal({ entry, isOpen, onClose, onInstantiate }: B
             </Section>
           )}
 
-          {/* Instantiate button */}
-          {onInstantiate && (
-            <div className="pt-2 border-t border-vault-yellow-dark">
+          {/* Action buttons */}
+          <div className="pt-2 border-t border-vault-yellow-dark space-y-2">
+            {entry.source === 'custom' && (onEdit || onDelete) && (
+              <div className="flex gap-2">
+                {onEdit && (
+                  <button
+                    onClick={() => onEdit(entry)}
+                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded border border-vault-yellow-dark text-vault-yellow hover:bg-vault-blue transition-colors text-sm"
+                  >
+                    <Edit2 size={14} />
+                    {t('bestiary.form.edit')}
+                  </button>
+                )}
+                {onDelete && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm(t('bestiary.form.confirmDelete'))) {
+                        onDelete(entry);
+                      }
+                    }}
+                    className="flex-1 flex items-center justify-center gap-1 py-2 rounded border border-red-600 text-red-400 hover:bg-red-900/30 transition-colors text-sm"
+                  >
+                    <Trash2 size={14} />
+                    {t('bestiary.form.delete')}
+                  </button>
+                )}
+              </div>
+            )}
+            {onInstantiate && (
               <button
                 onClick={() => onInstantiate(entry)}
                 className="w-full bg-vault-yellow text-vault-blue font-bold py-2 rounded hover:bg-vault-yellow-light transition-colors"
               >
                 {t('bestiary.addToSession')}
               </button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </Modal>
 

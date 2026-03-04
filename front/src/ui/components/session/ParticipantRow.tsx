@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Skull, AlertCircle, LogOut, Eye, Trash2, Sparkles, ChevronDown, ChevronRight, Crosshair } from 'lucide-react';
+import { Skull, AlertCircle, LogOut, Eye, Trash2, Sparkles, ChevronDown, ChevronRight, Crosshair, Swords } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import type { SessionParticipantApi, CombatantStatus } from '../../../services/api';
 import { HPBar } from '../character/HPBar';
@@ -101,7 +101,7 @@ export function ParticipantRow({
 
         {/* Icon with status indicator */}
         <div className="relative flex-shrink-0">
-          <OriginIcon originId={character.originId} type={character.type} size="md" />
+          <OriginIcon originId={character.originId} emoji={character.emoji} type={character.type} size="md" />
           {StatusIcon && (
             <StatusIcon
               size={14}
@@ -240,6 +240,41 @@ export function ParticipantRow({
                   </span>
                 </span>
                 <span className="text-gray-500">{t(`ranges.${weapon.range}`)}</span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Creature attacks (visible when expanded, for creature stat blocks) */}
+      {isActive && isCreature && character.creatureAttacks && character.creatureAttacks.length > 0 && (
+        <div className="px-3 pb-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-gray-700 pt-2">
+          {character.creatureAttacks.map((attack, idx) => {
+            const attackName = attack.nameKey
+              ? (t(attack.nameKey) !== attack.nameKey ? t(attack.nameKey) : attack.name)
+              : attack.name;
+            const bodyAttr = character.creatureAttributes?.body ?? 0;
+            const skillRank = character.creatureSkills?.[attack.skill] ?? 0;
+            const tn = bodyAttr + skillRank;
+            const qualitiesParts = (attack.qualities ?? []).map(q => {
+              const name = t(`qualities.${q.quality}.name`);
+              return q.value ? `${name} ${q.value}` : name;
+            });
+            return (
+              <div key={idx} className="flex items-center gap-2 text-xs">
+                <Swords size={12} className="text-vault-yellow-dark flex-shrink-0" />
+                <span className="text-white font-bold">{attackName}</span>
+                <span className="text-vault-yellow font-bold">TN {tn}</span>
+                <span className="text-gray-400">
+                  {attack.damage}
+                  <span className="text-[10px] ml-0.5">
+                    {t(`damageTypes.${attack.damageType}`)}
+                  </span>
+                </span>
+                <span className="text-gray-500">{t(`ranges.${attack.range}`)}</span>
+                {qualitiesParts.length > 0 && (
+                  <span className="text-gray-500 italic">{qualitiesParts.join(', ')}</span>
+                )}
               </div>
             );
           })}

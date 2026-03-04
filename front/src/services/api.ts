@@ -761,6 +761,9 @@ export interface SessionParticipantCharacter {
   conditions: string[];
   equippedWeapons: SessionEquippedWeapon[];
   creatureAttributes?: Record<string, number>;
+  creatureSkills?: Record<string, number>;
+  creatureAttacks?: CreatureAttackApi[];
+  emoji?: string;
 }
 
 export interface SessionParticipantApi {
@@ -862,9 +865,10 @@ export const sessionsApi = {
     }),
 
   // Combat
-  startCombat: (sessionId: number) =>
+  startCombat: (sessionId: number, participantIds?: number[]) =>
     fetchApi<SessionApi>(`/sessions/${sessionId}/combat/start`, {
       method: 'POST',
+      body: JSON.stringify(participantIds ? { participantIds } : {}),
     }),
   endCombat: (sessionId: number) =>
     fetchApi<SessionApi>(`/sessions/${sessionId}/combat/end`, {
@@ -1056,6 +1060,7 @@ export interface BestiarySummaryApi {
   defense: number;
   initiative: number;
   source: string;
+  emoji?: string | null;
 }
 
 export interface BestiaryEntryApi extends BestiarySummaryApi {
@@ -1077,6 +1082,40 @@ export interface InstantiateResult {
   bestiaryEntryId: number;
 }
 
+export interface CreateBestiaryEntryData {
+  name: string;
+  description?: string;
+  emoji?: string;
+  statBlockType: StatBlockType;
+  category: CreatureCategory;
+  bodyType: BodyType;
+  level: number;
+  xpReward: number;
+  hp: number;
+  defense: number;
+  initiative: number;
+  meleeDamageBonus?: number;
+  carryCapacity?: number;
+  maxLuckPoints?: number;
+  wealth?: number | null;
+  attributes: Record<string, number>;
+  skills: { skill: string; rank: number; isTagSkill?: boolean }[];
+  dr: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[];
+  attacks: {
+    name: string;
+    skill: string;
+    damage: number;
+    damageType: string;
+    damageBonus?: number;
+    fireRate?: number;
+    range: string;
+    twoHanded?: boolean;
+    qualities: { quality: string; value?: number }[];
+  }[];
+  abilities: { name: string; description: string }[];
+  inventory: { itemId: number; quantity: number; equipped: boolean }[];
+}
+
 export const bestiaryApi = {
   list: (filters?: { category?: CreatureCategory; search?: string; statBlockType?: StatBlockType }) => {
     const params = new URLSearchParams();
@@ -1091,6 +1130,20 @@ export const bestiaryApi = {
     fetchApi<InstantiateResult>(`/bestiary/${id}/instantiate`, {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+  create: (data: CreateBestiaryEntryData) =>
+    fetchApi<BestiaryEntryApi>('/bestiary', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: CreateBestiaryEntryData) =>
+    fetchApi<BestiaryEntryApi>(`/bestiary/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number) =>
+    fetchApi<null>(`/bestiary/${id}`, {
+      method: 'DELETE',
     }),
 };
 

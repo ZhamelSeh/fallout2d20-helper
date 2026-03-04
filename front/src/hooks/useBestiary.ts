@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { bestiaryApi } from '../services/api';
 import type {
   BestiarySummaryApi,
   BestiaryEntryApi,
+  CreateBestiaryEntryData,
   CreatureCategory,
   StatBlockType,
 } from '../services/api';
@@ -11,8 +12,10 @@ export function useBestiary() {
   const [entries, setEntries] = useState<BestiarySummaryApi[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const lastFiltersRef = useRef<{ category?: CreatureCategory; search?: string; statBlockType?: StatBlockType } | undefined>();
 
   const loadEntries = useCallback(async (filters?: { category?: CreatureCategory; search?: string; statBlockType?: StatBlockType }) => {
+    lastFiltersRef.current = filters;
     setLoading(true);
     setError(null);
     try {
@@ -37,6 +40,23 @@ export function useBestiary() {
     return bestiaryApi.instantiate(id, data);
   }, []);
 
+  const createEntry = useCallback(async (data: CreateBestiaryEntryData) => {
+    const result = await bestiaryApi.create(data);
+    await loadEntries(lastFiltersRef.current);
+    return result;
+  }, [loadEntries]);
+
+  const updateEntry = useCallback(async (id: number, data: CreateBestiaryEntryData) => {
+    const result = await bestiaryApi.update(id, data);
+    await loadEntries(lastFiltersRef.current);
+    return result;
+  }, [loadEntries]);
+
+  const deleteEntry = useCallback(async (id: number) => {
+    await bestiaryApi.delete(id);
+    await loadEntries(lastFiltersRef.current);
+  }, [loadEntries]);
+
   return {
     entries,
     loading,
@@ -44,5 +64,8 @@ export function useBestiary() {
     loadEntries,
     getEntry,
     instantiate,
+    createEntry,
+    updateEntry,
+    deleteEntry,
   };
 }

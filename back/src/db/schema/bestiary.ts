@@ -28,6 +28,7 @@ export const bestiaryEntries = pgTable('bestiary_entries', {
   maxLuckPoints: integer('max_luck_points').notNull().default(0),
   wealth: integer('wealth'),
   source: varchar('source', { length: 50 }).notNull().default('core'),
+  emoji: varchar('emoji', { length: 10 }),
 });
 
 // ===== BESTIARY ATTRIBUTES =====

@@ -120,6 +120,8 @@ export const characters = pgTable('characters', {
     range: string;
     qualities: { quality: string; value?: number }[];
   }[]>(),
+  // Custom emoji (from bestiary entry)
+  emoji: varchar('emoji', { length: 10 }),
   // Timestamps
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),

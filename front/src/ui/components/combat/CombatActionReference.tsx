@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Swords, Shield, Heart, Users, Bot, Package, Crosshair, Move, RefreshCw, Sword, Hand, ArrowUp, ChevronDown as Crouch, PackageOpen, MessageCircle, ArrowDown } from 'lucide-react';
+import { Swords, Shield, Heart, Users, Bot, Package, Crosshair, Move, Sword, Hand, ArrowUp, ChevronDown as Crouch, PackageOpen, MessageCircle, ArrowDown } from 'lucide-react';
 
 interface ActionInfo {
   key: string;
@@ -19,7 +19,6 @@ const majorActions: ActionInfo[] = [
 const minorActions: ActionInfo[] = [
   { key: 'aim', icon: Crosshair },
   { key: 'move', icon: Move },
-  { key: 'reload', icon: RefreshCw },
   { key: 'drawWeapon', icon: Sword },
   { key: 'interact', icon: Hand },
   { key: 'standUp', icon: ArrowUp },

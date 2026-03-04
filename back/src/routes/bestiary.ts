@@ -235,6 +235,7 @@ router.get('/', async (req, res) => {
         defense: bestiaryEntries.defense,
         initiative: bestiaryEntries.initiative,
         source: bestiaryEntries.source,
+        emoji: bestiaryEntries.emoji,
       })
       .from(bestiaryEntries)
       .where(conditions.length > 0 ? and(...conditions) : undefined)
@@ -306,6 +307,7 @@ router.post('/:id/instantiate', async (req, res) => {
         currentLuckPoints: entry.maxLuckPoints,
         statBlockType: entry.statBlockType,
         bestiaryEntryId: entry.id,
+        emoji: entry.emoji,
       }).returning();
 
       // Insert SPECIAL attributes
@@ -393,6 +395,7 @@ router.post('/:id/instantiate', async (req, res) => {
         currentLuckPoints: entry.maxLuckPoints,
         statBlockType: entry.statBlockType,
         bestiaryEntryId: entry.id,
+        emoji: entry.emoji,
         creatureAttributes,
         creatureSkills,
         creatureAttacks,
@@ -437,6 +440,258 @@ router.post('/:id/instantiate', async (req, res) => {
   } catch (error) {
     console.error('Error instantiating bestiary entry:', error);
     res.status(500).json({ error: 'Failed to instantiate bestiary entry' });
+  }
+});
+
+// ===== CUSTOM BESTIARY CRUD =====
+
+function slugify(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+    .substring(0, 100);
+}
+
+// Helper to insert all related bestiary data for a custom entry
+async function insertBestiaryRelatedData(
+  entryId: number,
+  body: {
+    attributes?: Record<string, number>;
+    skills?: { skill: string; rank: number; isTagSkill?: boolean }[];
+    dr?: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[];
+    attacks?: {
+      name: string;
+      skill: string;
+      damage: number;
+      damageType: string;
+      damageBonus?: number;
+      fireRate?: number;
+      range: string;
+      twoHanded?: boolean;
+      qualities?: { quality: string; value?: number }[];
+    }[];
+    abilities?: { name: string; description: string }[];
+    inventory?: { itemId: number; quantity: number; equipped: boolean }[];
+  }
+) {
+  // Attributes
+  if (body.attributes && Object.keys(body.attributes).length > 0) {
+    await db.insert(bestiaryAttributes).values(
+      Object.entries(body.attributes).map(([attribute, value]) => ({
+        bestiaryEntryId: entryId,
+        attribute,
+        value,
+      }))
+    );
+  }
+
+  // Skills
+  if (body.skills && body.skills.length > 0) {
+    await db.insert(bestiarySkills).values(
+      body.skills.map(s => ({
+        bestiaryEntryId: entryId,
+        skill: s.skill,
+        rank: s.rank,
+        isTagSkill: s.isTagSkill ?? false,
+      }))
+    );
+  }
+
+  // DR
+  if (body.dr && body.dr.length > 0) {
+    await db.insert(bestiaryDr).values(
+      body.dr.map(d => ({
+        bestiaryEntryId: entryId,
+        location: d.location,
+        drPhysical: d.drPhysical,
+        drEnergy: d.drEnergy,
+        drRadiation: d.drRadiation,
+        drPoison: d.drPoison,
+      }))
+    );
+  }
+
+  // Attacks + qualities
+  if (body.attacks && body.attacks.length > 0) {
+    for (const attack of body.attacks) {
+      const [inserted] = await db.insert(bestiaryAttacks).values({
+        bestiaryEntryId: entryId,
+        nameKey: attack.name,
+        skill: attack.skill,
+        damage: attack.damage,
+        damageType: attack.damageType as any,
+        damageBonus: attack.damageBonus ?? null,
+        fireRate: attack.fireRate ?? null,
+        range: attack.range as any,
+        twoHanded: attack.twoHanded ?? false,
+      }).returning();
+
+      if (attack.qualities && attack.qualities.length > 0) {
+        await db.insert(bestiaryAttackQualities).values(
+          attack.qualities.map(q => ({
+            attackId: inserted.id,
+            quality: q.quality,
+            value: q.value ?? null,
+          }))
+        );
+      }
+    }
+  }
+
+  // Abilities
+  if (body.abilities && body.abilities.length > 0) {
+    await db.insert(bestiaryAbilities).values(
+      body.abilities.map(a => ({
+        bestiaryEntryId: entryId,
+        nameKey: a.name,
+        descriptionKey: a.description,
+      }))
+    );
+  }
+
+  // Inventory
+  if (body.inventory && body.inventory.length > 0) {
+    await db.insert(bestiaryInventory).values(
+      body.inventory.map(inv => ({
+        bestiaryEntryId: entryId,
+        itemId: inv.itemId,
+        quantity: inv.quantity,
+        equipped: inv.equipped,
+      }))
+    );
+  }
+}
+
+// Helper to delete all related bestiary data
+async function deleteBestiaryRelatedData(entryId: number) {
+  // Delete attack qualities first (FK on attacks)
+  const attackRows = await db.select({ id: bestiaryAttacks.id }).from(bestiaryAttacks).where(eq(bestiaryAttacks.bestiaryEntryId, entryId));
+  for (const a of attackRows) {
+    await db.delete(bestiaryAttackQualities).where(eq(bestiaryAttackQualities.attackId, a.id));
+  }
+  await db.delete(bestiaryAttacks).where(eq(bestiaryAttacks.bestiaryEntryId, entryId));
+  await db.delete(bestiaryAttributes).where(eq(bestiaryAttributes.bestiaryEntryId, entryId));
+  await db.delete(bestiarySkills).where(eq(bestiarySkills.bestiaryEntryId, entryId));
+  await db.delete(bestiaryDr).where(eq(bestiaryDr.bestiaryEntryId, entryId));
+  await db.delete(bestiaryAbilities).where(eq(bestiaryAbilities.bestiaryEntryId, entryId));
+  await db.delete(bestiaryInventory).where(eq(bestiaryInventory.bestiaryEntryId, entryId));
+}
+
+// POST /api/bestiary — Create a custom bestiary entry
+router.post('/', async (req, res) => {
+  try {
+    const body = req.body;
+
+    if (!body.name) {
+      return res.status(400).json({ error: 'Name is required' });
+    }
+
+    const slug = slugify(body.name) + '-custom-' + Date.now();
+
+    const [newEntry] = await db.insert(bestiaryEntries).values({
+      slug,
+      nameKey: body.name,
+      descriptionKey: body.description || null,
+      statBlockType: body.statBlockType || 'creature',
+      category: body.category || 'human',
+      bodyType: body.bodyType || 'humanoid',
+      level: body.level ?? 1,
+      xpReward: body.xpReward ?? 0,
+      hp: body.hp ?? 10,
+      defense: body.defense ?? 1,
+      initiative: body.initiative ?? 0,
+      meleeDamageBonus: body.meleeDamageBonus ?? 0,
+      carryCapacity: body.carryCapacity ?? 0,
+      maxLuckPoints: body.maxLuckPoints ?? 0,
+      wealth: body.wealth ?? null,
+      source: 'custom',
+      emoji: body.emoji || null,
+    }).returning();
+
+    await insertBestiaryRelatedData(newEntry.id, body);
+
+    const fullEntry = await getFullBestiaryEntry(newEntry.id);
+    res.status(201).json(fullEntry);
+  } catch (error) {
+    console.error('Error creating custom bestiary entry:', error);
+    res.status(500).json({ error: 'Failed to create bestiary entry' });
+  }
+});
+
+// PUT /api/bestiary/:id — Update a custom bestiary entry
+router.put('/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid ID' });
+    }
+
+    const [existing] = await db.select().from(bestiaryEntries).where(eq(bestiaryEntries.id, id));
+    if (!existing) {
+      return res.status(404).json({ error: 'Bestiary entry not found' });
+    }
+    if (existing.source !== 'custom') {
+      return res.status(403).json({ error: 'Cannot modify core bestiary entries' });
+    }
+
+    const body = req.body;
+
+    await db.update(bestiaryEntries).set({
+      nameKey: body.name ?? existing.nameKey,
+      descriptionKey: body.description !== undefined ? (body.description || null) : existing.descriptionKey,
+      statBlockType: body.statBlockType ?? existing.statBlockType,
+      category: body.category ?? existing.category,
+      bodyType: body.bodyType ?? existing.bodyType,
+      level: body.level ?? existing.level,
+      xpReward: body.xpReward ?? existing.xpReward,
+      hp: body.hp ?? existing.hp,
+      defense: body.defense ?? existing.defense,
+      initiative: body.initiative ?? existing.initiative,
+      meleeDamageBonus: body.meleeDamageBonus ?? existing.meleeDamageBonus,
+      carryCapacity: body.carryCapacity ?? existing.carryCapacity,
+      maxLuckPoints: body.maxLuckPoints ?? existing.maxLuckPoints,
+      wealth: body.wealth !== undefined ? body.wealth : existing.wealth,
+      emoji: body.emoji !== undefined ? (body.emoji || null) : existing.emoji,
+    }).where(eq(bestiaryEntries.id, id));
+
+    // Replace all related data
+    await deleteBestiaryRelatedData(id);
+    await insertBestiaryRelatedData(id, body);
+
+    const fullEntry = await getFullBestiaryEntry(id);
+    res.json(fullEntry);
+  } catch (error) {
+    console.error('Error updating custom bestiary entry:', error);
+    res.status(500).json({ error: 'Failed to update bestiary entry' });
+  }
+});
+
+// DELETE /api/bestiary/:id — Delete a custom bestiary entry
+router.delete('/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id, 10);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: 'Invalid ID' });
+    }
+
+    const [existing] = await db.select().from(bestiaryEntries).where(eq(bestiaryEntries.id, id));
+    if (!existing) {
+      return res.status(404).json({ error: 'Bestiary entry not found' });
+    }
+    if (existing.source !== 'custom') {
+      return res.status(403).json({ error: 'Cannot delete core bestiary entries' });
+    }
+
+    await deleteBestiaryRelatedData(id);
+    await db.delete(bestiaryEntries).where(eq(bestiaryEntries.id, id));
+
+    res.status(204).send();
+  } catch (error) {
+    console.error('Error deleting custom bestiary entry:', error);
+    res.status(500).json({ error: 'Failed to delete bestiary entry' });
   }
 });
 
