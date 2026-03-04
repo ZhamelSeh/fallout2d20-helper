@@ -414,6 +414,34 @@ export interface InventoryItemApi {
   compatibleModItemIds?: number[];
 }
 
+export interface CharacterDrApi {
+  location: string;
+  drPhysical: number;
+  drEnergy: number;
+  drRadiation: number;
+  drPoison: number;
+}
+
+export interface CharacterTraitApi {
+  id: number;
+  name: string;
+  description: string;
+  nameKey?: string | null;
+  descriptionKey?: string | null;
+}
+
+export interface CreatureAttackApi {
+  name: string;
+  nameKey?: string;
+  skill: string;
+  damage: number;
+  damageType: string;
+  damageBonus?: number;
+  fireRate?: number | null;
+  range: string;
+  qualities: { quality: string; value?: number }[];
+}
+
 export interface CharacterApi {
   id: number;
   name: string;
@@ -431,6 +459,12 @@ export interface CharacterApi {
   currentLuckPoints: number;
   caps: number;
   radiationDamage: number;
+  statBlockType: 'normal' | 'creature';
+  bestiaryEntryId?: number | null;
+  creatureAttributes?: Record<string, number>;
+  creatureSkills?: Record<string, number>;
+  creatureAttacks?: CreatureAttackApi[];
+  emoji?: string | null;
   createdAt: string;
   updatedAt: string;
   // Relations
@@ -443,6 +477,8 @@ export interface CharacterApi {
   exerciseBonuses: string[];
   conditions: string[];
   inventory: InventoryItemApi[];
+  dr: CharacterDrApi[];
+  traits: CharacterTraitApi[];
 }
 
 export interface CreateCharacterData {
@@ -461,6 +497,7 @@ export interface CreateCharacterData {
   currentLuckPoints?: number;
   caps?: number;
   radiationDamage?: number;
+  statBlockType?: 'normal' | 'creature';
   special: Record<string, number>;
   skills?: Record<string, number>;
   tagSkills?: string[];
@@ -469,6 +506,8 @@ export interface CreateCharacterData {
   giftedBonusAttributes?: string[];
   exerciseBonuses?: string[];
   inventory?: { itemId: number; quantity?: number; equipped?: boolean; equippedLocation?: string }[];
+  dr?: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[];
+  traits?: { name: string; description: string; nameKey?: string; descriptionKey?: string }[];
 }
 
 export interface AddInventoryData {
@@ -693,6 +732,17 @@ export const equipmentPacksApi = {
 export type SessionStatus = 'active' | 'paused' | 'completed';
 export type CombatantStatus = 'active' | 'unconscious' | 'dead' | 'fled';
 
+export interface SessionEquippedWeapon {
+  itemId: number;
+  name: string;
+  nameKey?: string;
+  skill: string;
+  damage: number;
+  damageType: string;
+  fireRate: number;
+  range: string;
+}
+
 export interface SessionParticipantCharacter {
   id: number;
   name: string;
@@ -706,8 +756,15 @@ export interface SessionParticipantCharacter {
   radiationDamage: number;
   maxLuckPoints: number;
   currentLuckPoints: number;
+  statBlockType?: 'normal' | 'creature';
   special: Record<string, number>;
+  skills: Record<string, number>;
   conditions: string[];
+  equippedWeapons: SessionEquippedWeapon[];
+  creatureAttributes?: Record<string, number>;
+  creatureSkills?: Record<string, number>;
+  creatureAttacks?: CreatureAttackApi[];
+  emoji?: string;
 }
 
 export interface SessionParticipantApi {
@@ -809,9 +866,10 @@ export const sessionsApi = {
     }),
 
   // Combat
-  startCombat: (sessionId: number) =>
+  startCombat: (sessionId: number, participantIds?: number[]) =>
     fetchApi<SessionApi>(`/sessions/${sessionId}/combat/start`, {
       method: 'POST',
+      body: JSON.stringify(participantIds ? { participantIds } : {}),
     }),
   endCombat: (sessionId: number) =>
     fetchApi<SessionApi>(`/sessions/${sessionId}/combat/end`, {
@@ -926,6 +984,167 @@ export const generatorsApi = {
       merchantCategories: string[];
       merchantCapsByWealth: number[];
     }>('/generate/scavenging-tables'),
+};
+
+// ===== BESTIARY API =====
+
+export type StatBlockType = 'normal' | 'creature';
+export type CreatureCategory = 'animal' | 'abomination' | 'insect' | 'ghoul' | 'superMutant' | 'robot' | 'human' | 'synth' | 'alien';
+export type BodyType = 'humanoid' | 'quadruped' | 'insect' | 'serpentine' | 'robot';
+
+export interface BestiaryAttackQuality {
+  quality: string;
+  value?: number | null;
+}
+
+export interface BestiaryAttackApi {
+  id: number;
+  nameKey: string;
+  skill: string;
+  damage: number;
+  damageType: string;
+  damageBonus?: number | null;
+  fireRate?: number | null;
+  range: string;
+  itemId?: number | null;
+  twoHanded: boolean;
+  qualities: BestiaryAttackQuality[];
+  item?: {
+    id: number;
+    name: string;
+    nameKey: string | null;
+    itemType: string;
+  } | null;
+}
+
+export interface BestiaryAbilityApi {
+  nameKey: string;
+  descriptionKey: string;
+}
+
+export interface BestiaryDrApi {
+  location: string;
+  drPhysical: number;
+  drEnergy: number;
+  drRadiation: number;
+  drPoison: number;
+}
+
+export interface BestiarySkillApi {
+  skill: string;
+  rank: number;
+  isTagSkill: boolean;
+}
+
+export interface BestiaryInventoryItemApi {
+  itemId: number;
+  quantity: number;
+  equipped: boolean;
+  item: {
+    id: number;
+    name: string;
+    nameKey: string | null;
+    itemType: string;
+  };
+}
+
+export interface BestiarySummaryApi {
+  id: number;
+  slug: string;
+  nameKey: string;
+  statBlockType: StatBlockType;
+  category: CreatureCategory;
+  bodyType: BodyType;
+  level: number;
+  xpReward: number;
+  hp: number;
+  defense: number;
+  initiative: number;
+  source: string;
+  emoji?: string | null;
+}
+
+export interface BestiaryEntryApi extends BestiarySummaryApi {
+  descriptionKey?: string | null;
+  meleeDamageBonus: number;
+  carryCapacity: number;
+  maxLuckPoints: number;
+  wealth?: number | null;
+  attributes: Record<string, number>;
+  skills: BestiarySkillApi[];
+  dr: BestiaryDrApi[];
+  attacks: BestiaryAttackApi[];
+  abilities: BestiaryAbilityApi[];
+  inventory: BestiaryInventoryItemApi[];
+}
+
+export interface InstantiateResult {
+  characterId: number;
+  bestiaryEntryId: number;
+}
+
+export interface CreateBestiaryEntryData {
+  name: string;
+  description?: string;
+  emoji?: string;
+  statBlockType: StatBlockType;
+  category: CreatureCategory;
+  bodyType: BodyType;
+  level: number;
+  xpReward: number;
+  hp: number;
+  defense: number;
+  initiative: number;
+  meleeDamageBonus?: number;
+  carryCapacity?: number;
+  maxLuckPoints?: number;
+  wealth?: number | null;
+  attributes: Record<string, number>;
+  skills: { skill: string; rank: number; isTagSkill?: boolean }[];
+  dr: { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number }[];
+  attacks: {
+    name: string;
+    skill: string;
+    damage: number;
+    damageType: string;
+    damageBonus?: number;
+    fireRate?: number;
+    range: string;
+    twoHanded?: boolean;
+    qualities: { quality: string; value?: number }[];
+  }[];
+  abilities: { name: string; description: string }[];
+  inventory: { itemId: number; quantity: number; equipped: boolean }[];
+}
+
+export const bestiaryApi = {
+  list: (filters?: { category?: CreatureCategory; statBlockType?: StatBlockType }) => {
+    const params = new URLSearchParams();
+    if (filters?.category) params.set('category', filters.category);
+    if (filters?.statBlockType) params.set('statBlockType', filters.statBlockType);
+    const query = params.toString();
+    return fetchApi<BestiarySummaryApi[]>(`/bestiary${query ? `?${query}` : ''}`);
+  },
+  get: (id: number) => fetchApi<BestiaryEntryApi>(`/bestiary/${id}`),
+  instantiate: (id: number, data: { sessionId?: number; name?: string }) =>
+    fetchApi<InstantiateResult>(`/bestiary/${id}/instantiate`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  create: (data: CreateBestiaryEntryData) =>
+    fetchApi<BestiaryEntryApi>('/bestiary', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+  update: (id: number, data: CreateBestiaryEntryData) =>
+    fetchApi<BestiaryEntryApi>(`/bestiary/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+  delete: (id: number) =>
+    fetchApi<null>(`/bestiary/${id}`, {
+      method: 'DELETE',
+    }),
 };
 
 // ===== HEALTH CHECK =====

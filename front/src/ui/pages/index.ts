@@ -7,3 +7,4 @@ export { CharactersPage } from './CharactersPage';
 export { CharacterSheetPage } from './CharacterSheetPage';
 export { SessionsPage } from './SessionsPage';
 export { SessionDetailPage } from './SessionDetailPage';
+export { BestiaryPage } from './BestiaryPage';

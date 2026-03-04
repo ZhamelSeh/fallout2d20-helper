@@ -106,6 +106,48 @@
       "when": 1772600000000,
       "tag": "0014_power_armor_mods",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1772700000001,
+      "tag": "0015_premium_jubilee",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1772700000002,
+      "tag": "0016_gorgeous_whirlwind",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1772700000003,
+      "tag": "0017_creature_attributes_on_character",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1772700000004,
+      "tag": "0018_creature_attacks_on_character",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1772700000005,
+      "tag": "0019_glorious_rhodey",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1772700000006,
+      "tag": "0020_bestiary_inventory_mods",
+      "breakpoints": true
     }
   ]
 }

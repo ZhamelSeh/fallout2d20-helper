@@ -39,6 +39,8 @@ export default {
     all: 'Tous',
     edit: 'Modifier',
     delete: 'Supprimer',
+    confirm: 'Confirmer',
+    confirmDelete: 'Confirmer la suppression',
     duplicate: 'Dupliquer',
     save: 'Sauvegarder',
     cancel: 'Annuler',
@@ -64,6 +66,7 @@ export default {
     characters: 'Personnages',
     combat: 'Combat',
     sessions: 'Sessions',
+    bestiary: 'Bestiaire',
   },
 
   home: {
@@ -525,6 +528,28 @@ export default {
     originTrait: 'Trait d\'origine',
     activeSurvivorTraits: 'Traits de Survivant actifs',
     noPerks: 'Aucune aptitude sélectionnée.',
+    traits: 'Traits',
+    addTrait: 'Ajouter un trait',
+    traitName: 'Nom du trait',
+    traitDescription: 'Description du trait',
+    noTraits: 'Aucun trait.',
+    statBlockType: 'Type de bloc de stats',
+    statBlockTypes: {
+      normal: 'Normal',
+      creature: 'Créature',
+    },
+    creatureStatsDesc: 'Définissez les statistiques de combat de la créature.',
+    creatureAttacksDesc: 'Définissez les attaques disponibles pour cette créature.',
+    attackNamePlaceholder: 'Ex: Morsure, Griffes...',
+    attackSkill: 'Compétence',
+    attackDamage: 'Dégâts (CD)',
+    attackDamageType: 'Type de dégâts',
+    attackRange: 'Portée',
+    attackQualities: 'Qualités',
+    addAttack: 'Ajouter une attaque',
+    drEditor: 'Résistances aux dégâts (DR)',
+    drAndTraits: 'DR & Traits',
+    immune: 'Imm.',
     addGiftedBonus: 'Ajouter le bonus Doué (+1)',
     removeGiftedBonus: 'Retirer le bonus Doué',
     giftedBonusDesc: 'Trait Doué: choisissez {{count}}/{{max}} attributs pour le bonus +1.',
@@ -725,6 +750,7 @@ export default {
     drPoison: 'RD poi.',
     hp: 'PV',
     damaged: 'Endommagé',
+    immune: 'Imm.',
   },
 
   armorSets: {
@@ -947,6 +973,9 @@ export default {
     noNotes: 'Aucune note',
     tabStats: 'Stats',
     tabEquipment: 'Équipement',
+    attacks: 'Attaques',
+    creatureAttributes: 'Attributs',
+    creatureSkills: 'Compétences',
   },
 
   sessions: {
@@ -1277,6 +1306,7 @@ export default {
         sixCharges: { nameAdd: 'Six charges' },
       },
       canon: {
+        canonLong: { nameAdd: 'Longueur' },
         diviseur: { nameAdd: 'Disperseur' },
         canonAutomatique: { nameAdd: 'Auto' },
         canonAmeliore: { nameAdd: 'Amélioré' },
@@ -1638,5 +1668,901 @@ export default {
     nextStep: 'Suivant',
     previousStep: 'Précédent',
     stepOf: 'Étape {{current}} sur {{total}}',
+  },
+
+  bestiary: {
+    title: 'BESTIAIRE',
+    searchPlaceholder: 'Rechercher un PNJ ou une créature...',
+    sortBy: 'Trier par',
+    noResults: 'Aucun résultat pour cette recherche',
+    addToSession: 'Ajouter à la session',
+    instantiate: 'Instancier',
+    noEntries: 'Aucune entrée dans le bestiaire',
+    level: 'Niveau',
+    xpReward: 'XP',
+    hp: 'PV',
+    defense: 'Défense',
+    initiative: 'Initiative',
+    meleeDamageBonus: 'Bonus dégâts mêlée',
+    carryCapacity: 'Capacité de transport',
+    luckPoints: 'Points de Chance',
+    wealth: 'Richesse',
+    attributes: 'Attributs',
+    skills: 'Compétences',
+    damageResistance: 'Résistance aux dégâts',
+    attacksTitle: 'Attaques',
+    abilitiesTitle: 'Capacités spéciales',
+    inventory: 'Inventaire',
+    damage: 'Dégâts',
+    damageBonus: 'Bonus',
+    fireRate: 'Cadence',
+    range: 'Portée',
+    twoHanded: 'Deux mains',
+    qualities: 'Qualités',
+    source: 'Source',
+    targetNumber: 'SR',
+    fireRateShort: 'cadence de tir',
+    damageTypeShort: {
+      physical: 'de dégâts balistiques',
+      energy: 'de dégâts énergétiques',
+      radiation: 'de dégâts de radiation',
+      poison: 'de dégâts de poison',
+    },
+    immune: 'Imm.',
+    physical: 'Physique',
+    energy: 'Énergie',
+    radiation: 'Radiation',
+    poison: 'Poison',
+    categories: {
+      all: 'Toutes',
+      animal: 'Animal',
+      abomination: 'Abomination',
+      insect: 'Insecte',
+      ghoul: 'Goule',
+      superMutant: 'Super Mutant',
+      robot: 'Robot',
+      human: 'Humain',
+      synth: 'Synthétique',
+      alien: 'Alien',
+    },
+    statBlockTypes: {
+      all: 'Tous',
+      normal: 'Personnage normal',
+      creature: 'Créature',
+    },
+    creatureAttributes: {
+      body: 'Corps',
+      mind: 'Esprit',
+    },
+    creatureSkills: {
+      melee: 'CàC',
+      ranged: 'Distance',
+      other: 'Autre',
+    },
+    bodyLocations: {
+      all: 'Toutes',
+      head: 'Tête',
+      torso: 'Torse',
+      armLeft: 'Bras G.',
+      armRight: 'Bras D.',
+      legLeft: 'Jambe G.',
+      legRight: 'Jambe D.',
+    },
+    instantiateModal: {
+      title: 'Instancier dans une session',
+      selectSession: 'Choisir une session',
+      noSessions: 'Aucune session active',
+      customName: 'Nom personnalisé (optionnel)',
+      confirm: 'Ajouter à la session',
+      success: 'PNJ ajouté à la session',
+    },
+    form: {
+      createTitle: 'Nouvelle entrée bestiaire',
+      editTitle: 'Modifier l\'entrée',
+      name: 'Nom',
+      namePlaceholder: 'Nom de la créature...',
+      emoji: 'Emoji',
+      emojiPlaceholder: 'Ex: 🐉',
+      description: 'Description',
+      descriptionPlaceholder: 'Description optionnelle...',
+      category: 'Catégorie',
+      bodyType: 'Type de corps',
+      statBlockType: 'Type de fiche',
+      sectionIdentity: 'Identité',
+      sectionStats: 'Stats de base',
+      sectionAttributes: 'Attributs',
+      sectionSkills: 'Compétences',
+      sectionDr: 'Résistance aux dégâts',
+      sectionAttacks: 'Attaques',
+      sectionAbilities: 'Capacités spéciales',
+      sectionInventory: 'Inventaire',
+      level: 'Niveau',
+      xpReward: 'XP Récompense',
+      hp: 'Points de vie',
+      defense: 'Défense',
+      initiative: 'Initiative',
+      meleeDamageBonus: 'Bonus dégâts mêlée',
+      carryCapacity: 'Capacité de transport',
+      maxLuckPoints: 'Points de chance max',
+      wealth: 'Richesse',
+      rank: 'Rang',
+      tagSkill: 'Tag',
+      drUniform: 'Uniforme (toutes localisations)',
+      drDetailed: 'Détaillé (par localisation)',
+      addAttack: 'Ajouter une attaque',
+      attackName: 'Nom de l\'attaque',
+      attackSkill: 'Compétence',
+      attackDamage: 'Dégâts',
+      attackDamageType: 'Type de dégâts',
+      attackDamageBonus: 'Bonus dégâts',
+      attackFireRate: 'Cadence de tir',
+      attackRange: 'Portée',
+      attackTwoHanded: 'Deux mains',
+      addQuality: 'Ajouter qualité',
+      qualityName: 'Qualité',
+      qualityValue: 'Valeur',
+      addAbility: 'Ajouter capacité',
+      abilityName: 'Nom',
+      abilityDescription: 'Description',
+      addInventoryItem: 'Ajouter un objet',
+      searchItem: 'Rechercher un objet...',
+      quantity: 'Qté',
+      equipped: 'Équipé',
+      save: 'Enregistrer',
+      cancel: 'Annuler',
+      confirmDelete: 'Supprimer cette entrée ?',
+      confirmDeleteText: 'Cette action est irréversible.',
+      deleteSuccess: 'Entrée supprimée',
+      edit: 'Modifier',
+      delete: 'Supprimer',
+      custom: 'Custom',
+    },
+    bodyTypes: {
+      humanoid: 'Humanoïde',
+      quadruped: 'Quadrupède',
+      insect: 'Insecte',
+      serpentine: 'Serpentin',
+      robot: 'Robot',
+    },
+    creatures: {
+      bosKnight: {
+        name: 'Chevalier',
+        description: 'Au sein de la Confrérie de l\'Acier, le rang de Chevalier est très respecté. Les chevaliers sont en général responsables de l\'entretien des armes, des armures et de la technologie possédées par l\'organisation. Il n\'est pas aisé d\'atteindre ce poste et il faut des années de sacrifices et de travail acharné. Beaucoup de chevaliers sont ambitieux et espèrent atteindre l\'échelon de paladin.',
+      },
+      merchant: {
+        name: 'Marchand/Caravanier',
+        description: 'Les marchands et les caravaniers se trouvent souvent autour des grands campements et voyagent sur la plupart des grandes routes qui sillonnent les Terres désolées. Certains s\'installent en dur dans une ville ou une autre, ouvrant leur boutique dans des bâtiments abandonnés ou des stands montés de bric et de broc afin de vendre leurs marchandises. D\'autres préfèrent voir du pays et achètent et vendent au fil des lieux traversés ou à l\'occasion d\'une rencontre avec un voyageur. Les marchands sont presque toujours accompagnés d\'une escorte, utilisent des brahmines comme bêtes de somme et des mercenaires comme gardes. Même les commerçants installés dans un lieu fixe emploient une forme de sécurité ou une autre et gardent une arme de confiance à portée de main pour les « urgences ».',
+      },
+      wastelander: {
+        name: 'Habitant des Terres désolées',
+        description: '« Habitants des Terres désolées » est le nom donné aux très nombreux individus qui errent, voyagent et se fixent dans tout le territoire. Beaucoup d\'entre eux n\'ont rien de remarquable, et ne cherchent qu\'à survivre à tout prix. Certains sortent de l\'ordinaire et savent manier les armes, par exemple, pendant que d\'autres peuvent maîtriser des compétences uniques, reflétant leur expérience de la vie et leur passé. Ils peuvent venir de n\'importe quel village du Commonwealth et de toutes les strates de la société.',
+      },
+      vaultDweller: {
+        name: 'Habitant de l\'Abri',
+        description: 'Dans les Terres désolées, certains Abris logent ou ont logé des résidents. Ces derniers sont appelés par les populations extérieures les Habitants de l\'Abri. Il est bien rare d\'entrevoir le bleu vif des combinaisons Vault-Tec : bon nombre d\'Abris sont encore scellés ou ont rencontré un destin funeste à la suite des horribles expériences qu\'on y a menées. D\'autres bunkers du Commonwealth ouvrent leurs portes aux étrangers pour commercer avec eux, et tous les groupes humains tombés aux mains des fabricants des abris antiradiations n\'ont pas disparu.',
+      },
+      childOfAtom: {
+        name: 'Enfant d\'Atome',
+        description: 'Certains affirment que les Enfants d\'Atome sont des fanatiques, d\'autres qu\'ils forment un culte comme un autre… Quoi qu\'il en soit, on peut en trouver dans toutes les Terres désolées et ils vénèrent les matériaux radioactifs ainsi que leurs effets. Ils se regroupent souvent dans un lieu précis, hautement radioactif ou mieux encore : un site possédant un support matériel devant lequel ils peuvent prier, comme un cratère de bombe nucléaire. Étrangement, les Enfants d\'Atome semblent peu souffrir des radiations, s\'élevant pourtant parfois à un taux cent fois supérieur à ce qui tuerait un humain. Eux ne semblent pas tomber malades ni devenir des goules. Lorsqu\'on les croise, ils tentent toujours de répandre la bonne parole de l\'Atome, mais certains groupes sont paranoïaques et hostiles aux étrangers.',
+      },
+      gunner: {
+        name: 'Artilleur',
+        description: 'Les artilleurs sont peut-être le groupe le plus prolifique de toutes les Terres désolées, juste après les pillards. Ils se présentent comme mercenaires, mais les approcher pour leur proposer des capsules en échange d\'une mission peut s\'avérer difficile. Ils choisissent souvent des ponts effondrés comme base d\'opérations et installent parfois des ascenseurs pour atteindre les « étages » supérieurs et ne pas rester au niveau du sol. Les artilleurs sont extrêmement territoriaux, défendent férocement leurs lieux de vie et sont connus pour avoir programmé des Laserotron, lesquels font partie intégrante de leur arsenal.',
+      },
+      instituteScientist: {
+        name: 'Scientifique de l\'Institut',
+        description: 'La plupart des individus vivant dans l\'Institut sont des scientifiques au passé et aux domaines de compétences divers. Ils peuvent superviser des projets demandant des savoirs portant sur la robotique, la biologie, la création de tissus synthétiques, la physique et la génétique pour ne citer que ceux-là. Ils représentent la ressource principale de l\'Institut, lui permettant d\'améliorer et de développer la technologie dont il dispose.',
+      },
+      mercenary: {
+        name: 'Mercenaire',
+        description: 'Les artilleurs ne sont pas les seuls à vendre leurs services : bon nombre d\'autres individus et de groupes vendent leurs armes et leur violence contre une poignée de capsules. On peut les trouver, parfois, escortant des marchands et les protégeant contre les dangers des pillards et de la vie sauvage, mais d\'autres gardent aussi les campements, ou des survivants. Un mercenaire bien entraîné, connaissant la région et ses dangers, se paye rubis sur l\'ongle… et bon nombre d\'entre eux n\'hésiteront pas à s\'en prendre à vous pour une poignée de capsules.',
+      },
+      raiderVeteran: {
+        name: 'Pillard Vétéran',
+        description: 'Réussir à rester en vie envers et contre tout vous fait souvent gagner au moins une once de respect parmi vos pairs et c\'est bel et bien le cas des pillards vétérans. Leur armure améliorée et leur armement puissant démontrent leur capacité, non seulement à survivre, mais encore à prospérer dans les Terres désolées… et en font des ennemis redoutables. À la fois bons en combat et intelligents, il serait risqué de les sous-estimer.',
+      },
+      raiderScavenger: {
+        name: 'Pillard Fouineur',
+        description: 'En général, on reconnaît ces combattants revenus de tout à leur armure épaisse et à leur comportement agressif. Les gangs de pillards qui perdurent, ou ceux composés de membres expérimentés, sont souvent constitués presque entièrement de Pillards Fouineurs. Un seul Fouineur peut déjà être une redoutable nuisance, un groupe entier peut très facilement prendre la vie (et les possessions) de n\'importe quel voyageur des Terres désolées.',
+      },
+      raiderPsycho: {
+        name: 'Pillard Psycho',
+        description: 'Ces pillards, nommés d\'après leur dépendance au Psycho, sont parmi les représentants les plus hostiles et agressifs de leur groupe. En combat, ils sont heureux de manier leurs armes de corps à corps, entretenant leur rage et leur résistance à la douleur avec leur drogue favorite. Les identifier n\'est pas toujours évident au premier abord, mais on peut noter qu\'ils portent peu d\'armes à feu et que leur armure leur recouvre surtout le crâne, les bras et la torse, afin de les protéger en combat rapproché.',
+      },
+      raiderBoss: {
+        name: 'Chef Pillard',
+        description: 'Les chefs pillards sont à la tête d\'un gang. Ils possèdent, en général, de meilleures armes et armures que leurs suivants et ont tendance à être des combattants endurcis. Ils ont atteint leur position par la force, le sens du commandement et les bains de sang et ce sont ces mêmes qualités qui leur font garder leur rang.',
+      },
+      raider: {
+        name: 'Pillard',
+        description: 'Un pillard classique et solitaire est à peu près aussi menaçant qu\'une capsule de Nuka-Cola sous la semelle, malheureusement pour les voyageurs, ils le savent et ne se déplacent presque qu\'en groupe. Les pillards portent en général des armures de bric et de broc, dont les diverses parties ont été dérobées à leurs précédentes victimes, ainsi que des armes obtenues de la même manière. Les pillards se montrent hostiles envers toute personne ne faisant pas partie de leur groupe et vont jusqu\'à se battre contre des gangs rivaux.',
+      },
+      bosLancer: {
+        name: 'Lancier',
+        description: 'Les lanciers sont les membres de la Confrérie qui pilotent les vertiptères. Ils suivent un entraînement spécial, afin d\'apprendre comment faire voler et entretenir la flotte possédée par l\'organisation. Ce sont eux qui lui permettent le transport de troupes et le soutien aérien. Non seulement les lanciers doivent connaître leur véhicule sur le bout du doigt, mais aussi savoir voler sous un feu soutenu. Ils se concentrent, certes, sur le combat aérien, mais ils possèdent aussi des armes laser au cas où ils se retrouveraient au sol, au milieu d\'une échauffourée.',
+      },
+      bosScribe: {
+        name: 'Scribe',
+        description: 'Les scribes sont les gardiens du savoir et les lettrés de la Confrérie de l\'Acier. Ils savent se battre et suivent le même entraînement de base que n\'importe quel autre membre de l\'organisation ; toutefois, leur rôle n\'est pas celui de combattant. Ils gèrent la tenue des catalogues, les réparations, l\'acquisition et l\'étude des artefacts technologiques qui tombent entre les mains de la Confrérie. Lorsque leur expertise est nécessaire, ils accompagnent parfois des troupes sur le terrain, par exemple pour récupérer ou localiser des objets d\'importance, mais la plupart des scribes restent à la base des opérations de leur chapitre.',
+      },
+      bosPaladin: {
+        name: 'Paladin',
+        description: 'Les paladins sont les troupes d\'élite de la Confrérie de l\'Acier. Équipés d\'armures assistées et des meilleures armes dont dispose l\'organisation, ces vétérans sont souvent des guerriers reconnus. Atteindre le rang de paladin exige une dévotion totale à la Confrérie ainsi que d\'impressionnantes références : c\'est un échelon que beaucoup rêvent d\'atteindre.',
+      },
+      bosElder: {
+        name: 'Ancien',
+        description: 'Les anciens forment le conseil des chefs de la Confrérie de l\'Acier. Afin d\'atteindre leur position élevée, ils doivent escalader chaque échelon de l\'organisation et, avant d\'être nommés Ancien, doivent au moins être paladin. Bien que le Conseil des Anciens soit responsable de toute l\'organisation, un ou plusieurs Anciens peuvent chapeauter leur propre chapitre, dans diverses parties des Terres désolées.',
+      },
+      railroadAgent: {
+        name: 'Agent du Réseau du Rail',
+        description: 'La faction secrète du Réseau du Rail cherche à libérer les synthétiques de troisième génération contrôlés par l\'Institut. Ses agents travaillent souvent dans l\'ombre, agissent et s\'habillent de la façon la plus discrète possible. Ils préfèrent s\'en remettre au subterfuge pour mener leurs missions à bien. Cela ne les empêche toutefois pas de sortir leurs armes lorsqu\'on leur met des bâtons dans les roues ou que l\'on pactise avec leurs ennemis, par exemple la Confrérie de l\'Acier.',
+      },
+      zetan: {
+        name: 'Zétan',
+        description: 'Un être extraterrestre venu d\'un monde lointain, armé de technologie alien avancée.',
+      },
+      radroach: {
+        name: 'Radcafard',
+        description: 'Dans les États-Unis d\'avant-guerre, les cafards étaient déjà des vermines courantes, après la chute des bombes et l\'apocalypse nucléaire, rien n\'a vraiment changé. Surnommés radcafards en raison de leur morsure radioactive, ces créatures sont plus imposantes que leurs ancêtres, mais n\'en restent pas moins des vermines. Les radcafards infestent souvent des bâtiments en ruine, des tas de déchets et d\'autres lieux humides et sombres.',
+      },
+      deathclaw: {
+        name: 'Écorcheur',
+        description: 'Célèbre dans toutes les Terres désolées, l\'écorcheur est une créature crainte par de nombreuses personnes, à raison. Le gouvernement des États-Unis d\'avant-guerre a créé ces monstruosités en modifiant par épissage le génome du Caméléon de Jackson, dans le but de remplacer ses soldats sur le champ de bataille. Dotés de griffes et de cornes redoutables, bien plus grands que la plupart des humains, les écorcheurs sont des machines à tuer nettement plus rapides que les autres créatures de leur taille.',
+      },
+      glowingOne: {
+        name: 'Luminescent',
+        description: 'Ces goules vertes et brillantes résultent d\'un excès de radiations chez une goule sauvage ou un humain prédisposé à la goulification : la goule sauvage créée devient un conduit pour les rayons. Elle luit d\'un vert profond et émet des radiations extrêmes, y compris après sa mort. Elle peut même projeter ses rayons en un nuage toxique, lequel peut soigner les autres goules et infliger de lourds dégâts de radiation aux autres créatures.',
+      },
+      feralGhoul: {
+        name: 'Goule sauvage',
+        description: 'Goule âgée de plusieurs siècles ou humain malchanceux à qui la goulification a rapidement dégradé le corps et l\'esprit, les goules sauvages sont ce qu\'il reste quand l\'humanité d\'un sujet disparaît. Ces créatures violentes attaquent leurs victimes en se précipitant sur elles pour les lacérer. Il est impossible de les raisonner, puisqu\'elles ont perdu leur capacité à comprendre les paroles et ne semblent posséder aucune trace d\'intelligence.',
+      },
+      yaoGuai: {
+        name: 'Yao Guai',
+        description: 'Ces terrifiantes créatures sont tout ce qu\'il reste de la population d\'ours dans le monde d\'après-guerre. Le yao guai a subi d\'énormes mutations : il présente de plus grandes griffes et une masse musculaire plus importante que son ancêtre.',
+      },
+      synth: {
+        name: 'Synthétique',
+        description: 'Ces synthétiques de première génération se trouvent en général en groupe d\'au moins quatre individus, dans des zones sous la férule ou la protection de l\'Institut. Ils n\'ont d\'humain que leur silhouette et leur allure, et ne possèdent souvent même pas de peau synthétique. Ils ne sont que des caricatures robotiques et terrifiantes : leurs « organes » ne sont que des mécanismes, leurs os, des supports métalliques. Bien qu\'intelligents et bons combattants, ils sont loin de l\'astuce possédée par les troisièmes générations.',
+      },
+      synthStrider: {
+        name: 'Synthétique marcheur',
+        description: 'Les marcheurs synthétiques sont semblables aux synthétiques communs, dans le sens où ils ne possèdent pas la même conscience que ceux de la troisième génération et qu\'on les trouve dans le périmètre de l\'Institut qu\'ils servent à protéger. Les marcheurs, toutefois, sont des synthétiques de seconde génération et ressemblent plus aux humains que leurs congénères de la première. Ils sont souvent dotés d\'une couche de matière recouvrant au moins partiellement leurs organes mécaniques et leurs membres : une tentative archaïque de création de peau synthétique. Malheureusement, celle-ci a mal vieilli et s\'est déchirée, révélant par endroits leurs composants robotiques. Les visages des marcheurs synthétiques ont aussi des traits proches de ceux des humains, mais peu d\'entre eux disposent d\'un visage complet… quant à leurs cheveux, ils sont tous chauves. Ils sont plus forts et solides que les synthétiques de première génération et se battent bien mieux.',
+      },
+      synthSoldier: {
+        name: 'Soldat synthétique',
+        description: 'Utilisés par l\'Institut comme « recrues », les soldats synthétiques sont des robots de seconde génération, conçus pour le combat soutenu. Même s\'ils partagent de nombreuses caractéristiques avec les secondes générations, comme une « peau » complète et des traits vaguement humains, ils sont loin de la perfection de la troisième génération. Ils possèdent toutefois de notables améliorations, comme leur capacité à avoir recours à des armes à distance et de corps à corps, ainsi qu\'une armure bâtie sur leur corps, qui les rend bien plus résistants pendant les échauffourées. On trouve souvent au moins un soldat dans les groupes de synthétiques et de marcheurs, où ils ont la charge des armes de l\'Institut.',
+      },
+      turretMkI: {
+        name: 'Tourelle mitrailleuse MK I',
+        description: 'Utilisées par l\'armée américaine en tant que défenses automatiques et par certaines institutions privées pour se protéger des intrus, les tourelles peuvent se trouver n\'importe où, par exemple dans des bâtiments gouvernementaux ou des bases militaires. Certaines ont été démontées puis reprogrammées pour défendre des camps de colons ou de pillards. Toutes les tourelles, qu\'elles soient sur pied ou fixées à une paroi, sont dotées de puces d\'aide à la visée et de scanners biométriques leur permettant de distinguer les alliés des ennemis. Grâce à son trépied, cette tourelle automatique peut être placée sur n\'importe quelle surface plane assez grande pour l\'accueillir. Elle est recouverte d\'un blindage souvent peint en vert sombre et, parfois, porte encore son symbole « MK I » d\'origine. Les tourelles sont extrêmement dissuasives et tirent du 5.56 mm à un rythme soutenu. Grâce à leurs systèmes de visée avancés, leur précision est mortelle. Toutefois, leurs commandes peuvent être piratées et reprogrammées… si la tourelle est reliée à un terminal.',
+      },
+      turretWallMounted: {
+        name: 'Tourelle mitrailleuse (fixée à une paroi)',
+        description: 'Les tourelles fixées à des parois sont bien plus petites que leurs consœurs montées sur trépied. Elles sont placées dans de petits casiers semi-sphériques pouvant être fixés aux murs ou aux plafonds… et passant facilement inaperçus. Ces tourelles de taille plus modeste tirent des munitions de 10 mm, mais rattrapent ce handicap par la grande vélocité de leurs rafales et la présence d\'autres tourelles disposées dans la même pièce. En dépit de leur taille, elles disposent des mêmes technologies de visée avancées et de scanners biométriques que leurs consœurs sur trépied.',
+      },
+      turretMkV: {
+        name: 'Tourelle mitrailleuse MK V',
+        description: 'La version MK V ressemble par bien des aspects à ses versions antérieures. Ces tourelles ne sont toutefois pas que conçues pour arroser les ennemis de balles, mais aussi pour les étourdir, ce qui les rend plus vulnérables à leur feu soutenu. Les tourelles MK V tirent des 5.56 mm incendiaires et peuvent être identifiées grâce à leur peinture d\'un gris-vert sombre.',
+      },
+      turretMkIII: {
+        name: 'Tourelle mitrailleuse MK III',
+        description: 'Amélioration du modèle MK I, la MK III a été conçue pour être beaucoup plus solide. Elle possède un blindage plus résistant et des munitions de 5.56 mm de grande puissance. Tout comme la MK I, elle est peinte en vert foncé, montée sur un trépied et bénéficie des mêmes systèmes d\'aide à la visée.',
+      },
+      turretWallMounted3Burst: {
+        name: 'Tourelle mitrailleuse 3 coups (fixée à une paroi)',
+        description: 'La version 3 coups de cette tourelle est capable de fournir une cadence de tir plus soutenue, ce qui en fait un minigun de taille réduite fixé au mur. Elle ne tire, certes, que du 10 mm, mais qu\'elle le fasse trois balles à la fois cause plus de dégâts à ses cibles, surtout à courte portée.',
+      },
+      turretLaserWallMounted: {
+        name: 'Tourelle Laser (fixée à une paroi)',
+        description: 'Les tourelles laser n\'ont pas d\'équivalent sur trépied, mais sont bâties comme les autres machines sur paroi. Au lieu de munitions 10 mm, elles tirent un rayon laser semblable à ceux des pistolets et fusils laser. Ce modèle expulse des traits d\'énergie uniques, mais en succession rapide. Comme les autres tourelles, elles gardent les Abris, les bâtiments bureaucratiques et les bases militaires.',
+      },
+      turretLaser3BurstWallMounted: {
+        name: 'Tourelle Laser 3 coups (fixée à une paroi)',
+        description: 'Variante de la tourelle laser, ce modèle 3 coups tire presque aussi rapidement qu\'une Gatling laser, même si ce qui est gagné en dégâts infligés est perdu en précision. Elle couvre un rayon plus large que la tourelle à rafale unique, ce qui lui offre la possibilité de toucher plusieurs cibles à la fois.',
+      },
+      synthCourser: {
+        name: 'Coursier synthétique',
+        description: 'Tous ceux qui connaissent l\'existence des coursiers synthétiques les craignent. Ces synthétiques de troisième génération travaillent pour l\'Institut, plus exactement la branche Bureau de rétention des synthétiques. Leur mission est de remettre la main sur les synthétiques fugitifs, mais leurs tâches ne s\'arrêtent pas là. Les coursiers suivent un entraînement de haut niveau et possèdent une force et une constitution supérieure. Lorsqu\'un synthétique de troisième génération est sélectionné pour devenir coursier, ses implants neurologiques sont améliorés et on le forme à l\'utilisation d\'armes spécialisées, au combat et à l\'espionnage, afin de mener sa mission à bien. L\'Institut lui implante aussi une puce de coursier qui lui permet d\'être suivi, et lui donne la capacité de se téléporter dans et hors de l\'Institut. Les numéros d\'identification des coursiers commencent toujours par un « X ».',
+      },
+      superMutantSuicider: {
+        name: 'Kamikaze super mutant',
+        description: 'Bien que la plupart des super mutants ne soient pas vraiment effrayés par la mort, les kamikazes super mutants ne possèdent, eux, pas une once de désir de survie lorsqu\'ils poursuivent leur proie. Ces super mutants accompagnent souvent les patrouilles ou servent de gardes. Hostiles à l\'extrême, dès qu\'ils voient une cible, ils arment le mini-nuke qu\'ils tiennent sous leur bras et se précipitent sur l\'intrus pour l\'atteindre avant la détonation.',
+      },
+      superMutantMaster: {
+        name: 'Maître super mutant',
+        description: 'Les maîtres super mutants sont plus haut placés dans la hiérarchie que les frappeurs super mutants et possèdent en général l\'armure, les armes et l\'expérience requises pour mériter leur titre. Ces super mutants sont presque toujours hostiles et équipés d\'une puissance de feu destructrice, comme des lance-missiles et des mini-guns. Ce genre de super mutant fait rarement partie des petits groupes, mais est presque toujours présent dans les plus grandes communautés.',
+      },
+      superMutantBrute: {
+        name: 'Frappeur super mutant',
+        description: 'Les frappeurs super mutants sont plus durs à cuire que les super mutants classiques sortis de l\'Institut. Ils ont gardé une bonne partie de leur intelligence, possèdent une certaine éloquence et ont recours à des tactiques de combat plus subtiles, comme chercher à se mettre à couvert ou comprendre les points faibles de leurs ennemis. Ils ont tendance à manipuler des armes plus puissantes et portent des armures plus résistantes.',
+      },
+      superMutantBehemoth: {
+        name: 'Béhémoth super mutant',
+        description: 'Ce sont les super mutants les plus forts et les plus âgés. Ayant subi de lourdes mutations, les béhémoths frôlent les quatre mètres. Les années passées et leurs mutations continues leur ont fait perdre l\'usage de la parole et ils ne s\'expriment plus que par de monstrueux rugissements. Même les autres super mutants craignent les béhémoths : ils sont grands, forts… et hostiles. Les béhémoths portent des chariots de supermarché sur le dos et des énormes battes faites de lances d\'incendie.',
+      },
+      superMutant: {
+        name: 'Super Mutant',
+        description: 'Deux mètres dix, la peau verte et les muscles saillants, les super mutants ne peuvent pas passer inaperçus. Leur stupidité est proverbiale, mais ce sont des guerriers compétents et ils savent très bien se servir des armes et des armures. On les trouve souvent en groupes de quelques individus suivant les ordres d\'un chef. Parfois, ils sont accompagnés de molosses mutants.',
+      },
+      radstag: {
+        name: 'Radcerf',
+        description: 'Ces créatures sont les descendants mutants du cerf commun. Bien que leur anatomie ait peu changé, ils ont subi la même mutation que les brahmines et ont donc deux têtes. Les radcerfs ont subi une autre mutation étrange et bien visible : deux pattes supplémentaires, non développées, pendent de leur buste. Ces créatures voyagent en troupeau et sont la plupart du temps dociles si l\'on ne les menace pas.',
+      },
+      radscorpion: {
+        name: 'Radscorpion',
+        description: 'Cette version mutante du scorpion empereur est l\'une des créatures les plus terrifiantes des Terres désolées. Les radscorpions sont probablement les animaux dont la taille a subi la plus importante mutation : le plus grand spécimen atteint presque la taille d\'une petite voiture. Leur solide carapace, leurs redoutables pinces, leur dard imposant et leur vitesse fulgurante les rendent particulièrement difficiles à tuer.',
+      },
+      moleRat: {
+        name: 'Rataupe',
+        description: 'Ces rongeurs sont la forme mutante des hétérocéphales d\'avant-guerre. Ils prospèrent dans la quasi-totalité des Terres désolées, et ce, malgré le nombre de leurs prédateurs. D\'une taille proche de celle du chien, ils sont bien plus grands que leurs ancêtres et se montrent en général bien plus féroces qu\'eux lorsqu\'ils chassent ou défendent leurs terriers. Les rataupes, animaux grégaires, chassent en meute et profitent de leur capacité à creuser sous terre pour bénéficier de l\'élément de surprise.',
+      },
+      mutantHound: {
+        name: 'Molosse mutant',
+        description: 'Ces chiens mutants ne ressemblent très peu à leurs homologues domestiques ou enragés. Les molosses mutants ne sont pas des créatures naturelles : ils ont été créés par une exposition au virus à évolution forcée. Beaucoup plus grands qu\'un chien normal, ils bénéficient d\'une musculature surdéveloppée et font preuve d\'une agressivité décuplée. On les croise presque toujours en compagnie de super mutants qui s\'en servent de chiens de garde.',
+      },
+      mirelurkSpawn: {
+        name: 'Jeune fangeux',
+        description: 'Le terme « jeune fangeux » désigne l\'ensemble des fangeux non adultes. Les fangeux pondent des œufs, souvent dans un nid bien protégé. Les jeunes fangeux ne représentent pas une grande menace pour un individu compétent, pour peu que la nuée ne soit pas trop grande. À ce stade de leur évolution, les fangeux présentent une carapace molle et ils mesurent à peu près la taille d\'un radcafard.',
+      },
+      mirelurk: {
+        name: 'Fangeux',
+        description: 'Les spécimens les plus courants de la famille des fangeux sont désignés sous ce terme générique. Ces créatures ressemblent à des limules, dotées d\'imposantes pinces capables de briser un os. On les trouve en groupe à proximité de grandes étendues d\'eau. Parfois, leur carapace a accroché des bernacles, un filet ou un autre débris, ce qui rend les fangeux plus facilement repérables.',
+      },
+      mirelurkHunter: {
+        name: 'Fangeux chasseur',
+        description: 'Il semble que les chasseurs descendent de homards plutôt que de crabes, si l\'on considère leur forme allongée et leur queue évasée. Comme leurs cousins, ils possèdent de puissantes pinces, mais contrairement au fangeux descendant de crabes, ils sont plus agressifs, leur carapace est en général plus solide et ils ont développé la capacité de cracher une substance acide sur leur proie.',
+      },
+      mirelurkQueen: {
+        name: 'Reine des fangeux',
+        description: 'Les reines constituent une variante rare des classiques fangeux crabes et sont bien plus terrifiantes et dangereuses que ces derniers. Leur taille dépasse celle de n\'importe quel autre membre de l\'espèce et peut parfois rivaliser avec celle, imposante, d\'un béhémoth. Elles font partie des variantes de fangeux les plus agressives. Comme tous les autres fangeux, leur carapace est presque indestructible, mais leur tête, tendre, reste leur point faible.',
+      },
+      misterHandy: {
+        name: 'Mister Handy',
+        description: 'Modèle de base de la gamme, le Mister Handy a vu le jour comme unité de réparation, de construction et de maintenance, mais a fini par devenir un élément essentiel de la vie américaine d\'avant-guerre. Dans les foyers, un Mister Handy faisait office de serviteur, capable d\'entretenir la maisonnée, de cuisiner et même de s\'occuper des enfants et des animaux. Nombre de ces robots errent désormais dans les Terres désolées, leur cœur nucléaire fonctionnant encore des siècles après la Grande Guerre.',
+      },
+      sentryBot: {
+        name: 'Robot sentinelle',
+        description: 'Le robot sentinelle est l\'un des robots militaires les plus imposants et les plus dangereux des Terres désolées. Conçu pour la défense de périmètre et l\'assaut lourd, il est équipé d\'un arsenal dévastateur comprenant un canon mitrailleur, un lance-missiles et de puissants bras mécaniques. Même gravement endommagé, le robot sentinelle reste une menace mortelle grâce à sa capacité d\'autodestruction.',
+      },
+      protectron: {
+        name: 'Protectron',
+        description: 'Cette autre gamme de robots de RobCo, couronnée de succès elle aussi, a été conçue comme ouvrier multifonctions. Les Protectrons peuvent aider dans les entreprises du bâtiment, dans les bureaux et dans les services publics. Même si ces unités disposent d\'une arme laser, celle-ci n\'est pas destinée au combat, mais à la protection du robot. Les Protectrons peuvent également s\'autodétruire pour anéantir leur agresseur. Diverses personnalités peuvent être programmées dans l\'unité : pompier, policier, ouvrier du bâtiment, secouriste ou agent de métro.',
+      },
+      misterGutsy: {
+        name: 'Mister Gutsy',
+        description: 'L\'armée des États-Unis n\'a pas manqué de remarquer le potentiel des robots Mister Handy : ses dirigeants ont donc passé commande auprès de General Atomics International pour créer un modèle de combat issu de la gamme Mister Handy. Ainsi fut conçu le modèle Mister Gutsy. Pourvu de plaques de blindage intégrées, d\'une vaste gamme d\'accessoires de combat létaux, d\'améliorations de ses systèmes d\'analyse sensorielle et d\'une rapidité accrue, il est devenu un garde du corps robotique tout à fait compétent.',
+      },
+      missNanny: {
+        name: 'Miss Nanny',
+        description: 'Après le boom qu\'a connu la popularité du Mister Handy au sein des foyers, le modèle Miss Nanny a été lancé. Conçu avec le soin des nourrissons et des enfants en tête, il a reçu plusieurs modifications dans sa programmation pour refléter cet aspect. Ce modèle de robots Mister Handy peut aussi être altéré afin de servir dans le domaine médical.',
+      },
+      assaultron: {
+        name: 'Laserotron',
+        description: 'Conçu par RobCo Industries, le Laserotron est un impressionnant robot militaire, destiné à combattre sur la ligne de front et à dévaster les forces ennemies. De puissantes jambes mécaniques propulsent cette machine et lui permettent de se déplacer à une vitesse incroyable vers ses cibles. Ses bras sont conçus pour accueillir une ribambelle d\'accessoires afin d\'adapter le robot au type de combat qui l\'attend. Même gravement endommagé, le Laserotron poursuit sans relâche sa mission.',
+      },
+      eyebot: {
+        name: 'Eyebot',
+        description: 'L\'eyebot est l\'un des plus petits robots conçus par RobCo Industries. Apercevoir sa forme sphérique flottant au-dessus du sol est monnaie courante dans les Terres désolées. Malgré sa taille compacte, il renferme de nombreux appareils fort utiles : des antennes longue portée, un système de reconnaissance faciale et vocale, et même une arme laser. Ils sont souvent amicaux, mais se défendent en cas d\'attaque.',
+      },
+      bloodyBug: {
+        name: 'Tique',
+        description: 'Les tiques sont des moustiques mutants que l\'on croise dans les marais, dans les zones d\'eau stagnante ou à proximité des charognes. Adultes, elles présentent un corps brun-rouge sombre et long de plus de cinquante centimètres, leur trompe acérée peut perforer certains types d\'armures. En général, les tiques crachent du sang irradié pour aveugler leur proie avant de percer la victime désorientée de leur trompe pour boire son sang.',
+      },
+      bloatfly: {
+        name: 'Darillon',
+        description: 'Les darillons sont la forme mutante des panorpes d\'avant-guerre et constituent une autre espèce courante d\'insectes volants des Terres désolées. Ils construisent souvent leur nid dans les mêmes zones que les mouches bouffies ou les tiques. Les darillons ont développé un dard venimeux aussi mortel que douloureux. Ces créatures sont incroyablement rapides et agiles, ce qui en fait des adversaires redoutables en nuée.',
+      },
+      dog: {
+        name: 'Chien',
+        description: 'Les chiens sont courants dans les Terres désolées et font partie des rares espèces de créatures à ne pas avoir complètement muté. Les chiens non mutants existent dans de nombreuses communautés et font office d\'animaux domestiques ou de gardes. Néanmoins, tous les chiens ne sont pas amicaux. Des meutes de chiens mutants, enragés et irradiés, parcourent les Terres désolées.',
+      },
+      mongrel: {
+        name: 'Cabot',
+        description: 'Un cabot est une version mutante et brutale du meilleur ami de l\'homme. Plus agressif et résistant aux radiations, le cabot est une menace redoutable pour les voyageurs imprudents.',
+      },
+      brahmin: {
+        name: 'Brahmine',
+        description: 'Essentielles dans la plupart des communautés, les brahmines font partie des créatures les plus courantes des Terres désolées. Ces pièces de bétail mutant partagent de nombreuses caractéristiques avec les vaches d\'avant-guerre, même si elles ont développé une seconde tête et des pis surdimensionnés en raison des retombées nucléaires. Elles fournissent du lait et de la viande, ainsi que du cuir.',
+      },
+      dogmeat: {
+        name: 'Canigou',
+        description: 'Un fidèle compagnon canin du Wasteland. Canigou est un chien loyal et courageux, toujours prêt à protéger son maître.',
+      },
+    },
+    attacks: {
+      unarmed: 'Mains nues',
+      huntingRifle: 'Fusil de chasse',
+      alienBlasterPistol: 'Pistolet alien',
+      bite: 'Morsure',
+      claws: 'Griffes',
+      rush: 'Ruée',
+      heavyObject: 'Objet lourd',
+      instituteLaser: 'Laser de l\'Institut',
+      shockBaton: 'Matraque électrique',
+      modifiedMiniNuke: 'Mini-nuke modifié',
+      minigun: 'Mini-gun',
+      fireHydrantBat: 'Batte lance d\'incendie',
+      boulderThrow: 'Jet de rocher',
+      board: 'Planche',
+      pipeBoltAction: 'Fusil à verrou de fortune',
+      superSledge: 'Super Masse',
+      machineGun: 'Canon mitrailleur',
+      turretMachineGun: 'Mitrailleuse',
+      turretSubmachineGun: 'Mitraillette',
+      turretLaser: 'Arme Laser',
+      missileLauncher: 'Lance-missiles',
+      armLasers: 'Lasers de bras',
+      autoPistol10mm: 'Pistolet automatique 10 mm',
+      circularSaw: 'Scie circulaire',
+      flamethrower: 'Lance-flammes',
+      selfDestruct: 'Autodestruction',
+      laser: 'Laser',
+      proboscis: 'Trompe',
+      antlers: 'Bois',
+      stinger: 'Dard',
+      pincers: 'Pinces',
+      acidSpray: 'Aspersion d\'acide',
+      sharpStinger: 'Dard acéré',
+      headbutt: 'Coup de tête',
+    },
+    abilities: {
+      railroadAgent: {
+        name: 'Agent du Rail',
+        description: 'Lorsqu\'il travaille en secret et qu\'il ment, l\'Agent du Rail gagne 1d20 supplémentaire à tous ses tests de Discours.',
+      },
+      chainOfCohesion: {
+        name: 'Chaîne de Cohésion',
+        description: 'Pour une action majeure, un Ancien peut ordonner à un personnage de la Confrérie de l\'Acier d\'un niveau inférieur au sien de procéder à une action majeure. L\'Ancien aide cette action avec un test de CHA + Discours.',
+      },
+      wellEquippedKnight: {
+        name: 'Bien équipé',
+        description: 'Deux fois par combat, le Chevalier peut tirer une salve avec son fusil laser à canon long. Il ajoute alors la cadence de tir (2) aux dégâts de son arme pour cette seule attaque (pour un total de 7 CD).',
+      },
+      powerArmorPaladin: {
+        name: 'Armure assistée',
+        description: 'Un paladin de la Confrérie de l\'Acier porte une armure assistée. Le paladin utilise la FOR de l\'armure (11) à la place de la sienne. Il est immunisé aux dégâts de chute et inflige 3 CD de dégâts balistiques à toutes les créatures à portée de son atterrissage. Il peut respirer sous l\'eau ainsi que dans les environnements toxiques. Voir page 137.',
+      },
+      wellEquippedPaladin: {
+        name: 'Bien équipé',
+        description: 'Deux fois par combat, le paladin peut « lâcher » une rafale de son fusil laser long. Il ajoute alors la cadence de tir (2) aux dégâts de son arme pour cette seule attaque (pour un total de 8 CD).',
+      },
+      preWarExpertise: {
+        name: 'Expertise d\'avant-guerre',
+        description: 'Le Scribe gagne 1d20 de bonus lorsqu\'il effectue un test pour examiner, identifier ou utiliser de la technologie d\'avant-guerre.',
+      },
+      vertibirdTraining: {
+        name: 'Entraînement vertiptère',
+        description: 'Le lancier gagne 1d20 lorsqu\'il effectue des tests pour piloter un vertiptère.',
+      },
+      letLooseRaider: {
+        name: 'Se lâcher',
+        description: 'Une fois par combat, le pillard peut « se lâcher » et tirer une salve de son arme de fortune. Il ajoute alors la cadence de tir (2) aux dégâts de son arme pour cette seule attaque (pour un total de 5 CD).',
+      },
+      aggressiveRaiderBoss: {
+        name: 'Agressif',
+        description: 'Le chef pillard est prompt à attaquer lorsqu\'il sent une proie. Quand il entre en scène, il génère immédiatement 1 point d\'action. Si le chef pillard est un allié, ce point est placé dans la réserve du groupe. S\'il est un ennemi, le point rejoint la réserve du MJ.',
+      },
+      pcpOrTnt: {
+        name: 'PCP ou TNT',
+        description: 'Un pillard psycho a toujours sur lui un Cocktail Molotov ou une dose de Psycho. Ce qu\'il a dans ses poches dépend de la première action qu\'il entreprend, entre les deux fournies plus bas : après avoir utilisé l\'un de ces objets, il ne peut pas utiliser l\'autre.',
+      },
+      molotovRaider: {
+        name: 'Molotov',
+        description: 'Une fois par combat, un pillard psycho peut jeter un cocktail Molotov, en utilisant les caractéristiques fournies.',
+      },
+      psychoDrug: {
+        name: 'Psycho',
+        description: 'Un pillard psycho peut utiliser une dose de Psycho grâce à une action mineure. Pour tout le reste du combat, le pillard psycho ajoute +2 CD à tous ses jets de dégâts et +2 à ses résistances aux dégâts balistiques et énergétiques.',
+      },
+      aggressiveRaiderScavenger: {
+        name: 'Agressif',
+        description: 'Le pillard fouineur est prompt à attaquer lorsqu\'il sent une proie. Quand il entre en scène, il génère immédiatement 1 point d\'action. Si le pillard fouineur est un allié, ce point est placé dans la réserve du groupe. S\'il est un ennemi, le point rejoint la réserve du MJ.',
+      },
+      iGiveTheOrders: {
+        name: 'C\'est moi qui commande',
+        description: 'Un pillard vétéran peut utiliser une action mineure pour ordonner à un pillard de rang inférieur, et se trouvant à portée Courte, d\'effectuer immédiatement une action mineure. Il peut aussi utiliser une action majeure pour ordonner à un autre pillard d\'effectuer immédiatement une action majeure.',
+      },
+      letLooseVeteran: {
+        name: 'Se lâcher',
+        description: 'Une fois par combat, le pillard vétéran peut « se lâcher » et tirer une salve de son fusil de combat. Il ajoute alors la cadence de tir (2) aux dégâts de son arme pour cette seule attaque (pour un total de 7 CD).',
+      },
+      letLooseGunner: {
+        name: 'Se lâcher',
+        description: 'Une fois par combat, l\'artilleur peut « se lâcher » et tirer une salve de sa carabine de combat. Il ajoute alors la cadence de tir (2) aux dégâts de son arme pour cette seule attaque (pour un total de 7 CD).',
+      },
+      longLiveTheAtom: {
+        name: 'Que vive l\'Atome',
+        description: 'Les Enfants d\'Atome ont l\'habitude de vivre dans les lieux les plus irradiés des Terres désolées et n\'en subissent presque aucune conséquence. Que ce soit par chance, disposition génétique ou véritable preuve de l\'existence de l\'Atome, ils gagnent +2 à leur DR de Radiation.',
+      },
+      vaultChild: {
+        name: 'Enfant de l\'Abri',
+        description: 'Sa jeunesse saine aux mains de médecins compétents et d\'auto-docs sophistiqués implique que l\'habitant de l\'Abri réduit la difficulté de tous les tests d\'END destinés à résister aux effets des maladies. Le MJ décide pour son PNJ du type d\'expériences qui a eu lieu dans son Abri. Une fois par quête, le MJ peut introduire une complication qui reflète la nature de cette expérimentation, à laquelle l\'habitant de l\'Abri a participé contre son gré ou en lien avec sa jeunesse passée en isolement et confinement dans son Abri. Dans ce cas, il regagne immédiatement un point de chance.',
+      },
+      educated: {
+        name: 'Éduqué',
+        description: 'L\'habitant de l\'Abri possède un atout personnel supplémentaire.',
+      },
+      gifted: {
+        name: 'Doué',
+        description: 'Choisissez deux attributs S.P.E.C.I.A.L. et augmentez-les de +1.',
+      },
+      letLooseMerchant: {
+        name: 'Se lâcher',
+        description: 'Une fois par combat, le Marchand peut « se lâcher » et tirer une salve de son pistolet automatique 10 mm. Il ajoute alors la cadence de tir (4) aux dégâts de son arme pour cette seule attaque (pour un total de 7 CD).',
+      },
+      masterMerchant: {
+        name: 'Maître marchand',
+        description: 'Lorsqu\'il fait un test de Troc en opposition, le marchand génère un succès automatique en plus de ceux qu\'il obtient sur ses dés.',
+      },
+      wellStocked: {
+        name: 'Bien achalandé',
+        description: 'Le marchand est accompagné d\'un groupe de brahmines ou tient une boutique. Il possède 6d20 capsules sur lui et le meneur détermine les marchandises dont il dispose.',
+      },
+      letLooseMercenary: {
+        name: 'Se lâcher',
+        description: 'Une fois par combat, le Mercenaire peut « se lâcher » et tirer une salve de sa carabine de combat. Il ajoute alors la cadence de tir (2) aux dégâts de son arme pour cette seule attaque (pour un total de 7 DC).',
+      },
+      labCoat: {
+        name: 'Blouse de labo',
+        description: 'Grâce à la praticité du modèle, mais aussi au fait que vous vous sentez tout simplement plus intelligent quand vous en enfilez une, porter une blouse vous permet de relancer une fois par scène un seul d20 sur un test de compétence basé sur l\'INT que vous effectuez.',
+      },
+      alien: {
+        name: 'Technologie alien',
+        description: 'Utilise des armes et équipements d\'origine extraterrestre impossibles à reproduire.',
+      },
+      radResistant: {
+        name: 'Résistant aux radiations',
+        description: 'Immunisé aux dégâts de radiation.',
+      },
+      terrifying: {
+        name: 'Terrifiant',
+        description: 'Les personnages qui voient cette créature pour la première fois doivent réussir un test de CHA + Survie (difficulté 2) ou être Étourdis.',
+      },
+      fast: {
+        name: 'Rapide',
+        description: 'Peut se déplacer de 2 zones en une seule action de mouvement.',
+      },
+      shredding: {
+        name: 'Déchiquetage',
+        description: 'L\'écorcheur peut choisir de porter une attaque de Griffes dévastatrice en augmentant la difficulté de l\'attaque de +1. En cas de réussite, ajoutez +2 CD aux dégâts.',
+      },
+      weakPoint: {
+        name: 'Point faible',
+        description: 'Si un attaquant choisit de viser le buste de la créature, il ignore la RD de cette dernière. Cette capacité ne s\'applique pas si l\'attaque touche par hasard le buste.',
+      },
+      extraordinaryStrength: {
+        name: 'Force extraordinaire',
+        description: 'L\'écorcheur est capable de soulever et de projeter des objets aussi lourds qu\'une voiture standard.',
+      },
+      butcheringDeathclaw: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un écorcheur mort en réussissant un test d\'END + Survie de difficulté 1. Ils récupèrent ainsi 2 CD morceaux de viande d\'écorcheur.',
+      },
+      feral: {
+        name: 'Sauvage',
+        description: 'La goule sauvage manque d\'intelligence et seuls ses instincts primaires la guident. La goule sauvage ne peut être persuadée ou influencée par des tests de Discours. Elle se déplace vers l\'ennemi le plus proche et l\'attaque. Si elle ne détecte aucun ennemi, elle se déplace vers la source de lumière vive ou de bruit fort la plus proche. Si elle ne perçoit rien de cela, elle se déplace au hasard ou se contente d\'attendre allongée.',
+      },
+      mutantBrute: {
+        name: 'Brute mutante',
+        description: 'Les attaques de mêlée infligent +2 CD de dégâts supplémentaires.',
+      },
+      robotSynth: {
+        name: 'Robot',
+        description: 'Le synthétique est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      lootSynth: {
+        name: 'Fouille',
+        description: 'Fusil laser de l\'Institut (stimulateur de photons, canon amélioré), matraque électrique, 3d20 cellules à fusion, jambes de synthétique x2, bras de synthétique x2, casque de synthétique.',
+      },
+      robotSynthStrider: {
+        name: 'Robot',
+        description: 'Le synthétique est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      lootSynthStrider: {
+        name: 'Fouille',
+        description: 'Arme laser de l\'Institut (agitateur de photons amélioré, canon long, lunette courte), matraque électrique, 3d20 cellules à fusion, casque de synthétique solide, plastron de synthétique solide, jambières de synthétique solide x2, brassards de synthétique solide x2.',
+      },
+      robotSynthCourser: {
+        name: 'Robot',
+        description: 'Le synthétique est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      instituteAccess: {
+        name: 'Accès à l\'Institut',
+        description: 'Le coursier synthétique peut avoir recours à la technologie de téléportation utilisée par l\'Institut et entrer ou sortir de l\'Institut à son gré.',
+      },
+      thirdGenSynth: {
+        name: 'Synthétique de troisième génération',
+        description: 'Le synthétique peut se faire passer pour un humain et toute inspection permet de conclure qu\'il est bien humain. Le synthétique de troisième génération ne peut être identifié comme tel qu\'après sa mort, en récupérant son composant de synthétique. Lorsqu\'il se fait passer pour une personne connue, le synthétique de troisième génération obtient un bonus de 2d20 pour imiter cette personne, y compris ses tics, ainsi que pour se souvenir de ses connaissances.',
+      },
+      lootSynthCourser: {
+        name: 'Fouille',
+        description: 'Composant synthétique, plastron lourd de synthétique, brassard lourd de synthétique, jambière lourde de synthétique, fusil laser de l\'Institut (crosse complète, agitateur de photons amélioré, canon long amélioré).',
+      },
+      robotSynthSoldier: {
+        name: 'Robot',
+        description: 'Le synthétique est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      aggressiveSynthSoldier: {
+        name: 'Agressif',
+        description: 'Le soldat synthétique est prompt à attaquer lorsqu\'il sent une proie. Quand il entre en scène, il génère immédiatement 1 point d\'action. Si le soldat synthétique est un allié, ce point est placé dans la réserve du groupe. S\'il est un ennemi, le point rejoint la réserve du MJ.',
+      },
+      lootSynthSoldier: {
+        name: 'Fouille',
+        description: 'Arme laser de l\'Institut (agitateur de photons amélioré, canon long, lunette courte), matraque électrique, 3d20 cellules à fusion, casque de synthétique solide, plastron de synthétique solide, jambière de synthétique solide x2, brassard de synthétique solide x2.',
+      },
+      smallTurret: {
+        name: 'Petite',
+        description: 'La tourelle est plus petite que la majorité des personnages. Les PV normaux de la tourelle sont égaux à la somme de son Corps et de la moitié de son niveau (arrondie au supérieur), mais sa défense augmente de 1. De plus, la tourelle est tuée si elle subit la moindre blessure.',
+      },
+      salvageTurretWall: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'une tourelle détruite grâce à un test réussi d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent 3d20 munitions de 10 mm ainsi que 2 CD composants peu fréquents.',
+      },
+      salvageTurretWallLaser: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'une tourelle détruite grâce à un test réussi d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent 3d20 Cellules à fusion ainsi que 2 CD composants peu fréquents.',
+      },
+      robotTurret: {
+        name: 'Robot',
+        description: 'La tourelle est un robot. Elle est immunisée contre les effets de la faim, de la soif et de la suffocation. Elle est également immunisée contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      salvageTurret: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'une tourelle détruite grâce à un test réussi d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent 3d20 munitions de 5.56 mm ainsi que 2 CD composants peu fréquents.',
+      },
+      modifiedMiniNukeAbility: {
+        name: 'Mini-nuke modifié',
+        description: 'Le kamikaze super mutant porte un mini-nuke modifié. Une fois à courte portée de sa cible, il effectue un test d\'AGI + Explosifs (SR 11) pour le faire détoner. Tous ceux à portée courte du kamikaze super mutant, y compris lui-même, en subissent les effets. Si le kamikaze est tué avant d\'armer et de faire détoner le mini-nuke, alors 1 mini-nuke peut être trouvé sur le corps. Si le kamikaze est tué par l\'explosion, aucun mini-nuke ne peut être trouvé sur le cadavre, mais on peut y récolter 1 composant rare.',
+      },
+      lootBehemoth: {
+        name: 'Fouille',
+        description: 'Une fois le béhémoth mort, les joueurs peuvent trouver, sur son corps, plusieurs objets et un certain nombre de capsules. Jetez 3d20 pour connaître le nombre de capsules et 4 CD pour le nombre d\'objets de bric-à-brac. Le corps peut aussi receler jusqu\'à deux armes et 2d20 munitions correspondant à ces dernières, à la discrétion du meneur.',
+      },
+      barbaric: {
+        name: 'Barbare',
+        description: 'RD +2 contre les dégâts balistiques et énergétiques (inclus).',
+      },
+      radImmune: {
+        name: 'Immunisé contre les radiations',
+        description: 'Le yao guai réduit à 0 tous les dégâts de radiation qu\'il subit et ne peut subir aucun dégât ou effet infligé par des radiations.',
+      },
+      large: {
+        name: 'Grand',
+        description: 'Il est plus grand que la majorité des autres personnages et les domine de toute sa taille. Il reçoit +1 PV supplémentaire par niveau, mais sa défense est réduite de 1, jusqu\'à un minimum de 1. De plus, il subit un coup critique uniquement si une attaque lui inflige au moins 7 points de dégâts (après application de la RD) en un seul coup, au lieu de 5 points de dégâts pour les autres créatures.',
+      },
+      aggressive: {
+        name: 'Agressif',
+        description: 'Le yao guai est prompt à attaquer lorsqu\'il sent une proie. Quand il entre en scène, il génère immédiatement 1 point d\'action. Si le yao guai est un allié, ce point est placé dans la réserve du groupe. S\'il est un ennemi, le point rejoint la réserve du MJ.',
+      },
+      robotSentryBot: {
+        name: 'Robot',
+        description: 'Le robot sentinelle est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      selfDestructSentryBot: {
+        name: 'Autodestruction',
+        description: 'Si les deux bras du robot sentinelle sont blessés ou si ses points de vie sont tombés à la moitié ou moins de leur maximum, le robot s\'avance vers l\'ennemi le plus proche et entreprend une action capitale pour déclencher son autodestruction. Celle-ci est une attaque centrée sur le robot, lequel est détruit après cette action.',
+      },
+      salvageSentryBot: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'un robot sentinelle détruit grâce à un test d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent 1 réacteur à fusion, 2 CD composants fréquents, +1 CD par PA dépensé. Pour chaque Effet obtenu, ils récupèrent aussi 1 composant peu fréquent.',
+      },
+      robotProtectron: {
+        name: 'Robot',
+        description: 'Le Protectron est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      armLasersAbility: {
+        name: 'Lasers de bras',
+        description: 'Si les bras du Protectron subissent une blessure, la cadence de tir de ses lasers de bras décroît de 2. Si les deux bras sont blessés, le robot ne peut plus attaquer avec ses lasers.',
+      },
+      letLoose: {
+        name: 'Se lâcher',
+        description: 'Une fois par combat, le Protectron peut « se lâcher » et tirer une rafale de ses lasers de bras. Il ajoute alors la cadence de tir (4) aux dégâts de son arme pour cette seule attaque (pour un total de 7 CD) et peut bénéficier de l\'effet de dégâts En rafale sans dépenser de munitions. Si l\'un des lasers de bras du Protectron a subi une blessure, cette attaque spéciale n\'inflige plus que 5 CD.',
+      },
+      selfDestructProtectron: {
+        name: 'Autodestruction',
+        description: 'Si les deux bras du Protectron sont blessés, ou si ses points de vie sont tombés à la moitié ou moins de leur maximum, le Protectron s\'avance vers l\'ennemi le plus proche et entreprend une action capitale pour déclencher son autodestruction. Celle-ci est une attaque centrée sur le robot, lequel est détruit après cette action.',
+      },
+      salvageProtectron: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'un Protectron détruit grâce à un test d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent 2 CD composants fréquents, +1 CD par PA dépensé. Pour chaque Effet obtenu, ils récupèrent aussi 1 composant peu fréquent.',
+      },
+      robotMisterGutsy: {
+        name: 'Robot',
+        description: 'Le Mister Gutsy est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      misterGutsyAbility: {
+        name: 'Mister Gutsy',
+        description: 'Ces robots sont conçus pour le combat. Les attaques effectuées par un Mister Gutsy obtiennent +1 CD de dégâts. Ils disposent d\'un blindage Mister Gutsy en guise d\'armure standard. De plus, si un personnage entreprend un test de Discours pour interroger un Mister Gutsy, argumenter avec lui ou lui donner des ordres, la difficulté du test augmente de 2 si ce personnage ne porte pas un uniforme militaire.',
+      },
+      salvageMisterGutsy: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'un Mister Gutsy détruit grâce à un test d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent du carburant de lance-flammes pour 2d20 tirs, 2d20 munitions 10 mm, 2 CD composants fréquents, +1 CD par PA dépensé. Pour chaque Effet obtenu, ils récupèrent aussi 1 composant peu fréquent.',
+      },
+      robotMisterHandy: {
+        name: 'Robot',
+        description: 'Le Mister Handy est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      misterHandyAbility: {
+        name: 'Mister Handy',
+        description: 'Le Mister Handy est doté d\'une vision à 360° et de systèmes sensoriels améliorés qui lui permettent de détecter les odeurs, des produits chimiques et des radiations, ce qui se traduit par une difficulté réduite de 1 pour tous les tests de PER basés sur la vue et l\'odorat. Il se déplace par propulsion, en flottant au-dessus du sol, et n\'est donc pas affecté par le terrain difficile ou les obstacles.',
+      },
+      salvageMisterHandy: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'un Mister Handy détruit grâce à un test d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent du carburant de lance-flammes pour 2d20 tirs, 2 CD composants fréquents, +1 CD par PA dépensé. Pour chaque Effet obtenu, ils récupèrent aussi 1 composant peu fréquent.',
+      },
+      robotAssaultron: {
+        name: 'Robot',
+        description: 'Le Laserotron est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      selfDestructAbility: {
+        name: 'Autodestruction',
+        description: 'Si les jambes et les bras du Laserotron sont blessés, ou si ses points de vie sont tombés à la moitié ou moins de leur maximum, le Laserotron s\'avance vers l\'ennemi le plus proche et entreprend une action capitale pour déclencher son autodestruction. Celle-ci est une attaque centrée sur le robot, lequel est détruit après cette action.',
+      },
+      nightVision: {
+        name: 'Vision nocturne',
+        description: 'Le Laserotron peut voir dans l\'obscurité la plus totale. Il ignore toute augmentation de difficulté due à une faible luminosité ou aux ténèbres et il peut entreprendre tout test de compétence qui devrait être impossible dans ces conditions.',
+      },
+      salvageAssaultron: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'un Laserotron détruit grâce à un test d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent 3 CD cellules à fusion, +1 CD par PA dépensé. Pour chaque Effet obtenu, ils récupèrent aussi 1 composant peu fréquent.',
+      },
+      robot: {
+        name: 'Robot',
+        description: 'L\'eyebot est un robot. Il est immunisé contre les effets de la faim, de la soif et de la suffocation. Il est également immunisé contre les dégâts de radiation et de poison. Cependant, les machines ne peuvent pas consommer de nourriture, de boissons ou d\'autres consommables, elles ne guérissent pas naturellement et la compétence Médecine ne permet pas de les soigner. Les dégâts qu\'elles subissent doivent être réparés.',
+      },
+      diseaseImmune: {
+        name: 'Immunisé contre les maladies',
+        description: 'La créature est immunisée contre les effets de toutes les maladies, dont elle ne présentera jamais les symptômes.',
+      },
+      radioTransmission: {
+        name: 'Transmission radio',
+        description: 'L\'eyebot peut recevoir et émettre des transmissions radio, il peut aussi les diffuser. Dans ce cas, il est possible d\'entendre l\'eyebot à portée longue.',
+      },
+      salvageEyebot: {
+        name: 'Récupération',
+        description: 'Les pilleurs peuvent fouiller les restes d\'un eyebot détruit grâce à un test d\'INT + Science de difficulté 1. En cas de réussite, ils récupèrent 2 CD composants fréquents. Pour chaque Effet obtenu, ils récupèrent aussi 1 composant peu fréquent.',
+      },
+      butcheringBloodyBug: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer une tique morte en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 1 morceau de viande de tique et 1 composant peu fréquent.',
+      },
+      ghoul: {
+        name: 'Goule',
+        description: 'Les radiations soignent la goule. Elle récupère 1 PV par tranche de 3 points de dégâts de radiation qu\'elle subit.',
+      },
+      playingDead: {
+        name: 'Cadavre inanimé',
+        description: 'Une goule sauvage à terre et immobile ressemble à s\'y méprendre à un cadavre. Réussir un test de PER + Survie de difficulté 2 permet de distinguer une goule d\'un cadavre inanimé. Ces créatures utilisent souvent cette technique pour prendre par surprise des passants inattentifs.',
+      },
+      radiationPulse: {
+        name: 'Impulsion radioactive',
+        description: 'Une fois par combat, le luminescent peut émettre une impulsion radioactive qui inflige 5 CD de dégâts de radiation à toute créature située à portée C ou inférieure. Si l\'impulsion inflige au moins 3 points de dégâts, alors toute goule vaincue située à portée récupère 1 PV et reprend le combat.',
+      },
+      luminescence: {
+        name: 'Luminescence',
+        description: 'Les radiations saturent tellement le luminescent qu\'il en luit. Il émet une étrange lumière et irradie ses environs. Le luminescent inflige 2 CD de dégâts de radiation à quiconque se trouve à portée de main. De plus, toutes ses attaques au corps à corps obtiennent l\'effet de dégâts Radioactif. Si elles en bénéficient déjà, elles infligent alors 2 dégâts de radiation supplémentaires par Effet obtenu.',
+      },
+      lootGlowingOne: {
+        name: 'Fouille',
+        description: '2 CD d\'objets de bric-à-brac peuvent être trouvés sur le corps d\'un luminescent mort et peuvent alors être récupérés normalement.',
+      },
+      lootFeralGhoul: {
+        name: 'Fouille',
+        description: '2 CD d\'objets de bric-à-brac peuvent être trouvés sur le corps d\'une goule morte et peuvent alors être récupérés normalement.',
+      },
+      butcheringRadstag: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un radcerf mort en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 2 CD morceaux de viande de radcerf. S\'ils obtiennent un Effet, ils récupèrent aussi une peau de radcerf.',
+      },
+      burrowingRadscorpion: {
+        name: 'Fouissage',
+        description: 'Au prix d\'une action capitale, le radscorpion peut creuser un tunnel sous terre pour surprendre ses assaillants. Tant qu\'il est sous terre, il n\'est pas visible et ne peut pas être pris pour cible d\'une attaque. Au prix d\'une action capitale, il creuse un tunnel qui peut le mener jusqu\'à deux zones de distance. Jaillir du sol ne lui demande qu\'une action mineure. Le radscorpion ne peut pas fouir la pierre, le métal ou le bois.',
+      },
+      weakPointHead: {
+        name: 'Point faible',
+        description: 'Si un attaquant choisit de viser la tête de la créature, il ignore la RD de cette dernière. Cette capacité ne s\'applique pas si l\'attaque touche par hasard la tête.',
+      },
+      butcheringRadscorpion: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un radscorpion mort en réussissant un test d\'END + Survie de difficulté 1. Ils récupèrent ainsi 2 CD morceaux de viande de radscorpion. S\'ils obtiennent un Effet, ils récupèrent aussi un composant rare ou un œuf de radscorpion s\'ils obtiennent deux Effets.',
+      },
+      burrowingMoleRat: {
+        name: 'Fouissage',
+        description: 'Au prix d\'une action capitale, le rataupe peut creuser un tunnel pour échapper à ses ennemis et se préparer pour son prochain assaut. Au cours de son prochain tour, il peut entreprendre une action mineure pour jaillir du sol à un emplacement situé à portée moyenne ou inférieure de l\'endroit où il s\'est enfoui sous terre. En dépensant 1 PA, il peut aussi ajouter 1 CD supplémentaire aux dégâts de sa morsure lorsqu\'il émerge.',
+      },
+      butcheringMoleRat: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un rataupe mort en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 1 morceau de viande de rataupe et 1 composant fréquent.',
+      },
+      stealthy: {
+        name: 'Discret',
+        description: 'Les tests de Discrétion de la créature ont un SR de 10, et elle lance + 1d20 lors de ses attaques furtives.',
+      },
+      butcheringRadroach: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un radcafard mort en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 1 morceau de viande de radcafard.',
+      },
+      alertBark: {
+        name: 'Aboiement d\'alerte',
+        description: 'Au cours du premier round de combat, le molosse mutant peut aboyer au prix d\'une action capitale. Chaque super mutant et molosse mutant situé à portée longue ou inférieure peut entreprendre une seconde action mineure lors de son prochain tour. Aucun PNJ ne peut bénéficier de cette capacité plus d\'une fois par combat.',
+      },
+      butcheringMutantHound: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un molosse mutant mort en réussissant un test d\'END + Survie de difficulté 1. Ils récupèrent ainsi 1 CD morceaux de viande de molosse mutant. S\'ils obtiennent un Effet, ils récupèrent aussi 1 composant fréquent.',
+      },
+      aquatic: {
+        name: 'Aquatique',
+        description: 'La créature peut nager et s\'immerger complètement, sans avoir besoin de reprendre son souffle. Sous l\'eau, ses attaques et ses déplacements ne subissent aucune augmentation de difficulté.',
+      },
+      tinyWeakPoint: {
+        name: 'Minuscule point faible',
+        description: 'Le corps de la créature est couvert d\'une solide carapace, mais sa tête reste son point faible. La zone est petite et difficile à viser : la défense de cette localisation précise est donc de 2.',
+      },
+      mirelurkBrood: {
+        name: 'Frai de fangeux',
+        description: 'Une fois par round, le MJ peut dépenser 4 PA au prix d\'une action capitale afin de faire éclore 4 œufs de jeunes fangeux. Dans ce cas, la reine des fangeux ne peut pas entreprendre d\'attaque au prix d\'une action capitale dans le même round.',
+      },
+      fearImmune: {
+        name: 'Immunisée contre la peur',
+        description: 'La reine des fangeux ne peut jamais être intimidée ou menacée. Elle ignore ou attaque quiconque tente de l\'intimider ou de la menacer.',
+      },
+      lootMirelurkQueen: {
+        name: 'Fouille',
+        description: 'À la mort d\'une reine des fangeux, les joueurs peuvent trouver de nombreux objets et des capsules dans son corps et son antre. Jetez 4d20 pour déterminer le nombre de capsules trouvées. Jetez ensuite 4 CD : pour chaque Effet obtenu, effectuez un jet sur la table aléatoire de bric-à-brac. À la discrétion du MJ, l\'antre ou le corps peuvent aussi contenir jusqu\'à trois armes, ainsi que 3d20 munitions pour ces armes.',
+      },
+      butcheringMirelurk: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un jeune fangeux mort en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 1 morceau de viande de fangeux.',
+      },
+      butcheringMirelurkAdult: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un fangeux mort en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 2 CD morceaux de viande de fangeux. Pour chaque Effet obtenu, ils récupèrent aussi 1 morceau de viande de fangeux à carapace molle.',
+      },
+      butcheringMirelurkQueen: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer une reine des fangeux morte en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 5 morceaux de viande de reine des fangeux.',
+      },
+      poisonImmune: {
+        name: 'Immunisé contre le poison',
+        description: 'Le darillon réduit à 0 tous les dégâts de poison qu\'il subit et ne peut subir aucun dégât ou effet infligé par du poison.',
+      },
+      small: {
+        name: 'Petit',
+        description: 'La créature est plus petite que la majorité des personnages. Ses PV normaux sont égaux à la somme de son Corps et de la moitié de son niveau (arrondie au supérieur), mais sa défense augmente de 1. De plus, la créature est tuée si elle subit la moindre blessure.',
+      },
+      flight: {
+        name: 'Vol',
+        description: 'La créature peut se déplacer librement dans les airs. Elle ignore les obstacles au niveau du sol ainsi que les effets de terrain difficiles et peut survoler les zones « vides » du champ de bataille. Chaque tour, elle doit consacrer au moins une action mineure à se déplacer, et si elle est renversée, elle est jetée à terre et subit 3 CD de dégâts balistiques Étourdissants, +2 CD par zone traversée lors de sa chute.',
+      },
+      diveAttack: {
+        name: 'Attaque en piqué',
+        description: 'Si la créature se place à portée de main d\'un adversaire et l\'attaque au corps à corps dans le même tour, elle peut relancer 1d20 du résultat. Après l\'attaque, elle peut dépenser 1 PA pour se déplacer d\'une zone.',
+      },
+      butcheringBloatfly: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un darillon mort en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 1 CD morceaux de viande de darillon.',
+      },
+      butcheringDog: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer un chien mort en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 1 morceau de viande de chien errant.',
+      },
+      butchering: {
+        name: 'Dépeçage',
+        description: 'Les pilleurs peuvent dépecer une brahmine morte en réussissant un test d\'END + Survie de difficulté 0. Ils récupèrent ainsi 1 morceau de viande de brahmine et 2 composants peu fréquents.',
+      },
+      keenSenses: {
+        name: 'Sens aiguisés',
+        description: 'Au moins l\'un des sens de Canigou est particulièrement aiguisé. Canigou peut essayer de détecter les créatures ou les objets que d\'autres personnages ne pourraient pas repérer et il réduit de 1 (jusqu\'à un minimum de 0) la difficulté de tous ses tests de PER.',
+      },
+      attackDog: {
+        name: 'Chien d\'attaque',
+        description: 'Lorsque Canigou vous aide dans le cadre d\'une attaque, il doit se placer à portée de main de votre cible. Si l\'attaque est réussie, il inflige ses propres dégâts de corps à corps à la cible.',
+      },
+      companion: {
+        name: 'Compagnon',
+        description: 'Le niveau de Canigou est égal au vôtre et augmente au même rythme. Lorsque vous atteignez le niveau 3, et tous les 2 niveaux par la suite, augmentez de +1 le Corps ou l\'Esprit de Canigou. À chaque nouveau niveau, ainsi qu\'à chaque augmentation de sa valeur de Corps, Canigou gagne +1 PV. Les dégâts de la morsure de Canigou augmentent de +1 CD au niveau 5 et tous les 5 niveaux par la suite.',
+      },
+    },
   },
 };

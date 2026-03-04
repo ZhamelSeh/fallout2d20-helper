@@ -9,6 +9,9 @@ import {
   characterSkills,
   characterTagSkills,
   characterConditions,
+  characterInventory,
+  items,
+  weapons,
 } from '../db/schema/index';
 
 const router = Router();
@@ -34,6 +37,12 @@ async function getParticipantWithCharacter(participantId: number) {
       radiationDamage: characters.radiationDamage,
       maxLuckPoints: characters.maxLuckPoints,
       currentLuckPoints: characters.currentLuckPoints,
+      statBlockType: characters.statBlockType,
+      bestiaryEntryId: characters.bestiaryEntryId,
+      creatureAttributes: characters.creatureAttributes,
+      creatureAttacks: characters.creatureAttacks,
+      creatureSkills: characters.creatureSkills,
+      emoji: characters.emoji,
     })
     .from(sessionParticipants)
     .innerJoin(characters, eq(sessionParticipants.characterId, characters.id))
@@ -58,6 +67,34 @@ async function getParticipantWithCharacter(participantId: number) {
     special[row.attribute] = row.value;
   }
 
+  // Get skills
+  const skillRows = await db
+    .select({ skill: characterSkills.skill, rank: characterSkills.rank })
+    .from(characterSkills)
+    .where(eq(characterSkills.characterId, participant.characterId));
+
+  const skills: Record<string, number> = {};
+  for (const row of skillRows) {
+    skills[row.skill] = row.rank;
+  }
+
+  // Get all weapons in inventory
+  const equippedWeaponRows = await db
+    .select({
+      itemId: items.id,
+      name: items.name,
+      nameKey: items.nameKey,
+      skill: weapons.skill,
+      damage: weapons.damage,
+      damageType: weapons.damageType,
+      fireRate: weapons.fireRate,
+      range: weapons.range,
+    })
+    .from(characterInventory)
+    .innerJoin(items, eq(characterInventory.itemId, items.id))
+    .innerJoin(weapons, eq(items.id, weapons.itemId))
+    .where(eq(characterInventory.characterId, participant.characterId));
+
   return {
     id: participant.id,
     sessionId: participant.sessionId,
@@ -77,8 +114,15 @@ async function getParticipantWithCharacter(participantId: number) {
       radiationDamage: participant.radiationDamage,
       maxLuckPoints: participant.maxLuckPoints,
       currentLuckPoints: participant.currentLuckPoints,
+      statBlockType: participant.statBlockType,
       special,
+      skills,
       conditions: conditions.map(c => c.condition),
+      equippedWeapons: equippedWeaponRows,
+      creatureAttributes: participant.creatureAttributes ?? undefined,
+      creatureAttacks: participant.creatureAttacks ?? undefined,
+      creatureSkills: participant.creatureSkills ?? undefined,
+      emoji: participant.emoji ?? undefined,
     },
   };
 }
@@ -107,17 +151,26 @@ async function getFullSession(sessionId: number) {
       radiationDamage: characters.radiationDamage,
       maxLuckPoints: characters.maxLuckPoints,
       currentLuckPoints: characters.currentLuckPoints,
+      statBlockType: characters.statBlockType,
+      bestiaryEntryId: characters.bestiaryEntryId,
+      creatureAttributes: characters.creatureAttributes,
+      creatureAttacks: characters.creatureAttacks,
+      creatureSkills: characters.creatureSkills,
+      emoji: characters.emoji,
     })
     .from(sessionParticipants)
     .innerJoin(characters, eq(sessionParticipants.characterId, characters.id))
     .where(eq(sessionParticipants.sessionId, sessionId));
 
-  // Get conditions and SPECIAL for all characters in this session
+  // Get conditions, SPECIAL, skills, and equipped weapons for all characters
   const characterIds = participantRows.map(p => p.characterId);
 
-  // Fetch all conditions for all characters
   const conditionsByCharacter: Record<number, string[]> = {};
   const specialByCharacter: Record<number, Record<string, number>> = {};
+  const skillsByCharacter: Record<number, Record<string, number>> = {};
+  const equippedWeaponsByCharacter: Record<number, Array<{
+    name: string; skill: string; damage: number; damageType: string; fireRate: number; range: string;
+  }>> = {};
 
   for (const charId of characterIds) {
     // Conditions
@@ -136,6 +189,33 @@ async function getFullSession(sessionId: number) {
     for (const row of specialRows) {
       specialByCharacter[charId][row.attribute] = row.value;
     }
+
+    // Skills
+    const skillRows = await db
+      .select({ skill: characterSkills.skill, rank: characterSkills.rank })
+      .from(characterSkills)
+      .where(eq(characterSkills.characterId, charId));
+    skillsByCharacter[charId] = {};
+    for (const row of skillRows) {
+      skillsByCharacter[charId][row.skill] = row.rank;
+    }
+
+    // All weapons in inventory
+    equippedWeaponsByCharacter[charId] = await db
+      .select({
+        itemId: items.id,
+        name: items.name,
+        nameKey: items.nameKey,
+        skill: weapons.skill,
+        damage: weapons.damage,
+        damageType: weapons.damageType,
+        fireRate: weapons.fireRate,
+        range: weapons.range,
+      })
+      .from(characterInventory)
+      .innerJoin(items, eq(characterInventory.itemId, items.id))
+      .innerJoin(weapons, eq(items.id, weapons.itemId))
+      .where(eq(characterInventory.characterId, charId));
   }
 
   const participants = participantRows.map(p => ({
@@ -157,8 +237,15 @@ async function getFullSession(sessionId: number) {
       radiationDamage: p.radiationDamage,
       maxLuckPoints: p.maxLuckPoints,
       currentLuckPoints: p.currentLuckPoints,
+      statBlockType: p.statBlockType,
       special: specialByCharacter[p.characterId] || {},
+      skills: skillsByCharacter[p.characterId] || {},
       conditions: conditionsByCharacter[p.characterId] || [],
+      equippedWeapons: equippedWeaponsByCharacter[p.characterId] || [],
+      creatureAttributes: p.creatureAttributes ?? undefined,
+      creatureAttacks: p.creatureAttacks ?? undefined,
+      creatureSkills: p.creatureSkills ?? undefined,
+      emoji: p.emoji ?? undefined,
     },
   }));
 
@@ -501,6 +588,8 @@ router.post('/:id/combat/start', async (req, res) => {
   try {
     const sessionId = Number(req.params.id);
 
+    const { participantIds } = req.body ?? {};
+
     const [session] = await db.select().from(sessions).where(eq(sessions.id, sessionId));
     if (!session) {
       return res.status(404).json({ error: 'Session not found' });
@@ -518,8 +607,19 @@ router.post('/:id/combat/start', async (req, res) => {
       .innerJoin(characters, eq(sessionParticipants.characterId, characters.id))
       .where(eq(sessionParticipants.sessionId, sessionId));
 
+    // Filter participants if specific IDs were provided
+    const selectedIds: Set<number> | null = Array.isArray(participantIds) ? new Set(participantIds as number[]) : null;
+
     // Set initiative order directly from character initiative stat (no roll in Fallout 2d20)
     for (const p of participantRows) {
+      if (selectedIds && !selectedIds.has(p.id)) {
+        // Not selected — clear turnOrder so they don't participate in turns
+        await db
+          .update(sessionParticipants)
+          .set({ turnOrder: null, combatStatus: 'active' })
+          .where(eq(sessionParticipants.id, p.id));
+        continue;
+      }
       const turnOrder = p.initiative ?? 0;
       await db
         .update(sessionParticipants)
@@ -527,8 +627,11 @@ router.post('/:id/combat/start', async (req, res) => {
         .where(eq(sessionParticipants.id, p.id));
     }
 
-    // Calculate initial AP = number of PCs (not NPCs), max 6
-    const pcCount = participantRows.filter(p => p.characterType === 'pc').length;
+    // Calculate initial AP = number of PCs (not NPCs) among selected participants, max 6
+    const activeParts = selectedIds
+      ? participantRows.filter(p => selectedIds.has(p.id))
+      : participantRows;
+    const pcCount = activeParts.filter(p => p.characterType === 'pc').length;
     const initialAP = Math.min(pcCount, 6);
 
     // Update session state

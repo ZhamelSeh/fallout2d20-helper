@@ -9,6 +9,7 @@ import equipmentPacksRouter from './routes/equipmentPacks';
 import sessionsRouter from './routes/sessions';
 import diseasesRouter from './routes/diseases';
 import generatorsRouter from './routes/generators';
+import bestiaryRouter from './routes/bestiary';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -25,6 +26,7 @@ app.use('/api/equipment-packs', equipmentPacksRouter);
 app.use('/api/sessions', sessionsRouter);
 app.use('/api/diseases', diseasesRouter);
 app.use('/api/generate', generatorsRouter);
+app.use('/api/bestiary', bestiaryRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {

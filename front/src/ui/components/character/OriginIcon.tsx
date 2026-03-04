@@ -12,12 +12,13 @@ const originIcons: Record<string, string> = {
 
 interface OriginIconProps {
   originId?: string | null;
+  emoji?: string | null;
   type?: 'pc' | 'npc' | 'PC' | 'NPC';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-export function OriginIcon({ originId, type, size = 'md', className = '' }: OriginIconProps) {
+export function OriginIcon({ originId, emoji, type, size = 'md', className = '' }: OriginIconProps) {
   const sizeClasses = {
     sm: 'text-sm',
     md: 'text-lg',
@@ -29,6 +30,15 @@ export function OriginIcon({ originId, type, size = 'md', className = '' }: Orig
     md: 18,
     lg: 24,
   };
+
+  // Custom emoji takes priority
+  if (emoji) {
+    return (
+      <span className={`${sizeClasses[size]} ${className}`} title={emoji}>
+        {emoji}
+      </span>
+    );
+  }
 
   // If we have an origin, show the emoji
   if (originId && originIcons[originId]) {
@@ -49,7 +59,8 @@ export function OriginIcon({ originId, type, size = 'md', className = '' }: Orig
 }
 
 // Helper to get just the emoji string
-export function getOriginEmoji(originId?: string | null): string | null {
+export function getOriginEmoji(originId?: string | null, emoji?: string | null): string | null {
+  if (emoji) return emoji;
   if (originId && originIcons[originId]) {
     return originIcons[originId];
   }

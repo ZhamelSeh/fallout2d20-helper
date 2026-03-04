@@ -10,7 +10,8 @@ import {
   AddParticipantsModal,
   CombatActionReference,
   LootGenerator,
-  MerchantGenerator
+  MerchantGenerator,
+  OriginIcon,
 } from '../../components';
 import { useSession } from '../../hooks/useSessionsApi';
 import { charactersApi } from '../../services/api';
@@ -68,6 +69,8 @@ export function SessionDetailPage() {
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
   const [showActionsRef, setShowActionsRef] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [collapsedIds, setCollapsedIds] = useState<Set<number>>(new Set());
+  const [excludedFromCombat, setExcludedFromCombat] = useState<Set<number>>(new Set());
 
   // Update tab if location state changes (when returning from character sheet)
   useEffect(() => {
@@ -318,96 +321,147 @@ export function SessionDetailPage() {
                     {t('sessions.combat.prepareCombat')}
                   </h3>
                   <Button
-                    onClick={() => startCombat()}
-                    disabled={session.participants.length === 0}
+                    onClick={() => {
+                      const selectedIds = session.participants
+                        .filter(p => !excludedFromCombat.has(p.id))
+                        .map(p => p.id);
+                      startCombat(selectedIds);
+                    }}
+                    disabled={session.participants.length === 0 || session.participants.every(p => excludedFromCombat.has(p.id))}
                   >
                     <Play size={18} />
                     {t('sessions.combat.startCombat')}
                   </Button>
                 </div>
 
-                {/* Initiative Preview - sorted by character initiative stat */}
-                {session.participants.length > 0 && (
-                  <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-vault-yellow-dark">
-                      {t('sessions.combat.initiativeOrder')}:
-                    </h4>
-                    <div className="space-y-1">
-                      {[...session.participants]
-                        .sort((a, b) => (b.character.initiative ?? 0) - (a.character.initiative ?? 0))
-                        .map((p) => (
-                          <div
-                            key={p.id}
-                            className="flex items-center gap-3 px-3 py-2 bg-vault-blue rounded"
-                          >
-                            <span className="w-8 text-center font-bold text-vault-yellow">
-                              {p.character.initiative}
-                            </span>
-                            <span className="text-white">{p.character.name}</span>
-                          </div>
-                        ))}
+                {/* Initiative Preview with selection checkboxes — 2 columns PC/NPC */}
+                {session.participants.length > 0 && (() => {
+                  const sorted = [...session.participants]
+                    .sort((a, b) => (b.character.initiative ?? 0) - (a.character.initiative ?? 0));
+                  const pcList = sorted.filter(p => p.character.type === 'pc');
+                  const npcList = sorted.filter(p => p.character.type === 'npc');
+
+                  const renderRow = (p: SessionParticipantApi) => {
+                    const isExcluded = excludedFromCombat.has(p.id);
+                    return (
+                      <label
+                        key={p.id}
+                        className={`flex items-center gap-2 px-3 py-2 bg-vault-blue rounded cursor-pointer transition-opacity ${isExcluded ? 'opacity-40' : ''}`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!isExcluded}
+                          onChange={() => {
+                            setExcludedFromCombat(prev => {
+                              const next = new Set(prev);
+                              if (next.has(p.id)) next.delete(p.id);
+                              else next.add(p.id);
+                              return next;
+                            });
+                          }}
+                          className="w-4 h-4 accent-vault-yellow cursor-pointer"
+                        />
+                        <OriginIcon originId={p.character.originId} emoji={p.character.emoji} type={p.character.type} size="sm" />
+                        <span className="w-6 text-center font-bold text-vault-yellow text-sm">
+                          {p.character.initiative}
+                        </span>
+                        <span className="text-white text-sm truncate">{p.character.name}</span>
+                      </label>
+                    );
+                  };
+
+                  return (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-medium text-vault-yellow-dark">
+                          {t('characters.pc')}s
+                        </h4>
+                        {pcList.length === 0 ? (
+                          <div className="text-xs text-gray-500 px-3 py-2">{t('sessions.participants.noPCs')}</div>
+                        ) : pcList.map(renderRow)}
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="text-sm font-medium text-vault-yellow-dark">
+                          {t('characters.npc')}s
+                        </h4>
+                        {npcList.length === 0 ? (
+                          <div className="text-xs text-gray-500 px-3 py-2">{t('sessions.participants.noNPCs')}</div>
+                        ) : npcList.map(renderRow)}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
               </Card>
             ) : (
               <Card>
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <span className="px-2 py-1 bg-red-600 text-white text-xs font-bold rounded">
-                      {t('sessions.combat.combatInProgress')}
-                    </span>
-                    <span className="ml-3 text-vault-yellow font-bold">
-                      {t('sessions.combat.round', { number: session.currentRound })}
-                    </span>
-                  </div>
-                  <Button variant="danger" onClick={() => endCombat()}>
-                    <StopCircle size={18} />
-                    {t('sessions.combat.endCombat')}
-                  </Button>
-                </div>
-
-                {/* Current Turn */}
-                {currentParticipant && (
-                  <div className="mb-4 p-3 bg-vault-yellow/10 border border-vault-yellow rounded-lg">
-                    <div className="text-sm text-vault-yellow-dark mb-1">
-                      {t('sessions.combat.currentTurn')}:
-                    </div>
-                    <div className="text-xl font-bold text-vault-yellow">
-                      {currentParticipant.character.name}
-                    </div>
-                  </div>
-                )}
-
-                {/* Turn Navigation */}
-                <div className="flex justify-center gap-4 mb-4">
-                  <Button variant="outline" onClick={() => prevTurn()}>
+                {/* Compact combat header: [◀] [▶]  name — Round X  [⊘] */}
+                <div className="flex items-center gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => prevTurn()}
+                    className="p-2 rounded-lg border border-vault-yellow-dark text-vault-yellow-dark hover:text-vault-yellow hover:border-vault-yellow transition-colors cursor-pointer"
+                    title={t('sessions.combat.prevTurn')}
+                  >
                     <ChevronLeft size={18} />
-                    {t('sessions.combat.prevTurn')}
-                  </Button>
-                  <Button onClick={() => nextTurn()}>
-                    {t('sessions.combat.nextTurn')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => nextTurn()}
+                    className="p-2 rounded-lg bg-vault-yellow text-vault-blue hover:bg-vault-yellow-dark transition-colors cursor-pointer"
+                    title={t('sessions.combat.nextTurn')}
+                  >
                     <ChevronRight size={18} />
-                  </Button>
+                  </button>
+
+                  <div className="flex-1 min-w-0 px-2">
+                    <span className="text-vault-yellow font-bold text-lg truncate">
+                      {currentParticipant?.character.name ?? '—'}
+                    </span>
+                    <span className="text-gray-400 text-sm ml-2">
+                      — {t('sessions.combat.round', { number: session.currentRound })}
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => endCombat()}
+                    className="p-2 rounded-lg text-red-400 border border-red-900 hover:bg-red-900/30 transition-colors cursor-pointer"
+                    title={t('sessions.combat.endCombat')}
+                  >
+                    <StopCircle size={18} />
+                  </button>
                 </div>
 
-                {/* Initiative Order with current highlight */}
+                {/* Initiative Order — rotated so active combatant is first */}
                 <div className="space-y-2">
-                  {sortedParticipants.map((participant, index) => (
-                    <ParticipantRow
-                      key={participant.id}
-                      participant={participant}
-                      isActive={index === session.currentTurnIndex}
-                      showCombatControls
-                      onDamage={(amt) => handleDamage(participant, amt)}
-                      onHeal={(amt) => handleHeal(participant, amt)}
-                      onRadiation={(amt) => handleRadiation(participant, amt)}
-                      onLuckChange={(amt) => handleLuckChange(participant, amt)}
-                      onCombatStatusChange={(status) => setCombatStatus(participant.id, status)}
-                      onInitiativeChange={(value) => setInitiative(participant.id, value)}
-                      onViewSheet={() => handleViewSheet(participant.characterId)}
-                    />
-                  ))}
+                  {[...sortedParticipants.slice(session.currentTurnIndex), ...sortedParticipants.slice(0, session.currentTurnIndex)].map((participant, index) => {
+                    const isActive = index === 0;
+                    const isCollapsed = !isActive && collapsedIds.has(participant.id);
+                    return (
+                      <ParticipantRow
+                        key={participant.id}
+                        participant={participant}
+                        isActive={isActive}
+                        showCombatControls
+                        collapsed={isCollapsed}
+                        onToggleCollapse={() => {
+                          setCollapsedIds(prev => {
+                            const next = new Set(prev);
+                            if (next.has(participant.id)) next.delete(participant.id);
+                            else next.add(participant.id);
+                            return next;
+                          });
+                        }}
+                        onDamage={(amt) => handleDamage(participant, amt)}
+                        onHeal={(amt) => handleHeal(participant, amt)}
+                        onRadiation={(amt) => handleRadiation(participant, amt)}
+                        onLuckChange={(amt) => handleLuckChange(participant, amt)}
+                        onCombatStatusChange={(status) => setCombatStatus(participant.id, status)}
+                        onInitiativeChange={(value) => setInitiative(participant.id, value)}
+                        onViewSheet={() => handleViewSheet(participant.characterId)}
+                      />
+                    );
+                  })}
                 </div>
               </Card>
             )}

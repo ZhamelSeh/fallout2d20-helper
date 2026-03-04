@@ -186,10 +186,10 @@ export function useSession(sessionId: number | null) {
 
   // ===== COMBAT =====
 
-  const startCombat = useCallback(async (): Promise<SessionApi | null> => {
+  const startCombat = useCallback(async (participantIds?: number[]): Promise<SessionApi | null> => {
     if (!sessionId) return null;
     try {
-      const updated = await sessionsApi.startCombat(sessionId);
+      const updated = await sessionsApi.startCombat(sessionId, participantIds);
       setSession(updated);
       return updated;
     } catch (err) {

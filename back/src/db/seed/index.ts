@@ -5,6 +5,7 @@ import { seedAllOrigins } from './seedOrigins';
 import { seedAllEquipmentPacks } from './seedEquipmentPacks';
 import { seedMods } from './seedMods';
 import { seedItemCompatibility } from './seedItemModCompatibility';
+import { seedBestiary } from './seedBestiary';
 
 async function seed() {
   console.log('Starting database seed...\n');
@@ -33,6 +34,10 @@ async function seed() {
 
     // 6. Item-mod compatibility (depends on items + mods being seeded)
     await seedItemCompatibility();
+    console.log('');
+
+    // 7. Bestiary (depends on items for inventory/attacks)
+    await seedBestiary();
     console.log('');
 
     console.log('Database seed completed successfully!');
