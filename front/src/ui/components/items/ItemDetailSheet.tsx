@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { Modal } from '../../../components/Modal';
 import { getRarityColor } from '../../../generators/utils';
-import { itemsApi, type ItemType, type ItemEffect, type WeaponApi, type ArmorApi, type PowerArmorApi, type ClothingApi, type ChemApi, type FoodApi, type AmmunitionApi, type GeneralGoodApi, type RobotArmorApi, type SyringerAmmoApi, type MagazineApi, type DiseaseApi, type PerkApi } from '../../../services/api';
+import { itemsApi, type ItemType, type ItemEffect, type WeaponApi, type ArmorApi, type PowerArmorApi, type ClothingApi, type ChemApi, type FoodApi, type AmmunitionApi, type GeneralGoodApi, type RobotArmorApi, type SyringerAmmoApi, type MagazineApi, type DiseaseApi, type PerkApi, type CompatibleMod } from '../../../services/api';
 import { EffectDisplay } from '../shared/EffectDisplay';
 
 type AnyItemApi = WeaponApi | ArmorApi | PowerArmorApi | RobotArmorApi | ClothingApi | AmmunitionApi | SyringerAmmoApi | ChemApi | FoodApi | GeneralGoodApi | MagazineApi;
@@ -167,6 +167,11 @@ export function ItemDetailModal({ isOpen, onClose, itemId, itemType, entry }: It
           {effectiveItemType === 'food' && <FoodDetails item={effectiveItem as FoodApi} />}
           {(effectiveItemType === 'generalGood' || effectiveItemType === 'oddity') && <GeneralGoodDetails item={effectiveItem as GeneralGoodApi} />}
           {effectiveItemType === 'magazine' && <MagazineDetails item={effectiveItem as MagazineApi} />}
+
+          {/* Compatible mods for moddable items */}
+          {(effectiveItem as any).compatibleMods && (effectiveItem as any).compatibleMods.length > 0 && (
+            <CompatibleModsSection compatibleMods={(effectiveItem as any).compatibleMods} />
+          )}
         </div>
       ) : null}
     </Modal>
@@ -732,6 +737,43 @@ function PerkDetails({ perk }: { perk: PerkApi }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function CompatibleModsSection({ compatibleMods }: { compatibleMods: CompatibleMod[] }) {
+  const { t } = useTranslation();
+
+  // Group by slot
+  const bySlot = compatibleMods.reduce((acc, mod) => {
+    if (!acc[mod.slot]) acc[mod.slot] = [];
+    acc[mod.slot].push(mod);
+    return acc;
+  }, {} as Record<string, CompatibleMod[]>);
+
+  return (
+    <div className="text-sm">
+      <h4 className="text-vault-yellow font-bold mb-2">{t('itemDetail.mod.compatibleMods')}</h4>
+      <div className="space-y-2">
+        {Object.entries(bySlot).map(([slot, slotMods]) => (
+          <div key={slot}>
+            <span className="text-vault-yellow-dark text-xs uppercase">{t(`modSlots.${slot}`, { defaultValue: slot })}</span>
+            <div className="flex flex-wrap gap-1 mt-0.5">
+              {slotMods.map(mod => {
+                const name = mod.nameKey ? t(mod.nameKey, { defaultValue: mod.name }) : (() => {
+                  const translated = t(`items.mods.${mod.name}`);
+                  return translated !== `items.mods.${mod.name}` ? translated : mod.name;
+                })();
+                return (
+                  <span key={mod.id} className="px-2 py-0.5 bg-gray-700 rounded text-xs text-gray-300">
+                    {name}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

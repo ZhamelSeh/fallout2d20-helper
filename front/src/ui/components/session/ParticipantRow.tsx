@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Skull, AlertCircle, LogOut, Eye, Trash2, Sparkles, ChevronDown, ChevronRight, Crosshair, Swords } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import type { SessionParticipantApi, CombatantStatus } from '../../../services/api';
+import type { SessionParticipantApi, CombatantStatus, InstalledModSummary } from '../../../services/api';
 import { HPBar } from '../character/HPBar';
 import { OriginIcon } from '../character/OriginIcon';
 import { ItemDetailModal } from '../../../components/ItemDetailModal';
@@ -47,7 +47,7 @@ export function ParticipantRow({
   className = '',
 }: ParticipantRowProps) {
   const { t } = useTranslation();
-  const [selectedWeaponId, setSelectedWeaponId] = useState<number | null>(null);
+  const [selectedWeapon, setSelectedWeapon] = useState<{ itemId: number; installedMods?: InstalledModSummary[] } | null>(null);
 
   const { character, combatStatus, turnOrder } = participant;
   const isCreature = character.statBlockType === 'creature';
@@ -202,7 +202,7 @@ export function ParticipantRow({
       {/* Equipped weapons with TN (visible when expanded) */}
       {isActive && character.equippedWeapons?.length > 0 && (
         <div className="px-3 pb-2 flex flex-wrap gap-x-4 gap-y-1 border-t border-gray-700 pt-2">
-          {character.equippedWeapons.map((weapon) => {
+          {character.equippedWeapons.map((weapon, weaponIdx) => {
             const skillKey = weapon.skill as keyof typeof SKILL_ATTRIBUTES;
             const attribute = SKILL_ATTRIBUTES[skillKey];
             const tn = attribute
@@ -222,24 +222,94 @@ export function ParticipantRow({
               const tr = t(`items.${weapon.name}`);
               if (tr !== `items.${weapon.name}`) weaponName = tr;
             }
+            // Apply mod name transforms (same logic as InventoryManager)
+            const mods = weapon.installedMods;
+            if (mods && mods.length > 0) {
+              const RENAME_SLOTS = ['crosse', 'carburant'];
+              const renameMod = mods.find(m => RENAME_SLOTS.includes(m.slot));
+              if (renameMod) {
+                const stocked = t(`items.stockedNames.${weapon.name}`, { defaultValue: '' });
+                if (stocked) weaponName = stocked;
+              }
+              const FULL_RENAME_SLOTS = ['amelioration'];
+              const fullRenameMod = mods.find(m => FULL_RENAME_SLOTS.includes(m.slot));
+              if (fullRenameMod?.nameAddKey) {
+                const renamed = t(fullRenameMod.nameAddKey, { defaultValue: '' });
+                if (renamed) {
+                  weaponName = renamed;
+                } else {
+                  const suffixes = mods
+                    .filter(m => !FULL_RENAME_SLOTS.includes(m.slot))
+                    .map(m => m.nameAddKey ? t(m.nameAddKey, { defaultValue: '' }) : '')
+                    .filter(Boolean);
+                  if (suffixes.length > 0) weaponName = `${weaponName} (${suffixes.join(', ')})`;
+                }
+              } else {
+                const suffixes = mods
+                  .map(m => m.nameAddKey ? t(m.nameAddKey, { defaultValue: '' }) : '')
+                  .filter(Boolean);
+                if (suffixes.length > 0) weaponName = `${weaponName} (${suffixes.join(', ')})`;
+              }
+            }
+            // Compute effective stats from mod effects
+            let effectiveDamage = weapon.damage;
+            let effectiveRange = weapon.range;
+            let effectiveFireRate = weapon.fireRate;
+            let damageModified = false;
+            let rangeModified = false;
+            let fireRateModified = false;
+            if (mods && mods.length > 0) {
+              const allEffects = mods.flatMap(m => m.effects ?? []);
+              for (const eff of allEffects) {
+                switch (eff.effectType) {
+                  case 'setDamage':
+                    if (eff.numericValue != null) { effectiveDamage = eff.numericValue; damageModified = true; }
+                    break;
+                  case 'damageBonus':
+                    if (eff.numericValue != null) { effectiveDamage += eff.numericValue; damageModified = true; }
+                    break;
+                  case 'setFireRate':
+                    if (eff.numericValue != null) { effectiveFireRate = eff.numericValue; fireRateModified = true; }
+                    break;
+                  case 'fireRateBonus':
+                    if (eff.numericValue != null) { effectiveFireRate = (effectiveFireRate ?? 0) + eff.numericValue; fireRateModified = true; }
+                    break;
+                  case 'rangeChange': {
+                    const rangeOrder = ['close', 'medium', 'long', 'extreme'];
+                    const curIdx = rangeOrder.indexOf(effectiveRange);
+                    if (curIdx !== -1 && eff.numericValue != null) {
+                      const newIdx = Math.max(0, Math.min(rangeOrder.length - 1, curIdx + eff.numericValue));
+                      effectiveRange = rangeOrder[newIdx];
+                      if (newIdx !== curIdx) rangeModified = true;
+                    }
+                    break;
+                  }
+                }
+              }
+            }
             return (
-              <div key={weapon.name} className="flex items-center gap-2 text-xs">
+              <div key={`${weapon.itemId}-${weaponIdx}`} className="flex items-center gap-2 text-xs">
                 <Crosshair size={12} className="text-vault-yellow-dark flex-shrink-0" />
                 <button
                   type="button"
-                  onClick={(e) => { e.stopPropagation(); setSelectedWeaponId(weapon.itemId); }}
+                  onClick={(e) => { e.stopPropagation(); setSelectedWeapon({ itemId: weapon.itemId, installedMods: weapon.installedMods }); }}
                   className="text-white hover:text-vault-yellow underline decoration-dotted cursor-pointer"
                 >
                   {weaponName}
                 </button>
                 <span className="text-vault-yellow font-bold">TN {tn}</span>
-                <span className="text-gray-400">
-                  {weapon.damage}
+                <span className={damageModified ? 'text-cyan-400' : 'text-gray-400'}>
+                  {effectiveDamage}
                   <span className="text-[10px] ml-0.5">
                     {t(`damageTypes.${weapon.damageType}`)}
                   </span>
                 </span>
-                <span className="text-gray-500">{t(`ranges.${weapon.range}`)}</span>
+                <span className={rangeModified ? 'text-cyan-400' : 'text-gray-500'}>{t(`ranges.${effectiveRange}`)}</span>
+                {effectiveFireRate != null && effectiveFireRate > 0 && (
+                  <span className={fireRateModified ? 'text-cyan-400' : 'text-gray-500'}>
+                    {t('weapons.fireRate')}: {effectiveFireRate}
+                  </span>
+                )}
               </div>
             );
           })}
@@ -414,10 +484,11 @@ export function ParticipantRow({
 
       {/* Weapon detail modal */}
       <ItemDetailModal
-        isOpen={selectedWeaponId !== null}
-        onClose={() => setSelectedWeaponId(null)}
-        itemId={selectedWeaponId}
+        isOpen={selectedWeapon !== null}
+        onClose={() => setSelectedWeapon(null)}
+        itemId={selectedWeapon?.itemId ?? null}
         itemType="weapon"
+        installedMods={selectedWeapon?.installedMods}
       />
     </div>
   );

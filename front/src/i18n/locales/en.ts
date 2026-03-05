@@ -405,6 +405,8 @@ export default {
       setAmmo: 'Sets Ammo',
       setFireRate: 'Sets Fire Rate',
       compatibleItems: 'Compatible Items',
+      compatibleMods: 'Compatible Mods',
+      installedMods: 'Installed Mods',
     },
   },
 

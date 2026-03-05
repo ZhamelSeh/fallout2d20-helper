@@ -78,6 +78,7 @@ export interface WeaponApi extends BaseItemApi {
   ammo: string;
   ammoPerShot?: number;
   qualities: WeaponQuality[];
+  compatibleMods?: CompatibleMod[];
 }
 
 export interface ArmorApi extends BaseItemApi {
@@ -89,6 +90,7 @@ export interface ArmorApi extends BaseItemApi {
   type: string;
   set?: string;
   hp?: number;
+  compatibleMods?: CompatibleMod[];
 }
 
 export interface PowerArmorApi extends BaseItemApi {
@@ -98,6 +100,7 @@ export interface PowerArmorApi extends BaseItemApi {
   drEnergy: number;
   drRadiation: number;
   hp: number;
+  compatibleMods?: CompatibleMod[];
 }
 
 export interface RobotArmorApi extends BaseItemApi {
@@ -124,6 +127,7 @@ export interface ClothingApi extends BaseItemApi {
     descriptionKey: string;
   }[];
   effect?: ItemEffect;
+  compatibleMods?: CompatibleMod[];
 }
 
 export interface AmmunitionApi extends BaseItemApi {
@@ -186,6 +190,14 @@ export interface ModCompatibleItem {
   name: string;
   nameKey: string | null;
   itemType: string;
+}
+
+export interface CompatibleMod {
+  id: number;
+  name: string;
+  nameKey: string | null;
+  itemType: string;
+  slot: string;
 }
 
 export interface ModApi extends BaseItemApi {
@@ -382,6 +394,7 @@ export interface InstalledModSummary {
   modName: string;
   slot: string;
   nameAddKey?: string;
+  effects?: ModEffectApi[];
 }
 
 // Inventory item as returned by API
@@ -744,6 +757,7 @@ export interface SessionEquippedWeapon {
   damageType: string;
   fireRate: number;
   range: string;
+  installedMods?: InstalledModSummary[];
 }
 
 export interface SessionParticipantCharacter {

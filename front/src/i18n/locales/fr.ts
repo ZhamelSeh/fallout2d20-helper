@@ -405,6 +405,8 @@ export default {
       setAmmo: 'Définit munitions',
       setFireRate: 'Définit cadence',
       compatibleItems: 'Items compatibles',
+      compatibleMods: 'Mods compatibles',
+      installedMods: 'Mods installés',
     },
   },
 

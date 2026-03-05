@@ -156,9 +156,38 @@ router.get('/:id(\\d+)', async (req: any, res) => {
       delete details.itemId;
     }
 
+    // Fetch compatible mods for moddable item types
+    const moddableTypes = ['weapon', 'armor', 'powerArmor', 'clothing'];
+    let compatibleMods: { id: number; name: string; nameKey: string | null; itemType: string; slot: string }[] = [];
+    if (moddableTypes.includes(item.itemType)) {
+      const compatRows = await db
+        .select({ modItemId: itemCompatibleMods.modItemId })
+        .from(itemCompatibleMods)
+        .where(eq(itemCompatibleMods.targetItemId, id));
+      const compatModItemIds = compatRows.map(r => r.modItemId);
+      if (compatModItemIds.length > 0) {
+        const modItems = await Promise.all(
+          compatModItemIds.map(modItemId =>
+            db.select({
+              id: items.id,
+              name: items.name,
+              nameKey: items.nameKey,
+              itemType: items.itemType,
+              slot: mods.slot,
+            })
+            .from(items)
+            .innerJoin(mods, eq(mods.itemId, items.id))
+            .where(eq(items.id, modItemId))
+          )
+        );
+        compatibleMods = modItems.flat();
+      }
+    }
+
     res.json({
       ...item,
       ...details,
+      ...(compatibleMods.length > 0 ? { compatibleMods } : {}),
     });
   } catch (error) {
     console.error('Error fetching item:', error);
