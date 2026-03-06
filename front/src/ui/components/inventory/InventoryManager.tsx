@@ -104,7 +104,7 @@ export function InventoryManager({
   const [editingCaps, setEditingCaps] = useState(false);
   const [capsInput, setCapsInput] = useState(String(caps));
   const [loading, setLoading] = useState<number | null>(null);
-  const [selectedItemForDetail, setSelectedItemForDetail] = useState<{ itemId: number; itemType: ItemType } | null>(null);
+  const [selectedItemForDetail, setSelectedItemForDetail] = useState<{ itemId: number; itemType: ItemType; installedMods?: InventoryItemApi['installedMods'] } | null>(null);
   // Which inventory item ID has its mod panel open
   const [modPanelOpenFor, setModPanelOpenFor] = useState<number | null>(null);
   // Inventory filters
@@ -425,7 +425,7 @@ export function InventoryManager({
                         <div className="flex-1 min-w-0">
                           <button
                             type="button"
-                            onClick={() => setSelectedItemForDetail({ itemId: inv.itemId, itemType: inv.item.itemType })}
+                            onClick={() => setSelectedItemForDetail({ itemId: inv.itemId, itemType: inv.item.itemType, installedMods: inv.installedMods })}
                             className={`block truncate text-left hover:underline ${inv.equipped ? 'text-vault-yellow font-bold' : 'text-white'}`}
                           >
                             {displayName}
@@ -592,6 +592,7 @@ export function InventoryManager({
         onClose={() => setSelectedItemForDetail(null)}
         itemId={selectedItemForDetail?.itemId ?? null}
         itemType={selectedItemForDetail?.itemType ?? null}
+        installedMods={selectedItemForDetail?.installedMods}
       />
     </div>
   );

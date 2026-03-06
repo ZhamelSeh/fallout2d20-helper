@@ -22,6 +22,7 @@ import {
   inventoryItemMods,
   itemCompatibleMods,
   mods,
+  modEffects,
   bestiaryAttributes,
   sessionParticipants,
 } from '../db/schema/index';
@@ -117,7 +118,7 @@ async function getCharacterInventory(characterId: number) {
 
   // Fetch installed mods for all inventory items
   const allInventoryIds = inventoryRows.map(r => r.id);
-  const installedModsMap: Record<number, { modInventoryId: number; modItemId: number; modName: string; slot: string; nameAddKey?: string }[]> = {};
+  const installedModsMap: Record<number, { modInventoryId: number; modItemId: number; modName: string; slot: string; nameAddKey?: string; effects: { effectType: string; numericValue: number | null; qualityName: string | null; qualityValue: number | null; ammoType: string | null; descriptionKey: string | null }[] }[]> = {};
 
   if (allInventoryIds.length > 0) {
     for (const invId of allInventoryIds) {
@@ -128,6 +129,7 @@ async function getCharacterInventory(characterId: number) {
           modName: items.name,
           slot: mods.slot,
           nameAddKey: mods.nameAddKey,
+          modTableId: mods.id,
         })
         .from(inventoryItemMods)
         .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
@@ -136,13 +138,27 @@ async function getCharacterInventory(characterId: number) {
         .where(eq(inventoryItemMods.targetInventoryId, invId));
 
       if (modRows.length > 0) {
-        installedModsMap[invId] = modRows.map(r => ({
-          modInventoryId: r.modInventoryId,
-          modItemId: r.modItemId,
-          modName: r.modName,
-          slot: r.slot,
-          nameAddKey: r.nameAddKey ?? undefined,
-        }));
+        const modsWithEffects = await Promise.all(
+          modRows.map(async (r) => {
+            const effects = await db.select().from(modEffects).where(eq(modEffects.modId, r.modTableId));
+            return {
+              modInventoryId: r.modInventoryId,
+              modItemId: r.modItemId,
+              modName: r.modName,
+              slot: r.slot,
+              nameAddKey: r.nameAddKey ?? undefined,
+              effects: effects.map(e => ({
+                effectType: e.effectType,
+                numericValue: e.numericValue,
+                qualityName: e.qualityName,
+                qualityValue: e.qualityValue,
+                ammoType: e.ammoType,
+                descriptionKey: e.descriptionKey,
+              })),
+            };
+          })
+        );
+        installedModsMap[invId] = modsWithEffects;
       }
     }
   }

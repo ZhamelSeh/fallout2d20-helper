@@ -12,6 +12,9 @@ import {
   characterInventory,
   items,
   weapons,
+  inventoryItemMods,
+  mods,
+  modEffects,
 } from '../db/schema/index';
 
 const router = Router();
@@ -81,6 +84,7 @@ async function getParticipantWithCharacter(participantId: number) {
   // Get all weapons in inventory
   const equippedWeaponRows = await db
     .select({
+      inventoryId: characterInventory.id,
       itemId: items.id,
       name: items.name,
       nameKey: items.nameKey,
@@ -94,6 +98,53 @@ async function getParticipantWithCharacter(participantId: number) {
     .innerJoin(items, eq(characterInventory.itemId, items.id))
     .innerJoin(weapons, eq(items.id, weapons.itemId))
     .where(eq(characterInventory.characterId, participant.characterId));
+
+  // Enrich weapons with installed mods
+  const equippedWeaponsWithMods = await Promise.all(
+    equippedWeaponRows.map(async (weapon) => {
+      const modRows = await db
+        .select({
+          modInventoryId: inventoryItemMods.modInventoryId,
+          modItemId: characterInventory.itemId,
+          modName: items.name,
+          slot: mods.slot,
+          nameAddKey: mods.nameAddKey,
+          modTableId: mods.id,
+        })
+        .from(inventoryItemMods)
+        .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
+        .innerJoin(items, eq(characterInventory.itemId, items.id))
+        .innerJoin(mods, eq(mods.itemId, characterInventory.itemId))
+        .where(eq(inventoryItemMods.targetInventoryId, weapon.inventoryId));
+
+      let installedMods: any[] = [];
+      if (modRows.length > 0) {
+        installedMods = await Promise.all(
+          modRows.map(async (r) => {
+            const effects = await db.select().from(modEffects).where(eq(modEffects.modId, r.modTableId));
+            return {
+              modInventoryId: r.modInventoryId,
+              modItemId: r.modItemId,
+              modName: r.modName,
+              slot: r.slot,
+              nameAddKey: r.nameAddKey ?? undefined,
+              effects: effects.map(e => ({
+                effectType: e.effectType,
+                numericValue: e.numericValue,
+                qualityName: e.qualityName,
+                qualityValue: e.qualityValue,
+                ammoType: e.ammoType,
+                descriptionKey: e.descriptionKey,
+              })),
+            };
+          })
+        );
+      }
+
+      const { inventoryId, ...rest } = weapon;
+      return { ...rest, installedMods };
+    })
+  );
 
   return {
     id: participant.id,
@@ -118,7 +169,7 @@ async function getParticipantWithCharacter(participantId: number) {
       special,
       skills,
       conditions: conditions.map(c => c.condition),
-      equippedWeapons: equippedWeaponRows,
+      equippedWeapons: equippedWeaponsWithMods,
       creatureAttributes: participant.creatureAttributes ?? undefined,
       creatureAttacks: participant.creatureAttacks ?? undefined,
       creatureSkills: participant.creatureSkills ?? undefined,
@@ -169,7 +220,8 @@ async function getFullSession(sessionId: number) {
   const specialByCharacter: Record<number, Record<string, number>> = {};
   const skillsByCharacter: Record<number, Record<string, number>> = {};
   const equippedWeaponsByCharacter: Record<number, Array<{
-    name: string; skill: string; damage: number; damageType: string; fireRate: number; range: string;
+    itemId: number; name: string; nameKey: string | null; skill: string; damage: number; damageType: string; fireRate: number; range: string;
+    installedMods: Array<{ modInventoryId: number; modItemId: number; modName: string; slot: string; nameAddKey?: string; effects: any[] }>;
   }>> = {};
 
   for (const charId of characterIds) {
@@ -201,8 +253,9 @@ async function getFullSession(sessionId: number) {
     }
 
     // All weapons in inventory
-    equippedWeaponsByCharacter[charId] = await db
+    const weaponRows = await db
       .select({
+        inventoryId: characterInventory.id,
         itemId: items.id,
         name: items.name,
         nameKey: items.nameKey,
@@ -216,6 +269,53 @@ async function getFullSession(sessionId: number) {
       .innerJoin(items, eq(characterInventory.itemId, items.id))
       .innerJoin(weapons, eq(items.id, weapons.itemId))
       .where(eq(characterInventory.characterId, charId));
+
+    // Enrich with installed mods
+    equippedWeaponsByCharacter[charId] = await Promise.all(
+      weaponRows.map(async (weapon) => {
+        const modRows = await db
+          .select({
+            modInventoryId: inventoryItemMods.modInventoryId,
+            modItemId: characterInventory.itemId,
+            modName: items.name,
+            slot: mods.slot,
+            nameAddKey: mods.nameAddKey,
+            modTableId: mods.id,
+          })
+          .from(inventoryItemMods)
+          .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
+          .innerJoin(items, eq(characterInventory.itemId, items.id))
+          .innerJoin(mods, eq(mods.itemId, characterInventory.itemId))
+          .where(eq(inventoryItemMods.targetInventoryId, weapon.inventoryId));
+
+        let installedMods: any[] = [];
+        if (modRows.length > 0) {
+          installedMods = await Promise.all(
+            modRows.map(async (r) => {
+              const effects = await db.select().from(modEffects).where(eq(modEffects.modId, r.modTableId));
+              return {
+                modInventoryId: r.modInventoryId,
+                modItemId: r.modItemId,
+                modName: r.modName,
+                slot: r.slot,
+                nameAddKey: r.nameAddKey ?? undefined,
+                effects: effects.map(e => ({
+                  effectType: e.effectType,
+                  numericValue: e.numericValue,
+                  qualityName: e.qualityName,
+                  qualityValue: e.qualityValue,
+                  ammoType: e.ammoType,
+                  descriptionKey: e.descriptionKey,
+                })),
+              };
+            })
+          );
+        }
+
+        const { inventoryId, ...rest } = weapon;
+        return { ...rest, installedMods };
+      })
+    );
   }
 
   const participants = participantRows.map(p => ({

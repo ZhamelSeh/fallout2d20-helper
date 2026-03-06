@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Loader2 } from 'lucide-react';
 import { Modal } from './Modal';
 import { getRarityColor } from '../generators/utils';
-import { itemsApi, type ItemType, type ItemEffect, type WeaponApi, type ArmorApi, type PowerArmorApi, type ClothingApi, type ChemApi, type FoodApi, type AmmunitionApi, type GeneralGoodApi, type RobotArmorApi, type SyringerAmmoApi, type MagazineApi, type DiseaseApi, type PerkApi, type ModApi, type ModCompatibleItem } from '../services/api';
+import { itemsApi, type ItemType, type ItemEffect, type WeaponApi, type ArmorApi, type PowerArmorApi, type ClothingApi, type ChemApi, type FoodApi, type AmmunitionApi, type GeneralGoodApi, type RobotArmorApi, type SyringerAmmoApi, type MagazineApi, type DiseaseApi, type PerkApi, type ModApi, type ModCompatibleItem, type CompatibleMod, type InstalledModSummary, type ModEffectApi } from '../services/api';
 import { EffectDisplay } from '../ui/components/shared/EffectDisplay';
 
 type AnyItemApi = WeaponApi | ArmorApi | PowerArmorApi | RobotArmorApi | ClothingApi | AmmunitionApi | SyringerAmmoApi | ChemApi | FoodApi | GeneralGoodApi | MagazineApi | ModApi;
@@ -22,9 +22,11 @@ interface ItemDetailModalProps {
   itemType: ItemType | null;
   // Alternative: pass a full entry directly (for diseases/perks that don't use itemsApi)
   entry?: EncyclopediaEntry | null;
+  // Installed mods from inventory (to show effects)
+  installedMods?: InstalledModSummary[];
 }
 
-export function ItemDetailModal({ isOpen, onClose, itemId, itemType, entry }: ItemDetailModalProps) {
+export function ItemDetailModal({ isOpen, onClose, itemId, itemType, entry, installedMods }: ItemDetailModalProps) {
   const { t } = useTranslation();
   const [item, setItem] = useState<AnyItemApi | null>(null);
   const [loading, setLoading] = useState(false);
@@ -157,7 +159,7 @@ export function ItemDetailModal({ isOpen, onClose, itemId, itemType, entry }: It
           </div>
 
           {/* Type-specific details */}
-          {effectiveItemType === 'weapon' && <WeaponDetails item={effectiveItem as WeaponApi} />}
+          {effectiveItemType === 'weapon' && <WeaponDetails item={effectiveItem as WeaponApi} installedMods={installedMods} />}
           {effectiveItemType === 'armor' && <ArmorDetails item={effectiveItem as ArmorApi} />}
           {effectiveItemType === 'powerArmor' && <PowerArmorDetails item={effectiveItem as PowerArmorApi} />}
           {effectiveItemType === 'robotArmor' && <RobotArmorDetails item={effectiveItem as RobotArmorApi} />}
@@ -169,40 +171,151 @@ export function ItemDetailModal({ isOpen, onClose, itemId, itemType, entry }: It
           {(effectiveItemType === 'generalGood' || effectiveItemType === 'oddity') && <GeneralGoodDetails item={effectiveItem as GeneralGoodApi} />}
           {effectiveItemType === 'magazine' && <MagazineDetails item={effectiveItem as MagazineApi} />}
           {effectiveItemType === 'mod' && <ModDetails item={effectiveItem as ModApi} />}
+
+          {/* Installed mods with effects (from inventory) */}
+          {installedMods && installedMods.length > 0 && (
+            <InstalledModsSection installedMods={installedMods} />
+          )}
+
+          {/* Compatible mods for moddable items */}
+          {(effectiveItem as any).compatibleMods && (effectiveItem as any).compatibleMods.length > 0 && (
+            <CompatibleModsSection compatibleMods={(effectiveItem as any).compatibleMods} />
+          )}
         </div>
       ) : null}
     </Modal>
   );
 }
 
-function WeaponDetails({ item }: { item: WeaponApi }) {
+function WeaponDetails({ item, installedMods }: { item: WeaponApi; installedMods?: InstalledModSummary[] }) {
   const { t } = useTranslation();
+
+  // Compute mod-modified stats
+  const allEffects = (installedMods ?? []).flatMap(m => m.effects ?? []);
+  const hasMods = allEffects.length > 0;
+
+  // Damage
+  const setDamageEffect = allEffects.find(e => e.effectType === 'setDamage');
+  const damageBonusFromMods = allEffects
+    .filter(e => e.effectType === 'damageBonus')
+    .reduce((sum, e) => sum + (e.numericValue ?? 0), 0);
+  const baseDamage = setDamageEffect ? (setDamageEffect.numericValue ?? item.damage) : item.damage;
+  const damageModified = setDamageEffect || damageBonusFromMods !== 0;
+
+  // Damage bonus (item's own + mod bonuses)
+  const effectiveDamageBonus = (item.damageBonus ?? 0) + damageBonusFromMods;
+
+  // Fire rate
+  const setFireRateEffect = allEffects.find(e => e.effectType === 'setFireRate');
+  const fireRateBonusFromMods = allEffects
+    .filter(e => e.effectType === 'fireRateBonus')
+    .reduce((sum, e) => sum + (e.numericValue ?? 0), 0);
+  const effectiveFireRate = setFireRateEffect
+    ? (setFireRateEffect.numericValue ?? item.fireRate)
+    : item.fireRate + fireRateBonusFromMods;
+  const fireRateModified = setFireRateEffect || fireRateBonusFromMods !== 0;
+
+  // Range
+  const rangeOrder = ['close', 'medium', 'long', 'extreme'];
+  const rangeChangeFromMods = allEffects
+    .filter(e => e.effectType === 'rangeChange')
+    .reduce((sum, e) => sum + (e.numericValue ?? 0), 0);
+  let effectiveRange = item.range;
+  let rangeModified = false;
+  if (rangeChangeFromMods !== 0) {
+    const idx = rangeOrder.indexOf(item.range);
+    if (idx >= 0) {
+      const newIdx = Math.max(0, Math.min(rangeOrder.length - 1, idx + rangeChangeFromMods));
+      if (newIdx !== idx) {
+        effectiveRange = rangeOrder[newIdx];
+        rangeModified = true;
+      }
+    }
+  }
+
+  // Ammo
+  const setAmmoEffect = allEffects.find(e => e.effectType === 'setAmmo');
+  const effectiveAmmo = setAmmoEffect?.ammoType ?? item.ammo;
+  const ammoModified = !!setAmmoEffect;
+
+  // Qualities: net gains and losses per quality name
+  // Count how many times each quality is gained/lost by mods
+  const gainCounts: Record<string, { count: number; value?: number }> = {};
+  const lossCounts: Record<string, number> = {};
+  for (const e of allEffects) {
+    if (e.effectType === 'gainQuality' && e.qualityName) {
+      if (!gainCounts[e.qualityName]) gainCounts[e.qualityName] = { count: 0, value: e.qualityValue ?? undefined };
+      gainCounts[e.qualityName].count++;
+    }
+    if (e.effectType === 'loseQuality' && e.qualityName) {
+      lossCounts[e.qualityName] = (lossCounts[e.qualityName] ?? 0) + 1;
+    }
+  }
+
+  const baseQualityNames = new Set((item.qualities ?? []).map(q => q.quality));
+
+  // For each quality, determine final state:
+  // - base qualities: present unless net removals exceed net additions
+  // - non-base qualities: present only if net gains > net losses
+  type QualityDisplay = { quality: string; value?: number; status: 'base' | 'added' | 'removed' };
+  const qualityDisplay: QualityDisplay[] = [];
+
+  // Process base qualities
+  for (const q of (item.qualities ?? [])) {
+    const gains = gainCounts[q.quality]?.count ?? 0;
+    const losses = lossCounts[q.quality] ?? 0;
+    // Net effect on this base quality: losses remove it, gains can counteract
+    if (losses > gains) {
+      qualityDisplay.push({ quality: q.quality, value: q.value, status: 'removed' });
+    } else {
+      qualityDisplay.push({ quality: q.quality, value: q.value, status: 'base' });
+    }
+  }
+
+  // Process mod-added qualities (not in base)
+  for (const [qualityName, info] of Object.entries(gainCounts)) {
+    if (baseQualityNames.has(qualityName)) continue; // already handled above
+    const losses = lossCounts[qualityName] ?? 0;
+    if (info.count > losses) {
+      qualityDisplay.push({ quality: qualityName, value: info.value, status: 'added' });
+    }
+    // If gains <= losses, they cancel out completely — don't show
+  }
+
+  const activeQualities = qualityDisplay.filter(q => q.status !== 'removed');
+  const removedQualities = qualityDisplay.filter(q => q.status === 'removed');
+
+  const modColor = 'text-cyan-400';
 
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div>
           <span className="text-vault-yellow-dark">{t('itemDetail.damage')}: </span>
-          <span className="text-white font-bold">{item.damage} {t('itemDetail.cd')}</span>
-          {item.damageBonus && <span className="text-green-400"> +{item.damageBonus}</span>}
+          <span className={`font-bold ${damageModified ? modColor : 'text-white'}`}>{baseDamage} {t('itemDetail.cd')}</span>
+          {effectiveDamageBonus !== 0 && (
+            <span className={damageModified ? modColor : 'text-green-400'}>
+              {' '}{effectiveDamageBonus > 0 ? '+' : ''}{effectiveDamageBonus}
+            </span>
+          )}
           <span className="text-gray-400"> ({t(`damageTypes.${item.damageType}`)})</span>
         </div>
         <div>
           <span className="text-vault-yellow-dark">{t('itemDetail.range')}: </span>
-          <span className="text-white">{t(`ranges.${item.range}`)}</span>
+          <span className={rangeModified ? modColor : 'text-white'}>{t(`ranges.${effectiveRange}`)}</span>
         </div>
         <div>
           <span className="text-vault-yellow-dark">{t('itemDetail.fireRate')}: </span>
-          <span className="text-white">{item.fireRate}</span>
+          <span className={fireRateModified ? modColor : 'text-white'}>{effectiveFireRate}</span>
         </div>
         <div>
           <span className="text-vault-yellow-dark">{t('itemDetail.skill')}: </span>
           <span className="text-white">{t(`skills.${item.skill}`)}</span>
         </div>
-        {item.ammo && item.ammo !== '-' && (
+        {effectiveAmmo && effectiveAmmo !== '-' && (
           <div>
             <span className="text-vault-yellow-dark">{t('itemDetail.ammo')}: </span>
-            <span className="text-white">{item.ammo}</span>
+            <span className={ammoModified ? modColor : 'text-white'}>{effectiveAmmo}</span>
             {item.ammoPerShot && item.ammoPerShot > 1 && (
               <span className="text-gray-400"> (x{item.ammoPerShot})</span>
             )}
@@ -211,14 +324,23 @@ function WeaponDetails({ item }: { item: WeaponApi }) {
       </div>
 
       {/* Qualities */}
-      {item.qualities && item.qualities.length > 0 && (
+      {(activeQualities.length > 0 || removedQualities.length > 0) && (
         <div>
           <h4 className="text-vault-yellow font-bold text-sm mb-2">{t('itemDetail.qualities')}</h4>
           <div className="space-y-1">
-            {item.qualities.map((q, i) => (
-              <div key={i} className="text-sm">
+            {/* Removed base qualities (strikethrough) */}
+            {removedQualities.map((q, i) => (
+              <div key={`removed-${i}`} className="text-sm line-through opacity-50">
                 <span className="text-vault-yellow">{t(`qualities.${q.quality}.name`)}</span>
                 {q.value && <span className="text-white"> ({q.value})</span>}
+                <span className="text-gray-400"> - {t(`qualities.${q.quality}.description`, { value: q.value })}</span>
+              </div>
+            ))}
+            {/* Active qualities (base + mod-added) */}
+            {activeQualities.map((q, i) => (
+              <div key={i} className="text-sm">
+                <span className={q.status === 'added' ? modColor : 'text-vault-yellow'}>{t(`qualities.${q.quality}.name`)}</span>
+                {q.value && <span className={q.status === 'added' ? modColor : 'text-white'}> ({q.value})</span>}
                 <span className="text-gray-400"> - {t(`qualities.${q.quality}.description`, { value: q.value })}</span>
               </div>
             ))}
@@ -815,6 +937,100 @@ function ModDetails({ item }: { item: ModApi }) {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function formatModEffect(e: ModEffectApi, t: (key: string, options?: any) => string): string {
+  switch (e.effectType) {
+    case 'damageBonus':
+      return `${t('itemDetail.mod.damageBonus')}: ${e.numericValue && e.numericValue > 0 ? '+' : ''}${e.numericValue}`;
+    case 'fireRateBonus':
+      return `${t('itemDetail.mod.fireRateBonus')}: ${e.numericValue && e.numericValue > 0 ? '+' : ''}${e.numericValue}`;
+    case 'rangeChange':
+      return `${t('itemDetail.mod.rangeChange')}: ${e.numericValue && e.numericValue > 0 ? '+' : ''}${e.numericValue}`;
+    case 'gainQuality':
+      return `${t('itemDetail.mod.gainQuality')}: ${t(`qualities.${e.qualityName}.name`)}${e.qualityValue ? ` ${e.qualityValue}` : ''}`;
+    case 'loseQuality':
+      return `${t('itemDetail.mod.loseQuality')}: ${t(`qualities.${e.qualityName}.name`)}`;
+    case 'setDamage':
+      return `${t('itemDetail.mod.setDamage')}: ${e.numericValue}`;
+    case 'setAmmo':
+      return `${t('itemDetail.mod.setAmmo')}: ${e.ammoType}`;
+    case 'setFireRate':
+      return `${t('itemDetail.mod.setFireRate')}: ${e.numericValue}`;
+    case 'special':
+      return e.descriptionKey ? t(e.descriptionKey, { defaultValue: e.descriptionKey }) : '';
+    default:
+      return e.effectType;
+  }
+}
+
+function CompatibleModsSection({ compatibleMods }: { compatibleMods: CompatibleMod[] }) {
+  const { t } = useTranslation();
+
+  // Group by slot
+  const bySlot = compatibleMods.reduce((acc, mod) => {
+    if (!acc[mod.slot]) acc[mod.slot] = [];
+    acc[mod.slot].push(mod);
+    return acc;
+  }, {} as Record<string, CompatibleMod[]>);
+
+  return (
+    <div className="text-sm">
+      <h4 className="text-vault-yellow font-bold mb-2">{t('itemDetail.mod.compatibleMods')}</h4>
+      <div className="space-y-2">
+        {Object.entries(bySlot).map(([slot, slotMods]) => (
+          <div key={slot}>
+            <span className="text-vault-yellow-dark text-xs uppercase">{t(`modSlots.${slot}`, { defaultValue: slot })}</span>
+            <div className="flex flex-wrap gap-1 mt-0.5">
+              {slotMods.map(mod => {
+                const name = mod.nameKey ? t(mod.nameKey, { defaultValue: mod.name }) : (() => {
+                  const translated = t(`items.mods.${mod.name}`);
+                  return translated !== `items.mods.${mod.name}` ? translated : mod.name;
+                })();
+                return (
+                  <span key={mod.id} className="px-2 py-0.5 bg-gray-700 rounded text-xs text-gray-300">
+                    {name}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function InstalledModsSection({ installedMods }: { installedMods: InstalledModSummary[] }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className="text-sm">
+      <h4 className="text-vault-yellow font-bold mb-2">{t('itemDetail.mod.installedMods')}</h4>
+      <div className="space-y-2">
+        {installedMods.map(mod => (
+          <div key={mod.modInventoryId} className="bg-gray-800/50 rounded px-3 py-2 border border-gray-700">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-white font-medium">{mod.modName}</span>
+              <span className="text-xs text-vault-yellow-dark px-1.5 py-0.5 bg-gray-700 rounded">
+                {t(`modSlots.${mod.slot}`, { defaultValue: mod.slot })}
+              </span>
+            </div>
+            {mod.effects && mod.effects.length > 0 && (
+              <ul className="space-y-0.5">
+                {mod.effects.map((e, i) => {
+                  const text = formatModEffect(e, t);
+                  return text ? (
+                    <li key={i} className="text-gray-300 text-xs">• {text}</li>
+                  ) : null;
+                })}
+              </ul>
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
