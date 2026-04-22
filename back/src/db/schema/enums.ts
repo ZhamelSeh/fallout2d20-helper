@@ -115,7 +115,7 @@ export const survivorTraitIdEnum = pgEnum('survivor_trait_id', [
 
 export const characterTypeEnum = pgEnum('character_type', ['pc', 'npc']);
 
-export const combatantStatusEnum = pgEnum('combatant_status', ['active', 'unconscious', 'dead', 'fled']);
+export const combatantStatusEnum = pgEnum('combatant_status', ['active', 'unconscious', 'dead', 'fled', 'dying']);
 
 export const conditionEnum = pgEnum('condition_type', [
   'stunned', 'prone', 'blinded', 'deafened', 'poisoned', 'irradiated',
