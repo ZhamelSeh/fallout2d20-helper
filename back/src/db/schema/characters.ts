@@ -196,6 +196,7 @@ export const characterInventory = pgTable('character_inventory', {
   quantity: integer('quantity').notNull().default(1),
   equipped: boolean('equipped').notNull().default(false),
   equippedLocation: bodyLocationEnum('equipped_location'),
+  equippedHand: varchar('equipped_hand', { length: 10 }),  // NEW - 'left'|'right'|'both'|null
   // For Power Armor pieces: tracks current HP (null = use max HP from armor definition)
   currentHp: integer('current_hp'),
 });
