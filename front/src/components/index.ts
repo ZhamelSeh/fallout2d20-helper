@@ -32,6 +32,9 @@ export { AddParticipantSection } from '../ui/components/session/AddParticipantSe
 export { AddParticipantsModal } from '../ui/components/session/AddParticipantsModal';
 export { CombatActionReference } from '../ui/components/combat/CombatActionReference';
 export { CombatPrepScreen } from '../ui/components/combat/CombatPrepScreen';
+export { InitiativeBar } from '../ui/components/combat/InitiativeBar';
+export { CombatantsGrid } from '../ui/components/combat/CombatantsGrid';
+export { ActiveTurnPanel } from '../ui/components/combat/ActiveTurnPanel';
 export { LootGenerator } from '../ui/components/generators/LootGenerator';
 export { MerchantGenerator } from '../ui/components/generators/MerchantGenerator';
 export { OriginIcon, getOriginEmoji } from '../ui/components/character/OriginIcon';

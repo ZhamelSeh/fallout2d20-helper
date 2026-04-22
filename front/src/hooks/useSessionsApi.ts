@@ -211,6 +211,33 @@ export function useSession(sessionId: number | null) {
     }
   }, [sessionId]);
 
+  const setTemporaryActive = useCallback(async (participantId: number, temporaryActive: boolean): Promise<void> => {
+    if (!sessionId) return;
+    // Optimistic update: flip the flag immediately
+    setSession(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        participants: prev.participants.map(p =>
+          p.id === participantId ? { ...p, temporaryActive } : p
+        ),
+      };
+    });
+    try {
+      await sessionsApi.updateParticipant(sessionId, participantId, { temporaryActive });
+    } catch (err) {
+      // Refetch on error to revert optimistic update
+      setError(err instanceof Error ? err.message : 'Failed to set temporary active');
+      try {
+        const fresh = await sessionsApi.get(sessionId);
+        setSession(fresh);
+      } catch {
+        // swallow — error already surfaced
+      }
+      throw err;
+    }
+  }, [sessionId]);
+
   // ===== COMBAT =====
 
   const startCombat = useCallback(async (participantIds?: number[]): Promise<SessionApi | null> => {
@@ -359,6 +386,7 @@ export function useSession(sessionId: number | null) {
     setCombatStatus,
     setInitiative,
     setAlliance,
+    setTemporaryActive,
     updateParticipantCharacter,
     // Combat
     startCombat,

@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Users, Bot, Swords, Search, ShoppingBag, StopCircle, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ArrowLeft, Users, Bot, Swords, Search, ShoppingBag, StopCircle, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -10,6 +10,9 @@ import {
   AddParticipantsModal,
   CombatActionReference,
   CombatPrepScreen,
+  InitiativeBar,
+  ActiveTurnPanel,
+  CombatantsGrid,
   LootGenerator,
   MerchantGenerator,
 } from '../../components';
@@ -50,28 +53,29 @@ export function SessionDetailPage() {
     addParticipant,
     addQuickNpc,
     removeParticipant,
-    setCombatStatus,
-    setInitiative,
+    setCombatStatus: _setCombatStatus,
+    setInitiative: _setInitiative,
     setAlliance,
+    setTemporaryActive,
     updateParticipantCharacter,
     startCombat,
     endCombat,
     nextTurn,
-    prevTurn,
+    prevTurn: _prevTurn,
     updateGroupAP: _updateGroupAP,
     spendGroupAP,
     gainGroupAP,
     spendGmAP,
     gainGmAP,
-    sortedParticipants,
-    currentParticipant,
+    sortedParticipants: _sortedParticipants,
+    currentParticipant: _currentParticipant,
   } = useSession(sessionId);
 
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
   const [showActionsRef, setShowActionsRef] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [collapsedIds, setCollapsedIds] = useState<Set<number>>(new Set());
   const [excludedFromCombat, setExcludedFromCombat] = useState<Set<number>>(new Set());
+  const [selectedTargetId, setSelectedTargetId] = useState<number | null>(null);
 
   // Update tab if location state changes (when returning from character sheet)
   useEffect(() => {
@@ -150,6 +154,39 @@ export function SessionDetailPage() {
 
   // Get current participant IDs for the add section
   const currentParticipantIds = session?.participants.map((p) => p.characterId) ?? [];
+
+  // ===== Combat: compute active participant =====
+  const combatParticipants = session?.participants ?? [];
+  const temporaryActive = combatParticipants.find((p) => p.temporaryActive);
+  const sortedForCombat = [...combatParticipants]
+    .filter((p) => p.turnOrder != null)
+    .sort((a, b) => (b.turnOrder ?? 0) - (a.turnOrder ?? 0));
+  const normalActive = sortedForCombat[session?.currentTurnIndex ?? 0];
+  const activeParticipant = temporaryActive ?? normalActive ?? null;
+
+  const handleActivateOutOfOrder = useCallback(async (participantId: number) => {
+    if (!window.confirm(t('combat.initiative.outOfOrderConfirm'))) return;
+    // Clear any other temporaryActive first
+    for (const p of combatParticipants) {
+      if (p.temporaryActive && p.id !== participantId) {
+        await setTemporaryActive(p.id, false);
+      }
+    }
+    await setTemporaryActive(participantId, true);
+  }, [combatParticipants, setTemporaryActive, t]);
+
+  const handleReturnToNormalOrder = useCallback(async () => {
+    if (!temporaryActive) return;
+    await setTemporaryActive(temporaryActive.id, false);
+  }, [temporaryActive, setTemporaryActive]);
+
+  const handleActiveDamage = useCallback((amount: number) => {
+    if (activeParticipant) handleDamage(activeParticipant, amount);
+  }, [activeParticipant, handleDamage]);
+
+  const handleActiveHeal = useCallback((amount: number) => {
+    if (activeParticipant) handleHeal(activeParticipant, amount);
+  }, [activeParticipant, handleHeal]);
 
   if (loading) {
     return (
@@ -345,34 +382,8 @@ export function SessionDetailPage() {
               </Card>
             ) : (
               <Card>
-                {/* Compact combat header: [◀] [▶]  name — Round X  [⊘] */}
-                <div className="flex items-center gap-2 mb-4">
-                  <button
-                    type="button"
-                    onClick={() => prevTurn()}
-                    className="p-2 rounded-lg border border-vault-yellow-dark text-vault-yellow-dark hover:text-vault-yellow hover:border-vault-yellow transition-colors cursor-pointer"
-                    title={t('sessions.combat.prevTurn')}
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => nextTurn()}
-                    className="p-2 rounded-lg bg-vault-yellow text-vault-blue hover:bg-vault-yellow-dark transition-colors cursor-pointer"
-                    title={t('sessions.combat.nextTurn')}
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-
-                  <div className="flex-1 min-w-0 px-2">
-                    <span className="text-vault-yellow font-bold text-lg truncate">
-                      {currentParticipant?.character.name ?? '—'}
-                    </span>
-                    <span className="text-gray-400 text-sm ml-2">
-                      — {t('sessions.combat.round', { number: session.currentRound })}
-                    </span>
-                  </div>
-
+                {/* End combat button (kept accessible alongside the new layout) */}
+                <div className="flex items-center justify-end mb-2">
                   <button
                     type="button"
                     onClick={() => endCombat()}
@@ -383,37 +394,27 @@ export function SessionDetailPage() {
                   </button>
                 </div>
 
-                {/* Initiative Order — rotated so active combatant is first */}
-                <div className="space-y-2">
-                  {[...sortedParticipants.slice(session.currentTurnIndex), ...sortedParticipants.slice(0, session.currentTurnIndex)].map((participant, index) => {
-                    const isActive = index === 0;
-                    const isCollapsed = !isActive && collapsedIds.has(participant.id);
-                    return (
-                      <ParticipantRow
-                        key={participant.id}
-                        participant={participant}
-                        isActive={isActive}
-                        showCombatControls
-                        collapsed={isCollapsed}
-                        onToggleCollapse={() => {
-                          setCollapsedIds(prev => {
-                            const next = new Set(prev);
-                            if (next.has(participant.id)) next.delete(participant.id);
-                            else next.add(participant.id);
-                            return next;
-                          });
-                        }}
-                        onDamage={(amt) => handleDamage(participant, amt)}
-                        onHeal={(amt) => handleHeal(participant, amt)}
-                        onRadiation={(amt) => handleRadiation(participant, amt)}
-                        onLuckChange={(amt) => handleLuckChange(participant, amt)}
-                        onCombatStatusChange={(status) => setCombatStatus(participant.id, status)}
-                        onInitiativeChange={(value) => setInitiative(participant.id, value)}
-                        onViewSheet={() => handleViewSheet(participant.characterId)}
-                      />
-                    );
-                  })}
-                </div>
+                <InitiativeBar
+                  participants={combatParticipants}
+                  activeParticipantId={activeParticipant?.id ?? null}
+                  temporaryActiveId={temporaryActive?.id ?? null}
+                  currentRound={session.currentRound ?? 1}
+                  onActivateOutOfOrder={handleActivateOutOfOrder}
+                  onEndTurn={() => nextTurn()}
+                  onReturnToNormalOrder={handleReturnToNormalOrder}
+                />
+                <ActiveTurnPanel
+                  active={activeParticipant}
+                  selectedTargetId={selectedTargetId}
+                  onDamage={handleActiveDamage}
+                  onHeal={handleActiveHeal}
+                />
+                <CombatantsGrid
+                  participants={combatParticipants.filter((p) => p.turnOrder != null)}
+                  activeParticipantId={activeParticipant?.id ?? null}
+                  selectedTargetId={selectedTargetId}
+                  onSelectTarget={setSelectedTargetId}
+                />
               </Card>
             )}
 
