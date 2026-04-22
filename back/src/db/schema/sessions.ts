@@ -31,6 +31,9 @@ export const sessionParticipants = pgTable('session_participants', {
   // Combat-specific data
   turnOrder: integer('turn_order'), // Initiative result (null if not in combat yet)
   combatStatus: combatantStatusEnum('combat_status').notNull().default('active'),
+  isAlly: boolean('is_ally').notNull().default(true),
+  temporaryActive: boolean('temporary_active').notNull().default(false),
+  skipNormalActions: boolean('skip_normal_actions').notNull().default(false),
 });
 
 // ===== RELATIONS =====
