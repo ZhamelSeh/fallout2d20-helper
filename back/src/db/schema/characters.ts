@@ -184,6 +184,7 @@ export const characterConditions = pgTable('character_conditions', {
   id: serial('id').primaryKey(),
   characterId: integer('character_id').references(() => characters.id, { onDelete: 'cascade' }).notNull(),
   condition: conditionEnum('condition').notNull(),
+  damagePerTurn: integer('damage_per_turn').notNull().default(0),
 });
 
 // ===== CHARACTER INVENTORY =====
