@@ -11,6 +11,7 @@ import {
   statBlockTypeEnum,
 } from './enums';
 import { items } from './items';
+import { characterInjuries } from './injuries';
 
 // ===== ORIGINS =====
 export const origins = pgTable('origins', {
@@ -240,6 +241,7 @@ export const charactersRelations = relations(characters, ({ one, many }) => ({
   inventory: many(characterInventory),
   dr: many(characterDr),
   traits: many(characterTraits),
+  injuries: many(characterInjuries),
 }));
 
 export const characterSpecialRelations = relations(characterSpecial, ({ one }) => ({

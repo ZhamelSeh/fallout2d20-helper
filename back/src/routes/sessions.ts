@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/index';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import {
   sessions,
   sessionParticipants,
@@ -10,6 +10,7 @@ import {
   characterTagSkills,
   characterConditions,
   characterInventory,
+  characterInjuries,
   items,
   weapons,
   inventoryItemMods,
@@ -58,6 +59,26 @@ async function getParticipantWithCharacter(participantId: number) {
     .select({ condition: characterConditions.condition })
     .from(characterConditions)
     .where(eq(characterConditions.characterId, participant.characterId));
+
+  // Get active injuries (healedAt IS NULL)
+  const injuries = await db
+    .select({
+      id: characterInjuries.id,
+      characterId: characterInjuries.characterId,
+      sessionId: characterInjuries.sessionId,
+      zone: characterInjuries.zone,
+      injuryType: characterInjuries.injuryType,
+      appliedAtRound: characterInjuries.appliedAtRound,
+      healedAt: characterInjuries.healedAt,
+      createdAt: characterInjuries.createdAt,
+    })
+    .from(characterInjuries)
+    .where(
+      and(
+        eq(characterInjuries.characterId, participant.characterId),
+        isNull(characterInjuries.healedAt)
+      )
+    );
 
   // Get SPECIAL stats
   const specialRows = await db
@@ -169,6 +190,7 @@ async function getParticipantWithCharacter(participantId: number) {
       special,
       skills,
       conditions: conditions.map(c => c.condition),
+      injuries,
       equippedWeapons: equippedWeaponsWithMods,
       creatureAttributes: participant.creatureAttributes ?? undefined,
       creatureAttacks: participant.creatureAttacks ?? undefined,
@@ -217,6 +239,16 @@ async function getFullSession(sessionId: number) {
   const characterIds = participantRows.map(p => p.characterId);
 
   const conditionsByCharacter: Record<number, string[]> = {};
+  const injuriesByCharacter: Record<number, Array<{
+    id: number;
+    characterId: number;
+    sessionId: number | null;
+    zone: string;
+    injuryType: string;
+    appliedAtRound: number | null;
+    healedAt: Date | null;
+    createdAt: Date;
+  }>> = {};
   const specialByCharacter: Record<number, Record<string, number>> = {};
   const skillsByCharacter: Record<number, Record<string, number>> = {};
   const equippedWeaponsByCharacter: Record<number, Array<{
@@ -231,6 +263,27 @@ async function getFullSession(sessionId: number) {
       .from(characterConditions)
       .where(eq(characterConditions.characterId, charId));
     conditionsByCharacter[charId] = conditions.map(c => c.condition);
+
+    // Active injuries (healedAt IS NULL)
+    const injuries = await db
+      .select({
+        id: characterInjuries.id,
+        characterId: characterInjuries.characterId,
+        sessionId: characterInjuries.sessionId,
+        zone: characterInjuries.zone,
+        injuryType: characterInjuries.injuryType,
+        appliedAtRound: characterInjuries.appliedAtRound,
+        healedAt: characterInjuries.healedAt,
+        createdAt: characterInjuries.createdAt,
+      })
+      .from(characterInjuries)
+      .where(
+        and(
+          eq(characterInjuries.characterId, charId),
+          isNull(characterInjuries.healedAt)
+        )
+      );
+    injuriesByCharacter[charId] = injuries;
 
     // SPECIAL
     const specialRows = await db
@@ -341,6 +394,7 @@ async function getFullSession(sessionId: number) {
       special: specialByCharacter[p.characterId] || {},
       skills: skillsByCharacter[p.characterId] || {},
       conditions: conditionsByCharacter[p.characterId] || [],
+      injuries: injuriesByCharacter[p.characterId] || [],
       equippedWeapons: equippedWeaponsByCharacter[p.characterId] || [],
       creatureAttributes: p.creatureAttributes ?? undefined,
       creatureAttacks: p.creatureAttacks ?? undefined,
