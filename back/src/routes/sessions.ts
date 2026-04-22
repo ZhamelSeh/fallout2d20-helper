@@ -735,6 +735,47 @@ router.put('/:id/participants/:pid/initiative', async (req, res) => {
   }
 });
 
+// PATCH update participant (generic - alliance/combat flags/turn order/status)
+router.patch('/:sessionId/participants/:participantId', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const participantId = Number(req.params.participantId);
+    const { combatStatus, turnOrder, isAlly, temporaryActive, skipNormalActions } = req.body ?? {};
+
+    const updateData: Record<string, unknown> = {};
+    if (combatStatus !== undefined) updateData.combatStatus = combatStatus;
+    if (turnOrder !== undefined) updateData.turnOrder = turnOrder;
+    if (isAlly !== undefined) updateData.isAlly = isAlly;
+    if (temporaryActive !== undefined) updateData.temporaryActive = temporaryActive;
+    if (skipNormalActions !== undefined) updateData.skipNormalActions = skipNormalActions;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    const [updated] = await db
+      .update(sessionParticipants)
+      .set(updateData)
+      .where(
+        and(
+          eq(sessionParticipants.id, participantId),
+          eq(sessionParticipants.sessionId, sessionId)
+        )
+      )
+      .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Participant not found' });
+    }
+
+    const participant = await getParticipantWithCharacter(participantId);
+    res.json(participant);
+  } catch (error) {
+    console.error('Error updating participant:', error);
+    res.status(500).json({ error: 'Failed to update participant' });
+  }
+});
+
 // ===== COMBAT MANAGEMENT =====
 
 // POST start combat (rolls initiatives)
