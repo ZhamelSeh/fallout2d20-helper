@@ -718,6 +718,37 @@ export default {
       dropProne: 'Se jeter à terre',
       dropProneDesc: 'Se mettre à terre volontairement',
     },
+    prep: {
+      pcs: 'Personnages joueurs',
+      npcs: 'PNJ disponibles',
+    },
+    alliance: {
+      ally: 'Allié',
+      enemy: 'Ennemi',
+      toggle: 'Changer de camp',
+    },
+    initiative: {
+      label: 'Init',
+      endTurn: 'Fin de tour',
+      returnToOrder: 'Revenir au tour normal',
+      outOfOrderConfirm: 'Activer ce combattant avant son tour normal ?',
+    },
+    grid: {
+      allies: 'Alliés',
+      enemies: 'Ennemis',
+    },
+    activeTurn: {
+      title: 'TOUR ACTIF',
+      noActive: 'Aucun combattant actif. Clique sur une pastille dans l\'ordre d\'initiative pour activer un tour.',
+      attackPlaceholder: 'Le flow d\'attaque sera disponible après le Plan 2.',
+    },
+    injury: {
+      arm_broken_left:   { name: 'Bras G cassé', rule: 'Vous lâchez l\'objet que vous teniez dans la main gauche. Ce bras est inutilisable.' },
+      arm_broken_right:  { name: 'Bras D cassé', rule: 'Vous lâchez l\'objet que vous teniez dans la main droite. Ce bras est inutilisable.' },
+      leg_broken:        { name: 'Jambe cassée', rule: 'Vous tombez à terre. Vous ne pouvez plus sprinter. Se déplacer devient une action capitale.' },
+      torso_bleeding:    { name: 'Hémorragie', rule: 'À la fin de chaque tour, subit 2 dégâts balistiques qui ignorent la RD.' },
+      head_dazed:        { name: 'Hébété', rule: 'Perd les actions normales au prochain tour. La difficulté de tous les tests basés sur la vue augmente de 2.' },
+    },
   },
 
   damageTypes: {

@@ -719,6 +719,37 @@ export default {
       dropProne: 'Drop Prone',
       dropProneDesc: 'Voluntarily go prone',
     },
+    prep: {
+      pcs: 'Player Characters',
+      npcs: 'Available NPCs',
+    },
+    alliance: {
+      ally: 'Ally',
+      enemy: 'Enemy',
+      toggle: 'Switch side',
+    },
+    initiative: {
+      label: 'Init',
+      endTurn: 'End turn',
+      returnToOrder: 'Return to normal order',
+      outOfOrderConfirm: 'Activate this combatant out of turn order?',
+    },
+    grid: {
+      allies: 'Allies',
+      enemies: 'Enemies',
+    },
+    activeTurn: {
+      title: 'ACTIVE TURN',
+      noActive: 'No active combatant. Click an initiative pill to activate a turn.',
+      attackPlaceholder: 'The attack flow will be available after Plan 2.',
+    },
+    injury: {
+      arm_broken_left:   { name: 'Left arm broken', rule: 'You drop what you were holding in your left hand. The arm is unusable.' },
+      arm_broken_right:  { name: 'Right arm broken', rule: 'You drop what you were holding in your right hand. The arm is unusable.' },
+      leg_broken:        { name: 'Leg broken', rule: 'You fall prone. You can no longer sprint. Moving becomes a major action.' },
+      torso_bleeding:    { name: 'Bleeding', rule: 'At the end of each turn, take 2 ballistic damage that ignores DR.' },
+      head_dazed:        { name: 'Dazed', rule: 'Lose normal actions next turn. All sight-based test difficulties increase by 2.' },
+    },
   },
 
   damageTypes: {
