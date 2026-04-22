@@ -435,6 +435,25 @@ export interface CharacterDrApi {
   drPoison: number;
 }
 
+export type InjuryZone = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
+export type InjuryType =
+  | 'arm_broken_left'
+  | 'arm_broken_right'
+  | 'leg_broken'
+  | 'torso_bleeding'
+  | 'head_dazed';
+
+export interface CharacterInjuryApi {
+  id: number;
+  characterId: number;
+  sessionId: number | null;
+  zone: InjuryZone;
+  injuryType: InjuryType;
+  appliedAtRound: number | null;
+  healedAt: string | null; // ISO
+  createdAt: string;
+}
+
 export interface CharacterTraitApi {
   id: number;
   name: string;
@@ -489,6 +508,7 @@ export interface CharacterApi {
   giftedBonusAttributes: string[];
   exerciseBonuses: string[];
   conditions: string[];
+  injuries: CharacterInjuryApi[];
   inventory: InventoryItemApi[];
   dr: CharacterDrApi[];
   traits: CharacterTraitApi[];
@@ -746,7 +766,7 @@ export const equipmentPacksApi = {
 // ===== SESSIONS API =====
 
 export type SessionStatus = 'active' | 'paused' | 'completed';
-export type CombatantStatus = 'active' | 'unconscious' | 'dead' | 'fled';
+export type CombatantStatus = 'active' | 'unconscious' | 'dying' | 'dead' | 'fled';
 
 export interface SessionEquippedWeapon {
   itemId: number;
@@ -790,6 +810,10 @@ export interface SessionParticipantApi {
   characterId: number;
   turnOrder: number | null;
   combatStatus: CombatantStatus;
+  isAlly: boolean;
+  temporaryActive: boolean;
+  skipNormalActions: boolean;
+  injuries: CharacterInjuryApi[];
   character: SessionParticipantCharacter;
 }
 
