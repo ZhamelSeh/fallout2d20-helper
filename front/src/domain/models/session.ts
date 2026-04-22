@@ -2,6 +2,25 @@ import type { CombatantStatus, Condition } from './character';
 
 export type SessionStatus = 'active' | 'paused' | 'completed';
 
+export type InjuryZone = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
+export type InjuryType =
+  | 'arm_broken_left'
+  | 'arm_broken_right'
+  | 'leg_broken'
+  | 'torso_bleeding'
+  | 'head_dazed';
+
+export interface Injury {
+  id: number;
+  characterId: number;
+  sessionId: number | null;
+  zone: InjuryZone;
+  injuryType: InjuryType;
+  appliedAtRound: number | null;
+  healedAt: string | null;
+  createdAt: string;
+}
+
 export interface ParticipantCharacter {
   id: number;
   name: string;
@@ -25,6 +44,10 @@ export interface Participant {
   characterId: number;
   turnOrder: number | null;
   combatStatus: CombatantStatus;
+  isAlly: boolean;
+  temporaryActive: boolean;
+  skipNormalActions: boolean;
+  injuries: Injury[];
   character: ParticipantCharacter;
 }
 

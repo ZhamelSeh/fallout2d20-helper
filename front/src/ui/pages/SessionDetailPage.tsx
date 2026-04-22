@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Users, Bot, Swords, Search, ShoppingBag, Play, StopCircle, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ArrowLeft, Users, Bot, Swords, Search, ShoppingBag, StopCircle, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -9,9 +9,9 @@ import {
   ParticipantRow,
   AddParticipantsModal,
   CombatActionReference,
+  CombatPrepScreen,
   LootGenerator,
   MerchantGenerator,
-  OriginIcon,
 } from '../../components';
 import { useSession } from '../../hooks/useSessionsApi';
 import { charactersApi } from '../../services/api';
@@ -52,6 +52,7 @@ export function SessionDetailPage() {
     removeParticipant,
     setCombatStatus,
     setInitiative,
+    setAlliance,
     updateParticipantCharacter,
     startCombat,
     endCombat,
@@ -316,81 +317,31 @@ export function SessionDetailPage() {
             {/* Combat Controls */}
             {!session.combatActive ? (
               <Card>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-vault-yellow font-bold">
-                    {t('sessions.combat.prepareCombat')}
-                  </h3>
-                  <Button
-                    onClick={() => {
-                      const selectedIds = session.participants
-                        .filter(p => !excludedFromCombat.has(p.id))
-                        .map(p => p.id);
-                      startCombat(selectedIds);
-                    }}
-                    disabled={session.participants.length === 0 || session.participants.every(p => excludedFromCombat.has(p.id))}
-                  >
-                    <Play size={18} />
-                    {t('sessions.combat.startCombat')}
-                  </Button>
-                </div>
-
-                {/* Initiative Preview with selection checkboxes — 2 columns PC/NPC */}
-                {session.participants.length > 0 && (() => {
-                  const sorted = [...session.participants]
-                    .sort((a, b) => (b.character.initiative ?? 0) - (a.character.initiative ?? 0));
-                  const pcList = sorted.filter(p => p.character.type === 'pc');
-                  const npcList = sorted.filter(p => p.character.type === 'npc');
-
-                  const renderRow = (p: SessionParticipantApi) => {
-                    const isExcluded = excludedFromCombat.has(p.id);
-                    return (
-                      <label
-                        key={p.id}
-                        className={`flex items-center gap-2 px-3 py-2 bg-vault-blue rounded cursor-pointer transition-opacity ${isExcluded ? 'opacity-40' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!isExcluded}
-                          onChange={() => {
-                            setExcludedFromCombat(prev => {
-                              const next = new Set(prev);
-                              if (next.has(p.id)) next.delete(p.id);
-                              else next.add(p.id);
-                              return next;
-                            });
-                          }}
-                          className="w-4 h-4 accent-vault-yellow cursor-pointer"
-                        />
-                        <OriginIcon originId={p.character.originId} emoji={p.character.emoji} type={p.character.type} size="sm" />
-                        <span className="w-6 text-center font-bold text-vault-yellow text-sm">
-                          {p.character.initiative}
-                        </span>
-                        <span className="text-white text-sm truncate">{p.character.name}</span>
-                      </label>
-                    );
-                  };
-
-                  return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-medium text-vault-yellow-dark">
-                          {t('characters.pc')}s
-                        </h4>
-                        {pcList.length === 0 ? (
-                          <div className="text-xs text-gray-500 px-3 py-2">{t('sessions.participants.noPCs')}</div>
-                        ) : pcList.map(renderRow)}
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-medium text-vault-yellow-dark">
-                          {t('characters.npc')}s
-                        </h4>
-                        {npcList.length === 0 ? (
-                          <div className="text-xs text-gray-500 px-3 py-2">{t('sessions.participants.noNPCs')}</div>
-                        ) : npcList.map(renderRow)}
-                      </div>
-                    </div>
-                  );
-                })()}
+                <CombatPrepScreen
+                  participants={session.participants}
+                  isParticipantIncluded={(pid) => !excludedFromCombat.has(pid)}
+                  onToggleParticipant={(pid, included) => {
+                    setExcludedFromCombat(prev => {
+                      const next = new Set(prev);
+                      if (included) next.delete(pid);
+                      else next.add(pid);
+                      return next;
+                    });
+                  }}
+                  onToggleAlliance={(pid, isAlly) => {
+                    void setAlliance(pid, isAlly);
+                  }}
+                  onStartCombat={() => {
+                    const selectedIds = session.participants
+                      .filter(p => !excludedFromCombat.has(p.id))
+                      .map(p => p.id);
+                    startCombat(selectedIds);
+                  }}
+                  canStartCombat={
+                    session.participants.length > 0 &&
+                    !session.participants.every(p => excludedFromCombat.has(p.id))
+                  }
+                />
               </Card>
             ) : (
               <Card>

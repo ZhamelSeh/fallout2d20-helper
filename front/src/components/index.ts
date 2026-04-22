@@ -31,6 +31,7 @@ export { ParticipantRow } from '../ui/components/session/ParticipantRow';
 export { AddParticipantSection } from '../ui/components/session/AddParticipantSection';
 export { AddParticipantsModal } from '../ui/components/session/AddParticipantsModal';
 export { CombatActionReference } from '../ui/components/combat/CombatActionReference';
+export { CombatPrepScreen } from '../ui/components/combat/CombatPrepScreen';
 export { LootGenerator } from '../ui/components/generators/LootGenerator';
 export { MerchantGenerator } from '../ui/components/generators/MerchantGenerator';
 export { OriginIcon, getOriginEmoji } from '../ui/components/character/OriginIcon';

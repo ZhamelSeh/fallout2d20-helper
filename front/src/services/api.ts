@@ -905,6 +905,21 @@ export const sessionsApi = {
       method: 'PUT',
       body: JSON.stringify({ turnOrder }),
     }),
+  updateParticipant: (
+    sessionId: number,
+    participantId: number,
+    data: {
+      combatStatus?: CombatantStatus;
+      turnOrder?: number;
+      isAlly?: boolean;
+      temporaryActive?: boolean;
+      skipNormalActions?: boolean;
+    }
+  ) =>
+    fetchApi<SessionParticipantApi>(`/sessions/${sessionId}/participants/${participantId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
 
   // Combat
   startCombat: (sessionId: number, participantIds?: number[]) =>
