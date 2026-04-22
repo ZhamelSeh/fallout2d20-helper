@@ -19,7 +19,6 @@ export { HPBar } from '../ui/components/character/HPBar';
 export { APTracker } from '../ui/components/combat/APTracker';
 export { SpecialInput } from '../ui/components/character/SpecialInput';
 export { CharacterCard } from '../ui/components/character/CharacterCard';
-export { CombatantRow } from '../ui/components/combat/CombatantRow';
 export { ActionButton } from '../ui/components/combat/ActionButton';
 export { InventoryManager } from '../ui/components/inventory/InventoryManager';
 export { ItemSelector } from '../ui/components/inventory/ItemSelector';
