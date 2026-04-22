@@ -119,7 +119,8 @@ export const combatantStatusEnum = pgEnum('combatant_status', ['active', 'uncons
 
 export const conditionEnum = pgEnum('condition_type', [
   'stunned', 'prone', 'blinded', 'deafened', 'poisoned', 'irradiated',
-  'fatigued', 'crippled', 'addicted', 'unconscious'
+  'fatigued', 'crippled', 'addicted', 'unconscious',
+  'persistent_physical', 'persistent_radiation'
 ]);
 
 // ===== EQUIPMENT =====
