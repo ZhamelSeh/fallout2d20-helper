@@ -141,3 +141,12 @@ export const bodyTypeEnum = pgEnum('body_type', ['humanoid', 'quadruped', 'insec
 
 // ===== SESSIONS =====
 export const sessionStatusEnum = pgEnum('session_status', ['active', 'paused', 'completed']);
+
+// ===== INJURIES =====
+export const injuryTypeEnum = pgEnum('injury_type', [
+  'arm_broken_left',
+  'arm_broken_right',
+  'leg_broken',
+  'torso_bleeding',
+  'head_dazed',
+]);
