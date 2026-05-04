@@ -921,6 +921,37 @@ export const sessionsApi = {
       body: JSON.stringify(data),
     }),
 
+  // Attack resolution
+  resolveAttack: (
+    sessionId: number,
+    participantId: number,
+    body: {
+      targetParticipantId: number;
+      zone: string;
+      finalDamage: number;
+      injuryTriggered: boolean;
+      injuryType?: string;
+      appliedConditions: string[];
+      persistentCondition: { type: string; damage: number } | null;
+      apCost: number;
+    }
+  ) =>
+    fetchApi<{ targetHpAfter: number; injuryApplied: any | null; transitionedToDying: boolean }>(
+      `/sessions/${sessionId}/participants/${participantId}/attack`,
+      { method: 'POST', body: JSON.stringify(body) }
+    ),
+  createInjury: (sessionId: number, participantId: number, zone: string, injuryType: string) =>
+    fetchApi<CharacterInjuryApi>(`/sessions/${sessionId}/participants/${participantId}/injuries`, {
+      method: 'POST',
+      body: JSON.stringify({ zone, injuryType }),
+    }),
+  healInjury: (sessionId: number, participantId: number, injuryId: number) =>
+    fetchApi<null>(`/sessions/${sessionId}/participants/${participantId}/injuries/${injuryId}`, {
+      method: 'DELETE',
+    }),
+  undoLastAttack: (sessionId: number) =>
+    fetchApi<{ ok: true }>(`/sessions/${sessionId}/undo-last-attack`, { method: 'POST' }),
+
   // Combat
   startCombat: (sessionId: number, participantIds?: number[]) =>
     fetchApi<SessionApi>(`/sessions/${sessionId}/combat/start`, {
