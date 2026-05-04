@@ -422,6 +422,7 @@ export function SessionDetailPage() {
             <CombatActionReference
               collapsed={!showActionsRef}
               onToggle={() => setShowActionsRef(!showActionsRef)}
+              activeParticipant={activeParticipant}
             />
           </div>
         )}
