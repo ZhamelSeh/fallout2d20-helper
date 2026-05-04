@@ -17,6 +17,13 @@ import {
   mods,
   modEffects,
 } from '../db/schema/index';
+import {
+  saveLastAttack,
+  getLastAttack,
+  clearLastAttack,
+  type LastAttackSnapshot,
+} from '../shared/lastAttackStore';
+import { INJURY_BY_ZONE } from '../shared/injuryMap';
 
 const router = Router();
 
@@ -773,6 +780,257 @@ router.patch('/:sessionId/participants/:participantId', async (req, res) => {
   } catch (error) {
     console.error('Error updating participant:', error);
     res.status(500).json({ error: 'Failed to update participant' });
+  }
+});
+
+// ===== ATTACK RESOLUTION / INJURIES / UNDO =====
+
+// POST resolve attack
+router.post('/:sessionId/participants/:participantId/attack', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const attackerId = Number(req.params.participantId);
+    const {
+      targetParticipantId,
+      zone,
+      finalDamage,
+      injuryTriggered,
+      injuryType,
+      appliedConditions,
+      persistentCondition,
+      apCost: _apCost,
+    } = req.body;
+
+    // Look up target participant + character (raw select to match codebase style)
+    const [targetParticipant] = await db
+      .select()
+      .from(sessionParticipants)
+      .where(eq(sessionParticipants.id, Number(targetParticipantId)))
+      .limit(1);
+
+    if (!targetParticipant) {
+      return res.status(404).json({ error: 'Target not found' });
+    }
+
+    const [targetCharacter] = await db
+      .select()
+      .from(characters)
+      .where(eq(characters.id, targetParticipant.characterId))
+      .limit(1);
+
+    if (!targetCharacter) {
+      return res.status(404).json({ error: 'Target not found' });
+    }
+
+    const snapshot: LastAttackSnapshot = {
+      sessionId,
+      attackerId,
+      targetCharacterId: targetCharacter.id,
+      targetHpBefore: targetCharacter.currentHp,
+      targetCombatStatusBefore: targetParticipant.combatStatus,
+      createdInjuryIds: [],
+      createdConditionIds: [],
+      timestamp: Date.now(),
+    };
+
+    // 1. Decrement HP
+    const newHp = Math.max(0, targetCharacter.currentHp - (finalDamage ?? 0));
+    await db
+      .update(characters)
+      .set({ currentHp: newHp })
+      .where(eq(characters.id, targetCharacter.id));
+
+    // 2. Insert injury if triggered
+    let createdInjury: typeof characterInjuries.$inferSelect | null = null;
+    if (injuryTriggered && injuryType) {
+      const [inj] = await db
+        .insert(characterInjuries)
+        .values({
+          characterId: targetCharacter.id,
+          sessionId,
+          zone,
+          injuryType,
+        })
+        .returning();
+      createdInjury = inj;
+      snapshot.createdInjuryIds.push(inj.id);
+
+      // Apply prone if leg injury
+      if (injuryType === 'leg_broken') {
+        const [proneCond] = await db
+          .insert(characterConditions)
+          .values({
+            characterId: targetCharacter.id,
+            condition: 'prone',
+          })
+          .onConflictDoNothing()
+          .returning();
+        if (proneCond) snapshot.createdConditionIds.push(proneCond.id);
+      }
+    }
+
+    // 3. Insert standard conditions
+    for (const cond of (appliedConditions ?? [])) {
+      const [created] = await db
+        .insert(characterConditions)
+        .values({
+          characterId: targetCharacter.id,
+          condition: cond,
+        })
+        .onConflictDoNothing()
+        .returning();
+      if (created) snapshot.createdConditionIds.push(created.id);
+    }
+
+    // 4. Insert persistent condition
+    if (persistentCondition) {
+      const [created] = await db
+        .insert(characterConditions)
+        .values({
+          characterId: targetCharacter.id,
+          condition: persistentCondition.type,
+          damagePerTurn: persistentCondition.damage,
+        })
+        .returning();
+      if (created) snapshot.createdConditionIds.push(created.id);
+    }
+
+    // 5. Transition to dying if HP=0
+    let transitionedToDying = false;
+    if (newHp === 0 && targetParticipant.combatStatus !== 'dead' && targetParticipant.combatStatus !== 'dying') {
+      await db
+        .update(sessionParticipants)
+        .set({ combatStatus: 'dying' })
+        .where(eq(sessionParticipants.id, targetParticipant.id));
+      transitionedToDying = true;
+
+      // Apply prone
+      const [prone] = await db
+        .insert(characterConditions)
+        .values({
+          characterId: targetCharacter.id,
+          condition: 'prone',
+        })
+        .onConflictDoNothing()
+        .returning();
+      if (prone) snapshot.createdConditionIds.push(prone.id);
+
+      // Apply fatal blow injury (if not already inserted from injuryTriggered)
+      if (zone && !injuryTriggered) {
+        const def = INJURY_BY_ZONE[zone as keyof typeof INJURY_BY_ZONE];
+        if (def) {
+          const [fatalInj] = await db
+            .insert(characterInjuries)
+            .values({
+              characterId: targetCharacter.id,
+              sessionId,
+              zone,
+              injuryType: def.type,
+            })
+            .returning();
+          snapshot.createdInjuryIds.push(fatalInj.id);
+        }
+      }
+    }
+
+    saveLastAttack(snapshot);
+
+    res.json({
+      targetHpAfter: newHp,
+      injuryApplied: createdInjury,
+      transitionedToDying,
+    });
+  } catch (error) {
+    console.error('Error resolving attack:', error);
+    res.status(500).json({ error: 'Failed to resolve attack' });
+  }
+});
+
+// POST create injury
+router.post('/:sessionId/participants/:participantId/injuries', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const participantId = Number(req.params.participantId);
+    const { zone, injuryType } = req.body;
+
+    const [participant] = await db
+      .select()
+      .from(sessionParticipants)
+      .where(eq(sessionParticipants.id, participantId))
+      .limit(1);
+
+    if (!participant) {
+      return res.status(404).json({ error: 'Participant not found' });
+    }
+
+    const [created] = await db
+      .insert(characterInjuries)
+      .values({
+        characterId: participant.characterId,
+        sessionId,
+        zone,
+        injuryType,
+      })
+      .returning();
+
+    res.status(201).json(created);
+  } catch (error) {
+    console.error('Error creating injury:', error);
+    res.status(500).json({ error: 'Failed to create injury' });
+  }
+});
+
+// DELETE (heal) injury
+router.delete('/:sessionId/participants/:participantId/injuries/:injuryId', async (req, res) => {
+  try {
+    const injuryId = Number(req.params.injuryId);
+    const [updated] = await db
+      .update(characterInjuries)
+      .set({ healedAt: new Date() })
+      .where(eq(characterInjuries.id, injuryId))
+      .returning();
+    if (!updated) {
+      return res.status(404).json({ error: 'Injury not found' });
+    }
+    res.json(updated);
+  } catch (error) {
+    console.error('Error healing injury:', error);
+    res.status(500).json({ error: 'Failed to heal injury' });
+  }
+});
+
+// POST undo last attack
+router.post('/:sessionId/undo-last-attack', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const snap = getLastAttack(sessionId);
+    if (!snap) {
+      return res.status(404).json({ error: 'No attack to undo' });
+    }
+
+    await db
+      .update(characters)
+      .set({ currentHp: snap.targetHpBefore })
+      .where(eq(characters.id, snap.targetCharacterId));
+
+    for (const id of snap.createdInjuryIds) {
+      await db.delete(characterInjuries).where(eq(characterInjuries.id, id));
+    }
+
+    for (const id of snap.createdConditionIds) {
+      await db.delete(characterConditions).where(eq(characterConditions.id, id));
+    }
+
+    await db
+      .update(sessionParticipants)
+      .set({ combatStatus: snap.targetCombatStatusBefore as 'active' | 'unconscious' | 'dead' | 'fled' | 'dying' })
+      .where(eq(sessionParticipants.characterId, snap.targetCharacterId));
+
+    clearLastAttack(sessionId);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error undoing attack:', error);
+    res.status(500).json({ error: 'Failed to undo attack' });
   }
 });
 
