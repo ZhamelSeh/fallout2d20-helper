@@ -1,8 +1,10 @@
 import { useTranslation } from 'react-i18next';
 import type { SessionParticipantApi } from '../../../services/api';
 import type { AttackResult } from '../../../domain/rules/attackResolution';
+import type { SurvivalTestResult } from '../../../domain/rules/dyingRules';
 import { AttackBuilder } from './AttackBuilder';
 import { InjuryAndConditionsBar } from './InjuryAndConditionsBar';
+import { DyingSurvivalTest } from './DyingSurvivalTest';
 
 interface ActiveTurnPanelProps {
   active: SessionParticipantApi | null;
@@ -11,6 +13,8 @@ interface ActiveTurnPanelProps {
   onResolveAttack: (result: AttackResult, weaponItemId: number, zone: string) => Promise<void>;
   onUndo: () => Promise<void>;
   onHealInjury: (injuryId: number) => void;
+  onSubmitSurvivalTest: (result: SurvivalTestResult) => Promise<void>;
+  onStabilize: () => Promise<void>;
 }
 
 export function ActiveTurnPanel({
@@ -20,6 +24,8 @@ export function ActiveTurnPanel({
   onResolveAttack,
   onUndo,
   onHealInjury,
+  onSubmitSurvivalTest,
+  onStabilize,
 }: ActiveTurnPanelProps) {
   const { t } = useTranslation();
 
@@ -52,13 +58,28 @@ export function ActiveTurnPanel({
       <InjuryAndConditionsBar participant={active} onHealInjury={onHealInjury} />
 
       <div className="mt-3">
-        <AttackBuilder
-          attacker={active}
-          target={target}
-          onResolve={onResolveAttack}
-          onUndo={onUndo}
-          canUndo={canUndo}
-        />
+        {active.combatStatus === 'dying' ? (
+          <DyingSurvivalTest
+            mourant={active}
+            onSubmit={onSubmitSurvivalTest}
+            onStabilize={onStabilize}
+          />
+        ) : (
+          <>
+            {active.skipNormalActions && (
+              <div className="bg-yellow-900/30 border border-yellow-700 p-2 rounded text-xs text-yellow-200 mb-2">
+                ⚠ {t('combat.activeTurn.skipNormalActions')}
+              </div>
+            )}
+            <AttackBuilder
+              attacker={active}
+              target={target}
+              onResolve={onResolveAttack}
+              onUndo={onUndo}
+              canUndo={canUndo}
+            />
+          </>
+        )}
       </div>
     </div>
   );
