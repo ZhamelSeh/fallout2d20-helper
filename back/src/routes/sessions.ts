@@ -833,6 +833,25 @@ router.post('/:sessionId/participants/:participantId/attack', async (req, res) =
       timestamp: Date.now(),
     };
 
+    // "Damage in dying" rule: if target was already dying when this attack lands and
+    // finalDamage > 0, add 1 extra injury immediately.
+    const wasAlreadyDying = targetParticipant.combatStatus === 'dying';
+    if (wasAlreadyDying && (finalDamage ?? 0) > 0 && zone) {
+      const def = INJURY_BY_ZONE[zone as keyof typeof INJURY_BY_ZONE];
+      if (def) {
+        const [extra] = await db
+          .insert(characterInjuries)
+          .values({
+            characterId: targetCharacter.id,
+            sessionId,
+            zone,
+            injuryType: def.type,
+          })
+          .returning();
+        snapshot.createdInjuryIds.push(extra.id);
+      }
+    }
+
     // 1. Decrement HP
     const newHp = Math.max(0, targetCharacter.currentHp - (finalDamage ?? 0));
     await db
@@ -897,7 +916,8 @@ router.post('/:sessionId/participants/:participantId/attack', async (req, res) =
 
     // 5. Transition to dying if HP=0
     let transitionedToDying = false;
-    if (newHp === 0 && targetParticipant.combatStatus !== 'dead' && targetParticipant.combatStatus !== 'dying') {
+    const fatal = newHp === 0 && targetParticipant.combatStatus !== 'dead' && !wasAlreadyDying;
+    if (fatal) {
       await db
         .update(sessionParticipants)
         .set({ combatStatus: 'dying' })
@@ -915,8 +935,11 @@ router.post('/:sessionId/participants/:participantId/attack', async (req, res) =
         .returning();
       if (prone) snapshot.createdConditionIds.push(prone.id);
 
-      // Apply fatal blow injury (if not already inserted from injuryTriggered)
-      if (zone && !injuryTriggered) {
+      // Fatal blow: 1 injury for hitting 0 HP, OR 2 if also critical (>=5 dmg).
+      // The injuryTriggered branch above already inserted 1 injury. We add ONE more here in any case at fatal-blow time:
+      // - if injuryTriggered: total = 2 (1 for >=5 + 1 for fatal blow) — matches "double if crit + 0HP"
+      // - if NOT injuryTriggered: total = 1 (the fatal blow injury only)
+      if (zone) {
         const def = INJURY_BY_ZONE[zone as keyof typeof INJURY_BY_ZONE];
         if (def) {
           const [fatalInj] = await db
