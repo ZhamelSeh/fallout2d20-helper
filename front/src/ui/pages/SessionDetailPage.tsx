@@ -80,6 +80,11 @@ export function SessionDetailPage() {
   const [excludedFromCombat, setExcludedFromCombat] = useState<Set<number>>(new Set());
   const [selectedTargetId, setSelectedTargetId] = useState<number | null>(null);
   const [canUndo, setCanUndo] = useState(false);
+  const [lastEndOfTurnReport, setLastEndOfTurnReport] = useState<{
+    bleedingDamageApplied?: number;
+    persistentDamageApplied?: number;
+    transitionedToDying?: boolean;
+  } | null>(null);
 
   // Update tab if location state changes (when returning from character sheet)
   useEffect(() => {
@@ -169,7 +174,6 @@ export function SessionDetailPage() {
   const activeParticipant = temporaryActive ?? normalActive ?? null;
 
   const handleActivateOutOfOrder = useCallback(async (participantId: number) => {
-    if (!window.confirm(t('combat.initiative.outOfOrderConfirm'))) return;
     // Clear any other temporaryActive first
     for (const p of combatParticipants) {
       if (p.temporaryActive && p.id !== participantId) {
@@ -177,7 +181,7 @@ export function SessionDetailPage() {
       }
     }
     await setTemporaryActive(participantId, true);
-  }, [combatParticipants, setTemporaryActive, t]);
+  }, [combatParticipants, setTemporaryActive]);
 
   const handleReturnToNormalOrder = useCallback(async () => {
     if (!temporaryActive) return;
@@ -259,17 +263,7 @@ export function SessionDetailPage() {
     if (!sessionId) return;
     const response = (await sessionsApi.advanceTurn(sessionId)) as any;
     const report = response?.endOfTurnReport;
-    if (report) {
-      if (report.bleedingDamageApplied > 0) {
-        window.alert(`🩸 Hémorragie: −${report.bleedingDamageApplied} HP`);
-      }
-      if (report.persistentDamageApplied > 0) {
-        window.alert(`☢ Effet persistant: −${report.persistentDamageApplied} HP`);
-      }
-      if (report.transitionedToDying) {
-        window.alert('💀 Combattant tombe mourant');
-      }
-    }
+    setLastEndOfTurnReport(report ?? null);
     await loadSession();
   }, [sessionId, loadSession]);
 
@@ -479,6 +473,27 @@ export function SessionDetailPage() {
                   </button>
                 </div>
 
+                {lastEndOfTurnReport &&
+                  ((lastEndOfTurnReport.bleedingDamageApplied ?? 0) > 0 ||
+                    (lastEndOfTurnReport.persistentDamageApplied ?? 0) > 0 ||
+                    lastEndOfTurnReport.transitionedToDying) && (
+                    <div className="bg-vault-blue border border-vault-yellow-dark text-vault-yellow-light p-2 rounded mb-2 flex items-center gap-2">
+                      <span className="text-sm flex-1">
+                        {(lastEndOfTurnReport.bleedingDamageApplied ?? 0) > 0 &&
+                          `🩸 Hémorragie: −${lastEndOfTurnReport.bleedingDamageApplied} HP `}
+                        {(lastEndOfTurnReport.persistentDamageApplied ?? 0) > 0 &&
+                          `☢ Effet persistant: −${lastEndOfTurnReport.persistentDamageApplied} HP `}
+                        {lastEndOfTurnReport.transitionedToDying && '💀 Combattant tombe mourant '}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setLastEndOfTurnReport(null)}
+                        className="text-vault-yellow-dark hover:text-vault-yellow"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 <InitiativeBar
                   participants={combatParticipants}
                   activeParticipantId={activeParticipant?.id ?? null}
