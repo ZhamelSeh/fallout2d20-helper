@@ -24,6 +24,7 @@ import {
   type LastAttackSnapshot,
 } from '../shared/lastAttackStore';
 import { INJURY_BY_ZONE } from '../shared/injuryMap';
+import { processEndOfTurn } from '../domain/endOfTurn';
 
 const router = Router();
 
@@ -1318,6 +1319,78 @@ router.put('/:id/gm-ap', async (req, res) => {
   } catch (error) {
     console.error('Error updating GM AP:', error);
     res.status(500).json({ error: 'Failed to update GM AP' });
+  }
+});
+
+// POST advance turn — runs end-of-turn processing for the current actor
+// (bleeding + persistent), advances index/round, consumes skip_normal_actions.
+router.post('/:sessionId/advance-turn', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+
+    // Fetch session
+    const [session] = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.id, sessionId))
+      .limit(1);
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+
+    // Fetch participants
+    const participants = await db
+      .select()
+      .from(sessionParticipants)
+      .where(eq(sessionParticipants.sessionId, sessionId));
+
+    const temp = participants.find((p) => p.temporaryActive);
+    const sortedParticipants = participants
+      .filter(
+        (p) => p.turnOrder != null && !['dead', 'fled'].includes(p.combatStatus),
+      )
+      .sort((a, b) => (b.turnOrder ?? 0) - (a.turnOrder ?? 0));
+    const current = temp ?? sortedParticipants[session.currentTurnIndex ?? 0];
+
+    type EndOfTurnReportWithSkip = Awaited<ReturnType<typeof processEndOfTurn>> & {
+      activeNowSkippedNormalActions?: boolean;
+    };
+    let report: EndOfTurnReportWithSkip | null = null;
+    if (current) {
+      report = await processEndOfTurn(current.id);
+    }
+
+    if (temp) {
+      // Out-of-order tour: clear flag, don't advance
+      await db
+        .update(sessionParticipants)
+        .set({ temporaryActive: false })
+        .where(eq(sessionParticipants.id, temp.id));
+    } else if (sortedParticipants.length > 0) {
+      const nextIndex =
+        ((session.currentTurnIndex ?? 0) + 1) % sortedParticipants.length;
+      const newRound =
+        nextIndex === 0
+          ? (session.currentRound ?? 1) + 1
+          : session.currentRound ?? 1;
+      await db
+        .update(sessions)
+        .set({ currentTurnIndex: nextIndex, currentRound: newRound })
+        .where(eq(sessions.id, sessionId));
+
+      // Consume skip_normal_actions on the newly active participant
+      const newActive = sortedParticipants[nextIndex];
+      if (newActive?.skipNormalActions) {
+        await db
+          .update(sessionParticipants)
+          .set({ skipNormalActions: false })
+          .where(eq(sessionParticipants.id, newActive.id));
+        if (report) report.activeNowSkippedNormalActions = true;
+      }
+    }
+
+    res.json({ endOfTurnReport: report });
+  } catch (error) {
+    console.error('Error advancing turn:', error);
+    res.status(500).json({ error: 'Failed to advance turn' });
   }
 });
 
