@@ -20,14 +20,14 @@ export function InjuryAndConditionsBar({ participant, onHealInjury }: InjuryAndC
         <span
           key={inj.id}
           className="px-2 py-0.5 rounded bg-red-900/60 text-red-200 flex items-center gap-1"
-          title={t(`combat.injury.${inj.injuryType}.rule`)}
+          title={String(t(`combat.injury.${inj.injuryType}.rule`))}
         >
-          {t(`combat.injury.${inj.injuryType}.name`)}
+          {String(t(`combat.injury.${inj.injuryType}.name`))}
           <button
             type="button"
             onClick={() => onHealInjury(inj.id)}
             className="text-red-300 hover:text-white ml-1"
-            title={t('combat.injury.heal')}
+            title={String(t('combat.injury.heal'))}
           >
             ✕
           </button>
@@ -40,7 +40,7 @@ export function InjuryAndConditionsBar({ participant, onHealInjury }: InjuryAndC
             key={`${condStr}-${idx}`}
             className="px-2 py-0.5 rounded bg-yellow-900/60 text-yellow-200"
           >
-            {t(`conditions.${condStr}`, condStr)}
+            {String(t(`conditions.${condStr}`, condStr))}
           </span>
         );
       })}

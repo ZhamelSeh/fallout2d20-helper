@@ -55,6 +55,7 @@ export function ParticipantRow({
   const statusIcons: Record<CombatantStatus, React.ElementType | null> = {
     active: null,
     unconscious: AlertCircle,
+    dying: AlertCircle,
     dead: Skull,
     fled: LogOut,
   };
@@ -62,6 +63,7 @@ export function ParticipantRow({
   const statusColors: Record<CombatantStatus, string> = {
     active: '',
     unconscious: 'opacity-60',
+    dying: 'opacity-60',
     dead: 'opacity-40 grayscale',
     fled: 'opacity-50',
   };
