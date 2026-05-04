@@ -169,7 +169,7 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
             return (
               <span
                 key={`${id}-${i}`}
-                title={t(`effects.weaponQualities.${id}.rules.0`, id)}
+                title={String(t(`effects.weaponQualities.${id}.rules.0`, id))}
                 className="text-xs px-2 py-0.5 bg-zinc-800 rounded-full text-purple-300 cursor-help"
               >
                 💡 {id}{q.value ? ` ${q.value}` : ''}
