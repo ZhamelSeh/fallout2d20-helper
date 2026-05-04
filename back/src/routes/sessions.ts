@@ -1394,4 +1394,61 @@ router.post('/:sessionId/advance-turn', async (req, res) => {
   }
 });
 
+// POST resolve survival test for a dying participant
+router.post(
+  '/:sessionId/participants/:participantId/survival-test',
+  async (req, res) => {
+    try {
+      const participantId = Number(req.params.participantId);
+      const { died } = req.body ?? {};
+      const [participant] = await db
+        .select()
+        .from(sessionParticipants)
+        .where(eq(sessionParticipants.id, participantId))
+        .limit(1);
+      if (!participant)
+        return res.status(404).json({ error: 'Participant not found' });
+      if (participant.combatStatus !== 'dying')
+        return res.status(400).json({ error: 'Participant is not dying' });
+      if (died) {
+        await db
+          .update(sessionParticipants)
+          .set({ combatStatus: 'dead' })
+          .where(eq(sessionParticipants.id, participantId));
+      }
+      res.json({ ...(req.body ?? {}) });
+    } catch (error) {
+      console.error('Error resolving survival test:', error);
+      res.status(500).json({ error: 'Failed to resolve survival test' });
+    }
+  },
+);
+
+// POST stabilize a dying participant (moves to unconscious)
+router.post(
+  '/:sessionId/participants/:participantId/stabilize',
+  async (req, res) => {
+    try {
+      const participantId = Number(req.params.participantId);
+      const [participant] = await db
+        .select()
+        .from(sessionParticipants)
+        .where(eq(sessionParticipants.id, participantId))
+        .limit(1);
+      if (!participant)
+        return res.status(404).json({ error: 'Participant not found' });
+      if (participant.combatStatus !== 'dying')
+        return res.status(400).json({ error: 'Participant is not dying' });
+      await db
+        .update(sessionParticipants)
+        .set({ combatStatus: 'unconscious' })
+        .where(eq(sessionParticipants.id, participantId));
+      res.json({ ok: true });
+    } catch (error) {
+      console.error('Error stabilizing:', error);
+      res.status(500).json({ error: 'Failed to stabilize' });
+    }
+  },
+);
+
 export default router;
