@@ -1,14 +1,26 @@
 import { useTranslation } from 'react-i18next';
 import type { SessionParticipantApi } from '../../../services/api';
+import type { AttackResult } from '../../../domain/rules/attackResolution';
+import { AttackBuilder } from './AttackBuilder';
+import { InjuryAndConditionsBar } from './InjuryAndConditionsBar';
 
 interface ActiveTurnPanelProps {
   active: SessionParticipantApi | null;
-  selectedTargetId: number | null;
-  onDamage: (amount: number) => void;
-  onHeal: (amount: number) => void;
+  target: SessionParticipantApi | null;
+  canUndo: boolean;
+  onResolveAttack: (result: AttackResult, weaponItemId: number, zone: string) => Promise<void>;
+  onUndo: () => Promise<void>;
+  onHealInjury: (injuryId: number) => void;
 }
 
-export function ActiveTurnPanel({ active, selectedTargetId, onDamage, onHeal }: ActiveTurnPanelProps) {
+export function ActiveTurnPanel({
+  active,
+  target,
+  canUndo,
+  onResolveAttack,
+  onUndo,
+  onHealInjury,
+}: ActiveTurnPanelProps) {
   const { t } = useTranslation();
 
   if (!active) {
@@ -22,8 +34,6 @@ export function ActiveTurnPanel({ active, selectedTargetId, onDamage, onHeal }: 
   const c = active.character;
   const allianceColor = active.isAlly ? 'border-green-600' : 'border-red-600';
   const allianceLabel = active.isAlly ? t('combat.alliance.ally') : t('combat.alliance.enemy');
-  // AP isn't currently tracked per-participant on SessionParticipantApi (only groupAP/gmAP on
-  // the session). Read defensively so this shell works if/when per-participant fields land.
   const activeAny = active as unknown as { currentAP?: number; maxAP?: number };
 
   return (
@@ -39,30 +49,16 @@ export function ActiveTurnPanel({ active, selectedTargetId, onDamage, onHeal }: 
         </div>
       </div>
 
-      {/* Placeholder for attack flow — replaced in Plan 2 */}
-      <div className="p-6 text-center border-2 border-dashed border-zinc-700 rounded bg-zinc-950">
-        <p className="text-zinc-500 italic">
-          {t('combat.activeTurn.attackPlaceholder')}
-        </p>
-        <p className="text-xs text-zinc-600 mt-2">
-          Target: {selectedTargetId ? `participant #${selectedTargetId}` : '—'}
-        </p>
-        <div className="flex gap-2 justify-center mt-4">
-          <button
-            type="button"
-            onClick={() => onDamage(1)}
-            className="text-xs px-3 py-1 bg-red-700 text-white rounded"
-          >
-            HP −1 (temp)
-          </button>
-          <button
-            type="button"
-            onClick={() => onHeal(1)}
-            className="text-xs px-3 py-1 bg-green-700 text-white rounded"
-          >
-            HP +1 (temp)
-          </button>
-        </div>
+      <InjuryAndConditionsBar participant={active} onHealInjury={onHealInjury} />
+
+      <div className="mt-3">
+        <AttackBuilder
+          attacker={active}
+          target={target}
+          onResolve={onResolveAttack}
+          onUndo={onUndo}
+          canUndo={canUndo}
+        />
       </div>
     </div>
   );
