@@ -56,6 +56,11 @@ export function CombatantCard({ participant, isSelected, isTargetable, onClick }
           style={{ width: `${hpPct}%` }}
         />
       </div>
+      {participant.combatStatus === 'dying' && (
+        <div className="mt-1 text-xs bg-red-900/60 text-red-200 px-2 py-0.5 rounded inline-block">
+          💀 {participant.injuries.length} {t('combat.dying.injuriesShort')}
+        </div>
+      )}
       {participant.injuries && participant.injuries.length > 0 && (
         <div className="mt-1 flex gap-1 flex-wrap">
           {participant.injuries.map(inj => (
