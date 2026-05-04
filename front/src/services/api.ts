@@ -971,6 +971,25 @@ export const sessionsApi = {
       method: 'POST',
     }),
 
+  // Dying / survival / advance-turn
+  submitSurvivalTest: (
+    sessionId: number,
+    participantId: number,
+    body: { success: boolean; died: boolean; complication: boolean }
+  ) =>
+    fetchApi(`/sessions/${sessionId}/participants/${participantId}/survival-test`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  stabilize: (sessionId: number, participantId: number) =>
+    fetchApi(`/sessions/${sessionId}/participants/${participantId}/stabilize`, {
+      method: 'POST',
+    }),
+  advanceTurn: (sessionId: number) =>
+    fetchApi<{ endOfTurnReport: any }>(`/sessions/${sessionId}/advance-turn`, {
+      method: 'POST',
+    }),
+
   // Group AP (players)
   updateGroupAP: (sessionId: number, data: { groupAP?: number; maxGroupAP?: number }) =>
     fetchApi<SessionApi>(`/sessions/${sessionId}/ap`, {
