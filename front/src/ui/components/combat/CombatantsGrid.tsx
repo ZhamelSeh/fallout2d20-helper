@@ -29,7 +29,7 @@ export function CombatantsGrid({
   return (
     <div className="grid grid-cols-2 gap-3 p-3">
       <div>
-        <h4 className="text-xs font-bold text-green-500 mb-2 uppercase tracking-wide">
+        <h4 className="text-xs font-bold text-vault-success mb-2 uppercase tracking-wide">
           🛡 {t('combat.grid.allies')} ({allies.length})
         </h4>
         <div className="space-y-2">
@@ -42,12 +42,12 @@ export function CombatantsGrid({
             />
           ))}
           {allies.length === 0 && (
-            <p className="text-xs text-zinc-500 italic">—</p>
+            <p className="text-xs text-vault-yellow-dark italic">—</p>
           )}
         </div>
       </div>
       <div>
-        <h4 className="text-xs font-bold text-red-500 mb-2 uppercase tracking-wide">
+        <h4 className="text-xs font-bold text-vault-danger mb-2 uppercase tracking-wide">
           ⚔ {t('combat.grid.enemies')} ({enemies.length})
         </h4>
         <div className="space-y-2">
@@ -61,7 +61,7 @@ export function CombatantsGrid({
             />
           ))}
           {enemies.length === 0 && (
-            <p className="text-xs text-zinc-500 italic">—</p>
+            <p className="text-xs text-vault-yellow-dark italic">—</p>
           )}
         </div>
       </div>

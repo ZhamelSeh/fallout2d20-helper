@@ -129,7 +129,7 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
 
   if (inventoryWeapons.length === 0) {
     return (
-      <div className="p-4 text-center text-zinc-500">
+      <div className="p-4 text-center text-vault-yellow-dark">
         {t('combat.attackFlow.noWeapon')}
       </div>
     );
@@ -137,7 +137,7 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
 
   if (!weapon) {
     return (
-      <div className="p-4 text-center text-zinc-500">
+      <div className="p-4 text-center text-vault-yellow-dark">
         {t('combat.attackFlow.noWeapon')}
       </div>
     );
@@ -147,11 +147,11 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-3">
         <div>
-          <label className="text-xs text-zinc-400">{t('combat.attackFlow.weapon')}</label>
+          <label className="text-xs text-vault-yellow-dark">{t('combat.attackFlow.weapon')}</label>
           <select
             value={weaponId ?? ''}
             onChange={e => setWeaponId(Number(e.target.value))}
-            className="w-full bg-zinc-800 rounded px-2 py-1 text-sm"
+            className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm"
           >
             {inventoryWeapons.map((w: any) => {
               const id = w.itemId ?? w.id;
@@ -164,24 +164,24 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
             })}
           </select>
           {armLocked && (
-            <p className="text-xs text-red-400 mt-1">⚠ {t('combat.attackFlow.armBroken')}</p>
+            <p className="text-xs text-vault-danger mt-1">⚠ {t('combat.attackFlow.armBroken')}</p>
           )}
         </div>
 
         <div>
-          <label className="text-xs text-zinc-400">{t('combat.attackFlow.target')}</label>
-          <div className="bg-zinc-800 rounded px-2 py-1 text-sm min-h-[28px]">
-            {target ? String(t(target.character.name, target.character.name)) : <span className="text-zinc-500 italic">—</span>}
+          <label className="text-xs text-vault-yellow-dark">{t('combat.attackFlow.target')}</label>
+          <div className="bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm min-h-[28px]">
+            {target ? String(t(target.character.name, target.character.name)) : <span className="text-vault-yellow-dark italic">—</span>}
           </div>
         </div>
 
         {diceMode === 'manual' ? (
           <div>
-            <label className="text-xs text-zinc-400">{t('combat.attackFlow.zone')}</label>
+            <label className="text-xs text-vault-yellow-dark">{t('combat.attackFlow.zone')}</label>
             <select
               value={zone}
               onChange={e => setZone(e.target.value as Zone)}
-              className="w-full bg-zinc-800 rounded px-2 py-1 text-sm"
+              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm"
             >
               <option value="head">{t('body.head')}</option>
               <option value="torso">{t('body.torso')}</option>
@@ -193,8 +193,8 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
           </div>
         ) : (
           <div>
-            <label className="text-xs text-zinc-400">{t('combat.attackFlow.zone')}</label>
-            <div className="bg-zinc-800 rounded px-2 py-1 text-sm min-h-[28px] italic text-zinc-400">
+            <label className="text-xs text-vault-yellow-dark">{t('combat.attackFlow.zone')}</label>
+            <div className="bg-vault-gray rounded px-2 py-1 text-sm min-h-[28px] italic text-vault-yellow-dark">
               {previewResult ? `🎲 ${t(`body.${zone}`)}` : '—'}
             </div>
           </div>
@@ -209,7 +209,7 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
               <span
                 key={`${id}-${i}`}
                 title={String(t(`effects.weaponQualities.${id}.rules.0`, id))}
-                className="text-xs px-2 py-0.5 bg-zinc-800 rounded-full text-purple-300 cursor-help"
+                className="text-xs px-2 py-0.5 bg-vault-gray rounded-full text-vault-yellow-light cursor-help"
               >
                 💡 {id}{q.value ? ` ${q.value}` : ''}
               </span>
@@ -222,14 +222,14 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
         <button
           type="button"
           onClick={() => setDiceMode('app')}
-          className={`text-xs px-3 py-1 rounded ${diceMode === 'app' ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`}
+          className={`text-xs px-3 py-1 rounded ${diceMode === 'app' ? 'bg-vault-yellow text-vault-blue font-bold' : 'bg-vault-gray text-vault-yellow-light'}`}
         >
           🎲 {t('combat.attackFlow.rollApp')}
         </button>
         <button
           type="button"
           onClick={() => setDiceMode('manual')}
-          className={`text-xs px-3 py-1 rounded ${diceMode === 'manual' ? 'bg-blue-600 text-white' : 'bg-zinc-700 text-zinc-300'}`}
+          className={`text-xs px-3 py-1 rounded ${diceMode === 'manual' ? 'bg-vault-yellow text-vault-blue font-bold' : 'bg-vault-gray text-vault-yellow-light'}`}
         >
           ✏ {t('combat.attackFlow.manual')}
         </button>
@@ -238,16 +238,16 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
       {diceMode === 'manual' && (
         <div className="grid grid-cols-4 gap-2 text-xs">
           <div>
-            <label className="text-zinc-400">Succès</label>
+            <label className="text-vault-yellow-dark">Succès</label>
             <input
               type="number"
               value={manual.successes}
               onChange={e => setManual(m => ({ ...m, successes: +e.target.value }))}
-              className="w-full bg-zinc-800 rounded px-2 py-1"
+              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1"
             />
           </div>
           <div>
-            <label className="text-zinc-400">d20 crit</label>
+            <label className="text-vault-yellow-dark">d20 crit</label>
             <input
               type="checkbox"
               checked={manual.d20Critical}
@@ -255,21 +255,21 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
             />
           </div>
           <div>
-            <label className="text-zinc-400">Dégâts bruts</label>
+            <label className="text-vault-yellow-dark">Dégâts bruts</label>
             <input
               type="number"
               value={manual.rawDamage}
               onChange={e => setManual(m => ({ ...m, rawDamage: +e.target.value }))}
-              className="w-full bg-zinc-800 rounded px-2 py-1"
+              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1"
             />
           </div>
           <div>
-            <label className="text-zinc-400">Effects</label>
+            <label className="text-vault-yellow-dark">Effects</label>
             <input
               type="number"
               value={manual.effectsRolled}
               onChange={e => setManual(m => ({ ...m, effectsRolled: +e.target.value }))}
-              className="w-full bg-zinc-800 rounded px-2 py-1"
+              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1"
             />
           </div>
         </div>
@@ -279,19 +279,19 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
         type="button"
         onClick={computePreview}
         disabled={!target || armLocked}
-        className="text-xs px-3 py-1 bg-zinc-700 text-white rounded hover:bg-zinc-600 disabled:opacity-50"
+        className="text-xs px-3 py-1 bg-vault-gray text-vault-yellow-light rounded hover:bg-vault-gray-light disabled:opacity-50"
       >
         {t('combat.attackFlow.computePreview')}
       </button>
 
-      <DamageBreakdown result={previewResult} zoneLabel={t(`body.${zone}`)} />
+      <DamageBreakdown result={previewResult} zoneLabel={String(t(`body.${zone}`))} />
 
       <div className="flex gap-2 justify-end">
         {canUndo && (
           <button
             type="button"
             onClick={onUndo}
-            className="text-xs px-3 py-1 bg-zinc-700 text-yellow-400 rounded hover:bg-zinc-600"
+            className="text-xs px-3 py-1 bg-vault-gray text-vault-yellow rounded hover:bg-vault-gray-light"
           >
             ↶ {t('combat.attackFlow.undo')}
           </button>
@@ -300,7 +300,7 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
           type="button"
           onClick={handleResolve}
           disabled={!previewResult || !target}
-          className="text-xs px-4 py-1 bg-orange-600 text-white rounded hover:bg-orange-700 disabled:opacity-50"
+          className="text-xs px-4 py-1 bg-vault-yellow text-vault-blue rounded hover:bg-vault-yellow-dark font-bold disabled:opacity-50"
         >
           ✓ {t('combat.attackFlow.resolve')}
         </button>

@@ -31,8 +31,8 @@ export function InitiativeBar({
     .sort((a, b) => (b.turnOrder ?? 0) - (a.turnOrder ?? 0));
 
   return (
-    <div className="sticky top-0 z-10 bg-zinc-900 border-b border-zinc-700 p-2 flex gap-2 items-center overflow-x-auto">
-      <span className="text-xs text-zinc-400 whitespace-nowrap">
+    <div className="sticky top-0 z-10 bg-vault-blue border-b border-vault-yellow-dark p-2 flex gap-2 items-center overflow-x-auto">
+      <span className="text-xs text-vault-yellow-dark whitespace-nowrap">
         {t('combat.round')} {currentRound} · {t('combat.initiative.label')}:
       </span>
       <div className="flex gap-1">
@@ -48,12 +48,12 @@ export function InitiativeBar({
               onClick={() => !isActive && onActivateOutOfOrder(p.id)}
               className={`text-xs px-2 py-1 rounded-full whitespace-nowrap ${
                 isActive
-                  ? 'bg-green-600 text-white'
+                  ? 'bg-vault-yellow text-vault-blue'
                   : p.combatStatus === 'dying'
-                  ? 'bg-red-900 text-white'
+                  ? 'bg-vault-danger text-vault-yellow-light'
                   : p.combatStatus === 'unconscious'
-                  ? 'bg-zinc-700 text-zinc-400'
-                  : 'bg-zinc-700 text-zinc-200 hover:bg-zinc-600'
+                  ? 'bg-vault-gray text-vault-yellow-dark'
+                  : 'bg-vault-gray text-vault-yellow-light hover:bg-vault-gray-light'
               }`}
             >
               {isActive && '▶ '}
@@ -67,7 +67,7 @@ export function InitiativeBar({
           <button
             type="button"
             onClick={onReturnToNormalOrder}
-            className="text-xs px-2 py-1 rounded bg-zinc-700 text-blue-300 hover:bg-zinc-600"
+            className="text-xs px-2 py-1 rounded bg-vault-gray text-vault-yellow-light hover:bg-vault-gray-light"
           >
             ↩ {t('combat.initiative.returnToOrder')}
           </button>
@@ -75,7 +75,7 @@ export function InitiativeBar({
         <button
           type="button"
           onClick={onEndTurn}
-          className="text-xs px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-700"
+          className="text-xs px-3 py-1 rounded bg-vault-yellow text-vault-blue hover:bg-vault-yellow-dark font-bold"
         >
           ▶ {t('combat.initiative.endTurn')}
         </button>

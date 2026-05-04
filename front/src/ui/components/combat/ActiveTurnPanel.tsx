@@ -31,24 +31,24 @@ export function ActiveTurnPanel({
 
   if (!active) {
     return (
-      <div className="p-6 text-center text-zinc-500">
+      <div className="p-6 text-center text-vault-yellow-dark">
         {t('combat.activeTurn.noActive')}
       </div>
     );
   }
 
   const c = active.character;
-  const allianceColor = active.isAlly ? 'border-green-600' : 'border-red-600';
+  const allianceColor = active.isAlly ? 'border-vault-success' : 'border-vault-danger';
   const allianceLabel = active.isAlly ? t('combat.alliance.ally') : t('combat.alliance.enemy');
   const activeAny = active as unknown as { currentAP?: number; maxAP?: number };
 
   return (
-    <div className={`m-3 p-4 bg-zinc-900 border-2 rounded-lg ${allianceColor}`}>
-      <div className="flex items-center gap-3 mb-3 pb-2 border-b border-zinc-800">
-        <span className="text-green-400 font-bold">▶ {t('combat.activeTurn.title')}</span>
-        <span className="text-lg font-bold">{String(t(c.name, c.name))}</span>
-        <span className="text-xs text-zinc-400">({allianceLabel})</span>
-        <div className="ml-auto flex gap-4 text-xs text-zinc-300">
+    <div className={`m-3 p-4 bg-vault-blue border-2 rounded-lg ${allianceColor}`}>
+      <div className="flex items-center gap-3 mb-3 pb-2 border-b border-vault-yellow-dark">
+        <span className="text-vault-yellow font-bold">▶ {t('combat.activeTurn.title')}</span>
+        <span className="text-lg font-bold text-vault-yellow-light">{String(t(c.name, c.name))}</span>
+        <span className="text-xs text-vault-yellow-dark">({allianceLabel})</span>
+        <div className="ml-auto flex gap-4 text-xs text-vault-yellow-light">
           <span>HP {c.currentHp}/{c.maxHp}</span>
           <span>AP {activeAny.currentAP ?? 0}/{activeAny.maxAP ?? 0}</span>
           <span>Luck {c.currentLuckPoints ?? 0}/{c.maxLuckPoints ?? 0}</span>
@@ -67,7 +67,7 @@ export function ActiveTurnPanel({
         ) : (
           <>
             {active.skipNormalActions && (
-              <div className="bg-yellow-900/30 border border-yellow-700 p-2 rounded text-xs text-yellow-200 mb-2">
+              <div className="bg-vault-blue-dark border border-vault-yellow-dark p-2 rounded text-xs text-vault-yellow-light mb-2">
                 ⚠ {t('combat.activeTurn.skipNormalActions')}
               </div>
             )}

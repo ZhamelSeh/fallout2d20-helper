@@ -14,19 +14,19 @@ export function InjuryAndConditionsBar({ participant, onHealInjury }: InjuryAndC
   if (!hasInjuries && !hasConditions) return null;
 
   return (
-    <div className="bg-zinc-950 border border-zinc-800 rounded p-2 flex gap-2 flex-wrap items-center text-xs">
-      <span className="text-zinc-500">⚠</span>
+    <div className="bg-vault-blue-dark border border-vault-yellow-dark rounded p-2 flex gap-2 flex-wrap items-center text-xs">
+      <span className="text-vault-yellow-dark">⚠</span>
       {participant.injuries.map(inj => (
         <span
           key={inj.id}
-          className="px-2 py-0.5 rounded bg-red-900/60 text-red-200 flex items-center gap-1"
+          className="px-2 py-0.5 rounded bg-vault-danger text-vault-yellow-light flex items-center gap-1"
           title={String(t(`combat.injury.${inj.injuryType}.rule`))}
         >
           {String(t(`combat.injury.${inj.injuryType}.name`))}
           <button
             type="button"
             onClick={() => onHealInjury(inj.id)}
-            className="text-red-300 hover:text-white ml-1"
+            className="text-vault-yellow-light hover:text-vault-yellow ml-1"
             title={String(t('combat.injury.heal'))}
           >
             ✕
@@ -38,7 +38,7 @@ export function InjuryAndConditionsBar({ participant, onHealInjury }: InjuryAndC
         return (
           <span
             key={`${condStr}-${idx}`}
-            className="px-2 py-0.5 rounded bg-yellow-900/60 text-yellow-200"
+            className="px-2 py-0.5 rounded bg-vault-gray text-vault-yellow-light"
           >
             {String(t(`conditions.${condStr}`, condStr))}
           </span>

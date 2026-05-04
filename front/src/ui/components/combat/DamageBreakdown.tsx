@@ -11,15 +11,15 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
 
   if (!result) {
     return (
-      <div className="text-xs text-zinc-500 p-3 border border-dashed border-zinc-700 rounded">
+      <div className="text-xs text-vault-yellow-dark p-3 border border-dashed border-vault-yellow-dark rounded">
         {t('combat.attackFlow.noPreview')}
       </div>
     );
   }
 
   return (
-    <div className="text-xs bg-zinc-900 p-3 rounded border border-zinc-700 space-y-1 font-mono">
-      <div className="text-zinc-400">🎯 {zoneLabel}</div>
+    <div className="text-xs bg-vault-blue p-3 rounded border border-vault-yellow-dark space-y-1 font-mono text-vault-yellow-light">
+      <div className="text-vault-yellow-dark">🎯 {zoneLabel}</div>
       {result.cdResults && (
         <div>
           CD rolled:{' '}
@@ -31,29 +31,29 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
         </div>
       )}
       {result.viciousBonusCD !== undefined && result.viciousBonusCD > 0 && (
-        <div className="text-orange-400">+{result.viciousBonusCD} CD (Vicious crit)</div>
+        <div className="text-vault-yellow-dark">+{result.viciousBonusCD} CD (Vicious crit)</div>
       )}
-      <div className="border-t border-zinc-700 pt-1 mt-1">
+      <div className="border-t border-vault-yellow-dark pt-1 mt-1">
         {t('combat.attackFlow.raw')}: <b>{result.rawDamage}</b>
       </div>
       <div>
-        {t('combat.attackFlow.dr')}: <b className="text-red-400">−{result.effectiveDR}</b>
+        {t('combat.attackFlow.dr')}: <b className="text-vault-danger">−{result.effectiveDR}</b>
       </div>
       <div className="text-sm">
-        {t('combat.attackFlow.final')}: <b className="text-red-400">{result.finalDamage}</b>
+        {t('combat.attackFlow.final')}: <b className="text-vault-danger">{result.finalDamage}</b>
       </div>
       {result.injuryTriggered && (
-        <div className="text-orange-400 mt-1">
+        <div className="text-vault-yellow-dark mt-1">
           ⚠ {t('combat.attackFlow.injuryTriggered')}
         </div>
       )}
       {result.appliedConditions.length > 0 && (
-        <div className="text-yellow-400">
+        <div className="text-vault-yellow">
           ⚡ {result.appliedConditions.join(', ')}
         </div>
       )}
       {result.persistentCondition && (
-        <div className="text-orange-400">
+        <div className="text-vault-yellow-dark">
           🩸 {result.persistentCondition.type} ({result.persistentCondition.damage}/turn)
         </div>
       )}

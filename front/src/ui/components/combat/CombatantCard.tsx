@@ -35,29 +35,29 @@ export function CombatantCard({ participant, isSelected, isTargetable, onClick }
       onClick={clickable ? onClick : undefined}
       className={`p-2 rounded border transition ${
         isSelected
-          ? 'bg-red-900/40 border-orange-600'
+          ? 'bg-vault-danger/40 border-vault-yellow'
           : participant.isAlly
-          ? 'bg-green-950/30 border-zinc-700'
-          : 'bg-red-950/20 border-zinc-700'
-      } ${clickable ? 'cursor-pointer hover:border-orange-500' : ''} ${
+          ? 'bg-vault-blue border-vault-yellow-dark'
+          : 'bg-vault-blue-dark border-vault-yellow-dark'
+      } ${clickable ? 'cursor-pointer hover:border-vault-yellow' : ''} ${
         !isTargetable && !status ? 'opacity-60' : ''
       }`}
     >
       <div className="flex items-center gap-2">
         {status && <span title={status.label}>{status.emoji}</span>}
-        <span className="font-medium text-sm flex-1 truncate">{String(t(c.name, c.name))}</span>
-        <span className="text-xs text-zinc-300">
+        <span className="font-medium text-sm flex-1 truncate text-vault-yellow-light">{String(t(c.name, c.name))}</span>
+        <span className="text-xs text-vault-yellow-light">
           HP {c.currentHp}/{c.maxHp}
         </span>
       </div>
-      <div className="w-full h-1 bg-zinc-700 rounded mt-1 overflow-hidden">
+      <div className="w-full h-1 bg-vault-gray-light rounded mt-1 overflow-hidden">
         <div
-          className={`h-full ${hpPct > 50 ? 'bg-green-600' : hpPct > 20 ? 'bg-yellow-500' : 'bg-red-600'}`}
+          className={`h-full ${hpPct > 50 ? 'bg-vault-success' : hpPct > 20 ? 'bg-vault-yellow' : 'bg-vault-danger'}`}
           style={{ width: `${hpPct}%` }}
         />
       </div>
       {participant.combatStatus === 'dying' && (
-        <div className="mt-1 text-xs bg-red-900/60 text-red-200 px-2 py-0.5 rounded inline-block">
+        <div className="mt-1 text-xs bg-vault-danger text-vault-yellow-light px-2 py-0.5 rounded inline-block">
           💀 {participant.injuries.length} {t('combat.dying.injuriesShort')}
         </div>
       )}
