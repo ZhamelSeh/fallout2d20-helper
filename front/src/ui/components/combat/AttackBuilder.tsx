@@ -8,6 +8,7 @@ import {
 } from '../../../domain/rules/attackResolution';
 import type { DamageKind } from '../../../domain/rules/attackQualities';
 import { weaponBlockedByInjuries } from '../../../domain/rules/injuryRules';
+import { computeModdedWeaponName, computeEffectiveWeaponStats } from '../../../domain/rules/weaponMods';
 import { DamageBreakdown } from './DamageBreakdown';
 
 type Zone = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
@@ -85,8 +86,19 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
       quality: q.quality ?? q.id ?? String(q),
       value: q.value,
     }));
+    // Merge mod-derived qualities (gainQuality / loseQuality)
+    const modEffects = ((weapon.installedMods ?? []) as any[]).flatMap((m: any) => m.effects ?? []);
+    for (const eff of modEffects) {
+      if (eff.effectType === 'gainQuality' && eff.qualityName) {
+        qualities.push({ quality: eff.qualityName, value: eff.qualityValue ?? undefined });
+      } else if (eff.effectType === 'loseQuality' && eff.qualityName) {
+        const idx = qualities.findIndex(q => q.quality === eff.qualityName);
+        if (idx !== -1) qualities.splice(idx, 1);
+      }
+    }
     const damageKind = ((weapon.damageType as DamageKind) ?? 'physical');
-    const baseCDCount = weapon.damage ?? weapon.damageRating ?? 1;
+    const stats = computeEffectiveWeaponStats(weapon as any);
+    const baseCDCount = stats.damage ?? 1;
 
     let actualZone: Zone = zone;
     if (diceMode === 'app') {
@@ -156,9 +168,10 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
             {inventoryWeapons.map((w: any) => {
               const id = w.itemId ?? w.id;
               const blocked = weaponBlockedByInjuries(w.equippedHand, attacker.injuries ?? []);
+              const displayName = computeModdedWeaponName(w as any, t as any);
               return (
                 <option key={id} value={id} disabled={blocked}>
-                  🔫 {String(t(w.nameKey ?? w.name, w.name))}{blocked ? ' (bras cassé)' : ''}
+                  🔫 {displayName}{blocked ? ' (bras cassé)' : ''}
                 </option>
               );
             })}
