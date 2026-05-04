@@ -576,6 +576,7 @@ router.post('/:id/participants', async (req, res) => {
       .values({
         sessionId,
         characterId,
+        isAlly: character.type === 'pc',
       })
       .returning();
 
@@ -636,6 +637,7 @@ router.post('/:id/participants/quick', async (req, res) => {
       .values({
         sessionId,
         characterId: newCharacter.id,
+        isAlly: false,
       })
       .returning();
 
