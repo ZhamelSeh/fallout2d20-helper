@@ -24,12 +24,33 @@ interface AttackBuilderProps {
 export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: AttackBuilderProps) {
   const { t } = useTranslation();
 
-  // attacker.equippedWeapons may not exist on all SessionParticipantApi shapes.
-  // Defensive access:
-  const equippedWeapons: any[] = (attacker as any).equippedWeapons ?? (attacker.character as any).equippedWeapons ?? [];
+  // The backend already returns ALL weapons in inventory under `equippedWeapons`
+  // (the field is misnamed — see sessions.ts "Get all weapons in inventory").
+  // Also fall back to `inventory` filtered to weapon items when needed.
+  const equippedWeaponsApi: any[] =
+    (attacker as any).equippedWeapons ?? (attacker.character as any).equippedWeapons ?? [];
+  const inventoryRaw: any[] = (attacker.character as any).inventory ?? [];
+  const inventoryWeaponsFromInv: any[] = inventoryRaw
+    .filter(
+      (entry: any) =>
+        entry?.item?.itemType === 'weapon' ||
+        entry?.itemType === 'weapon' ||
+        entry?.weapon != null,
+    )
+    .map((entry: any) => ({
+      itemId: entry.itemId ?? entry.item?.id,
+      name: entry.item?.name ?? entry.name,
+      nameKey: entry.item?.nameKey ?? entry.nameKey,
+      damage: entry.weapon?.damage ?? entry.damage,
+      damageType: entry.weapon?.damageType ?? entry.damageType,
+      qualities: entry.weapon?.qualities ?? entry.qualities ?? [],
+      installedMods: entry.installedMods ?? [],
+    }));
+  const inventoryWeapons: any[] =
+    equippedWeaponsApi.length > 0 ? equippedWeaponsApi : inventoryWeaponsFromInv;
 
   const [weaponId, setWeaponId] = useState<number | null>(
-    equippedWeapons[0]?.itemId ?? equippedWeapons[0]?.id ?? null,
+    inventoryWeapons[0]?.itemId ?? inventoryWeapons[0]?.id ?? null,
   );
   const [zone, setZone] = useState<Zone>('torso');
   const [diceMode, setDiceMode] = useState<DiceMode>('app');
@@ -42,16 +63,16 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
   const [previewResult, setPreviewResult] = useState<AttackResult | null>(null);
 
   const weapon = useMemo(
-    () => equippedWeapons.find((w: any) => (w.itemId ?? w.id) === weaponId) ?? null,
-    [equippedWeapons, weaponId],
+    () => inventoryWeapons.find((w: any) => (w.itemId ?? w.id) === weaponId) ?? null,
+    [inventoryWeapons, weaponId],
   );
 
-  const targetDR = useMemo(() => {
+  const computeDR = (z: Zone) => {
     if (!target) return { drPhysical: 0, drEnergy: 0 };
     const drList = (target.character as any).dr ?? (target as any).dr ?? [];
-    const drEntry = drList.find((d: any) => d.location === zone);
+    const drEntry = drList.find((d: any) => d.location === z);
     return drEntry ?? { drPhysical: 0, drEnergy: 0 };
-  }, [target, zone]);
+  };
 
   const armLocked = useMemo(() => {
     if (!weapon?.equippedHand) return false;
@@ -67,13 +88,22 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
     const damageKind = ((weapon.damageType as DamageKind) ?? 'physical');
     const baseCDCount = weapon.damage ?? weapon.damageRating ?? 1;
 
+    let actualZone: Zone = zone;
+    if (diceMode === 'app') {
+      const zones: Zone[] = ['head', 'torso', 'armLeft', 'armRight', 'legLeft', 'legRight'];
+      actualZone = zones[Math.floor(Math.random() * zones.length)];
+      setZone(actualZone);
+    }
+
+    const dr = computeDR(actualZone);
+
     if (diceMode === 'app') {
       // TODO: real TN computation from skill + SPECIAL.
       const r = resolveAttackFromAppRoll({
         tn: 10,
         focus: 1,
         baseCDCount,
-        zoneDR: targetDR,
+        zoneDR: dr,
         damageKind,
         qualities,
       });
@@ -83,7 +113,7 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
         rawDamage: manual.rawDamage,
         d20Critical: manual.d20Critical,
         effectsRolled: manual.effectsRolled,
-        zoneDR: targetDR,
+        zoneDR: dr,
         damageKind,
         qualities,
       });
@@ -97,7 +127,7 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
     setPreviewResult(null);
   };
 
-  if (equippedWeapons.length === 0) {
+  if (inventoryWeapons.length === 0) {
     return (
       <div className="p-4 text-center text-zinc-500">
         {t('combat.attackFlow.noWeapon')}
@@ -123,12 +153,12 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
             onChange={e => setWeaponId(Number(e.target.value))}
             className="w-full bg-zinc-800 rounded px-2 py-1 text-sm"
           >
-            {equippedWeapons.map((w: any) => {
+            {inventoryWeapons.map((w: any) => {
               const id = w.itemId ?? w.id;
               const blocked = weaponBlockedByInjuries(w.equippedHand, attacker.injuries ?? []);
               return (
                 <option key={id} value={id} disabled={blocked}>
-                  🔫 {w.name}{blocked ? ' (bras cassé)' : ''}
+                  🔫 {String(t(w.nameKey ?? w.name, w.name))}{blocked ? ' (bras cassé)' : ''}
                 </option>
               );
             })}
@@ -141,25 +171,34 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
         <div>
           <label className="text-xs text-zinc-400">{t('combat.attackFlow.target')}</label>
           <div className="bg-zinc-800 rounded px-2 py-1 text-sm min-h-[28px]">
-            {target ? target.character.name : <span className="text-zinc-500 italic">—</span>}
+            {target ? String(t(target.character.name, target.character.name)) : <span className="text-zinc-500 italic">—</span>}
           </div>
         </div>
 
-        <div>
-          <label className="text-xs text-zinc-400">{t('combat.attackFlow.zone')}</label>
-          <select
-            value={zone}
-            onChange={e => setZone(e.target.value as Zone)}
-            className="w-full bg-zinc-800 rounded px-2 py-1 text-sm"
-          >
-            <option value="head">{t('body.head')}</option>
-            <option value="torso">{t('body.torso')}</option>
-            <option value="armLeft">{t('body.armLeft')}</option>
-            <option value="armRight">{t('body.armRight')}</option>
-            <option value="legLeft">{t('body.legLeft')}</option>
-            <option value="legRight">{t('body.legRight')}</option>
-          </select>
-        </div>
+        {diceMode === 'manual' ? (
+          <div>
+            <label className="text-xs text-zinc-400">{t('combat.attackFlow.zone')}</label>
+            <select
+              value={zone}
+              onChange={e => setZone(e.target.value as Zone)}
+              className="w-full bg-zinc-800 rounded px-2 py-1 text-sm"
+            >
+              <option value="head">{t('body.head')}</option>
+              <option value="torso">{t('body.torso')}</option>
+              <option value="armLeft">{t('body.armLeft')}</option>
+              <option value="armRight">{t('body.armRight')}</option>
+              <option value="legLeft">{t('body.legLeft')}</option>
+              <option value="legRight">{t('body.legRight')}</option>
+            </select>
+          </div>
+        ) : (
+          <div>
+            <label className="text-xs text-zinc-400">{t('combat.attackFlow.zone')}</label>
+            <div className="bg-zinc-800 rounded px-2 py-1 text-sm min-h-[28px] italic text-zinc-400">
+              {previewResult ? `🎲 ${t(`body.${zone}`)}` : '—'}
+            </div>
+          </div>
+        )}
       </div>
 
       {weapon.qualities && weapon.qualities.length > 0 && (
