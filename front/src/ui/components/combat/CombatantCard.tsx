@@ -45,7 +45,7 @@ export function CombatantCard({ participant, isSelected, isTargetable, onClick }
     >
       <div className="flex items-center gap-2">
         {status && <span title={status.label}>{status.emoji}</span>}
-        <span className="font-medium text-sm flex-1 truncate">{c.name}</span>
+        <span className="font-medium text-sm flex-1 truncate">{String(t(c.name, c.name))}</span>
         <span className="text-xs text-zinc-300">
           HP {c.currentHp}/{c.maxHp}
         </span>

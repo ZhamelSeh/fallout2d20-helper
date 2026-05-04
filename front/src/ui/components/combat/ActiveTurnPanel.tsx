@@ -46,7 +46,7 @@ export function ActiveTurnPanel({
     <div className={`m-3 p-4 bg-zinc-900 border-2 rounded-lg ${allianceColor}`}>
       <div className="flex items-center gap-3 mb-3 pb-2 border-b border-zinc-800">
         <span className="text-green-400 font-bold">▶ {t('combat.activeTurn.title')}</span>
-        <span className="text-lg font-bold">{c.name}</span>
+        <span className="text-lg font-bold">{String(t(c.name, c.name))}</span>
         <span className="text-xs text-zinc-400">({allianceLabel})</span>
         <div className="ml-auto flex gap-4 text-xs text-zinc-300">
           <span>HP {c.currentHp}/{c.maxHp}</span>

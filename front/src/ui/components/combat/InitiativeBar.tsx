@@ -39,7 +39,8 @@ export function InitiativeBar({
         {sorted.map((p, idx) => {
           const isActive = p.id === activeParticipantId;
           const order = idx + 1;
-          const name = p.character?.name ?? '';
+          const rawName = p.character?.name ?? '';
+          const name = rawName ? String(t(rawName, rawName)) : '';
           return (
             <button
               key={p.id}

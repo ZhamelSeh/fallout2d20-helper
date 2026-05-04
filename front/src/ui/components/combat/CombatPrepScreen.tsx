@@ -124,6 +124,7 @@ function ParticipantPrepRow({
   onToggleParticipant,
   onToggleAlliance,
 }: ParticipantPrepRowProps) {
+  const { t } = useTranslation();
   return (
     <div
       className={`flex items-center gap-2 px-3 py-2 bg-vault-blue rounded transition-opacity ${
@@ -146,7 +147,7 @@ function ParticipantPrepRow({
         {participant.character.initiative}
       </span>
       <span className="text-white text-sm flex-1 truncate">
-        {participant.character.name}
+        {String(t(participant.character.name, participant.character.name))}
       </span>
       <AllianceToggle
         isAlly={participant.isAlly}
