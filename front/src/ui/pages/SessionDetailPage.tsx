@@ -17,8 +17,10 @@ import {
   MerchantGenerator,
 } from '../../components';
 import { useSession } from '../../hooks/useSessionsApi';
-import { charactersApi } from '../../services/api';
+import { charactersApi, sessionsApi } from '../../services/api';
 import type { SessionParticipantApi } from '../../services/api';
+import type { AttackResult } from '../../domain/rules/attackResolution';
+import { INJURY_BY_ZONE } from '../../domain/rules/injuryRules';
 
 type TabId = 'pcs' | 'npcs' | 'combat' | 'loot' | 'merchant';
 
@@ -48,7 +50,7 @@ export function SessionDetailPage() {
     session,
     loading,
     error,
-    loadSession: _loadSession,
+    loadSession,
     updateSession: _updateSession,
     addParticipant,
     addQuickNpc,
@@ -76,6 +78,7 @@ export function SessionDetailPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [excludedFromCombat, setExcludedFromCombat] = useState<Set<number>>(new Set());
   const [selectedTargetId, setSelectedTargetId] = useState<number | null>(null);
+  const [canUndo, setCanUndo] = useState(false);
 
   // Update tab if location state changes (when returning from character sheet)
   useEffect(() => {
@@ -187,6 +190,53 @@ export function SessionDetailPage() {
   const handleActiveHeal = useCallback((amount: number) => {
     if (activeParticipant) handleHeal(activeParticipant, amount);
   }, [activeParticipant, handleHeal]);
+
+  // ===== Combat: attack flow =====
+  const selectedTarget = combatParticipants.find(p => p.id === selectedTargetId) ?? null;
+
+  const handleResolveAttack = useCallback(async (
+    result: AttackResult,
+    weaponItemId: number,
+    zone: string,
+  ) => {
+    if (!activeParticipant || !selectedTarget || !sessionId) return;
+    void weaponItemId;
+
+    const injuryDef = INJURY_BY_ZONE[zone as keyof typeof INJURY_BY_ZONE];
+    const persistentCondition = result.persistentCondition
+      ? { type: result.persistentCondition.type, damage: result.persistentCondition.damage }
+      : null;
+
+    try {
+      await sessionsApi.resolveAttack(sessionId, activeParticipant.id, {
+        targetParticipantId: selectedTarget.id,
+        zone,
+        finalDamage: result.finalDamage,
+        injuryTriggered: result.injuryTriggered,
+        injuryType: injuryDef?.type,
+        appliedConditions: result.appliedConditions,
+        persistentCondition,
+        apCost: 2,
+      });
+      setCanUndo(true);
+      await loadSession();
+    } catch (err) {
+      console.error('Attack resolution failed:', err);
+    }
+  }, [activeParticipant, selectedTarget, sessionId, loadSession]);
+
+  const handleUndo = useCallback(async () => {
+    if (!sessionId) return;
+    await sessionsApi.undoLastAttack(sessionId);
+    setCanUndo(false);
+    await loadSession();
+  }, [sessionId, loadSession]);
+
+  const handleHealInjury = useCallback(async (injuryId: number) => {
+    if (!activeParticipant || !sessionId) return;
+    await sessionsApi.healInjury(sessionId, activeParticipant.id, injuryId);
+    await loadSession();
+  }, [activeParticipant, sessionId, loadSession]);
 
   if (loading) {
     return (
@@ -405,9 +455,11 @@ export function SessionDetailPage() {
                 />
                 <ActiveTurnPanel
                   active={activeParticipant}
-                  selectedTargetId={selectedTargetId}
-                  onDamage={handleActiveDamage}
-                  onHeal={handleActiveHeal}
+                  target={selectedTarget}
+                  canUndo={canUndo}
+                  onResolveAttack={handleResolveAttack}
+                  onUndo={handleUndo}
+                  onHealInjury={handleHealInjury}
                 />
                 <CombatantsGrid
                   participants={combatParticipants.filter((p) => p.turnOrder != null)}
