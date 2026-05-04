@@ -20,6 +20,7 @@ import { useSession } from '../../hooks/useSessionsApi';
 import { charactersApi, sessionsApi } from '../../services/api';
 import type { SessionParticipantApi } from '../../services/api';
 import type { AttackResult } from '../../domain/rules/attackResolution';
+import type { SurvivalTestResult } from '../../domain/rules/dyingRules';
 import { INJURY_BY_ZONE } from '../../domain/rules/injuryRules';
 
 type TabId = 'pcs' | 'npcs' | 'combat' | 'loot' | 'merchant';
@@ -62,7 +63,7 @@ export function SessionDetailPage() {
     updateParticipantCharacter,
     startCombat,
     endCombat,
-    nextTurn,
+    nextTurn: _nextTurn,
     prevTurn: _prevTurn,
     updateGroupAP: _updateGroupAP,
     spendGroupAP,
@@ -237,6 +238,40 @@ export function SessionDetailPage() {
     await sessionsApi.healInjury(sessionId, activeParticipant.id, injuryId);
     await loadSession();
   }, [activeParticipant, sessionId, loadSession]);
+
+  const handleSubmitSurvivalTest = useCallback(async (result: SurvivalTestResult) => {
+    if (!activeParticipant || !sessionId) return;
+    await sessionsApi.submitSurvivalTest(sessionId, activeParticipant.id, {
+      success: result.success,
+      died: result.died,
+      complication: result.complication,
+    });
+    await loadSession();
+  }, [activeParticipant, sessionId, loadSession]);
+
+  const handleStabilize = useCallback(async () => {
+    if (!activeParticipant || !sessionId) return;
+    await sessionsApi.stabilize(sessionId, activeParticipant.id);
+    await loadSession();
+  }, [activeParticipant, sessionId, loadSession]);
+
+  const handleEndTurn = useCallback(async () => {
+    if (!sessionId) return;
+    const response = (await sessionsApi.advanceTurn(sessionId)) as any;
+    const report = response?.endOfTurnReport;
+    if (report) {
+      if (report.bleedingDamageApplied > 0) {
+        window.alert(`🩸 Hémorragie: −${report.bleedingDamageApplied} HP`);
+      }
+      if (report.persistentDamageApplied > 0) {
+        window.alert(`☢ Effet persistant: −${report.persistentDamageApplied} HP`);
+      }
+      if (report.transitionedToDying) {
+        window.alert('💀 Combattant tombe mourant');
+      }
+    }
+    await loadSession();
+  }, [sessionId, loadSession]);
 
   if (loading) {
     return (
@@ -450,7 +485,7 @@ export function SessionDetailPage() {
                   temporaryActiveId={temporaryActive?.id ?? null}
                   currentRound={session.currentRound ?? 1}
                   onActivateOutOfOrder={handleActivateOutOfOrder}
-                  onEndTurn={() => nextTurn()}
+                  onEndTurn={handleEndTurn}
                   onReturnToNormalOrder={handleReturnToNormalOrder}
                 />
                 <ActiveTurnPanel
@@ -460,6 +495,8 @@ export function SessionDetailPage() {
                   onResolveAttack={handleResolveAttack}
                   onUndo={handleUndo}
                   onHealInjury={handleHealInjury}
+                  onSubmitSurvivalTest={handleSubmitSurvivalTest}
+                  onStabilize={handleStabilize}
                 />
                 <CombatantsGrid
                   participants={combatParticipants.filter((p) => p.turnOrder != null)}
