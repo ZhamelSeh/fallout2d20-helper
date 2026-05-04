@@ -9,6 +9,8 @@ import { DyingSurvivalTest } from './DyingSurvivalTest';
 interface ActiveTurnPanelProps {
   active: SessionParticipantApi | null;
   target: SessionParticipantApi | null;
+  allParticipants: SessionParticipantApi[];
+  onSelectTarget: (participantId: number | null) => void;
   canUndo: boolean;
   onResolveAttack: (result: AttackResult, weaponItemId: number, zone: string) => Promise<void>;
   onUndo: () => Promise<void>;
@@ -20,6 +22,8 @@ interface ActiveTurnPanelProps {
 export function ActiveTurnPanel({
   active,
   target,
+  allParticipants,
+  onSelectTarget,
   canUndo,
   onResolveAttack,
   onUndo,
@@ -74,6 +78,8 @@ export function ActiveTurnPanel({
             <AttackBuilder
               attacker={active}
               target={target}
+              allParticipants={allParticipants}
+              onSelectTarget={onSelectTarget}
               onResolve={onResolveAttack}
               onUndo={onUndo}
               canUndo={canUndo}

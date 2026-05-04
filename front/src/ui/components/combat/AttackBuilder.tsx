@@ -17,12 +17,14 @@ type DiceMode = 'app' | 'manual';
 interface AttackBuilderProps {
   attacker: SessionParticipantApi;
   target: SessionParticipantApi | null;
+  allParticipants: SessionParticipantApi[];
+  onSelectTarget: (participantId: number | null) => void;
   onResolve: (result: AttackResult, weaponItemId: number, zone: string) => Promise<void>;
   onUndo: () => Promise<void>;
   canUndo: boolean;
 }
 
-export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: AttackBuilderProps) {
+export function AttackBuilder({ attacker, target, allParticipants, onSelectTarget, onResolve, onUndo, canUndo }: AttackBuilderProps) {
   const { t } = useTranslation();
 
   // The backend already returns ALL weapons in inventory under `equippedWeapons`
@@ -183,9 +185,28 @@ export function AttackBuilder({ attacker, target, onResolve, onUndo, canUndo }: 
 
         <div>
           <label className="text-xs text-vault-yellow-dark">{t('combat.attackFlow.target')}</label>
-          <div className="bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm min-h-[28px]">
-            {target ? String(t(target.character.name, target.character.name)) : <span className="text-vault-yellow-dark italic">—</span>}
-          </div>
+          <select
+            value={target?.id ?? ''}
+            onChange={e => {
+              const v = e.target.value;
+              onSelectTarget(v === '' ? null : Number(v));
+            }}
+            className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm"
+          >
+            <option value="">—</option>
+            {allParticipants
+              .filter(p =>
+                p.id !== attacker.id &&
+                p.turnOrder != null &&
+                p.combatStatus !== 'dead' &&
+                p.combatStatus !== 'fled',
+              )
+              .map(p => (
+                <option key={p.id} value={p.id}>
+                  {String(t(p.character.name, p.character.name))} ({p.isAlly ? t('combat.alliance.ally') : t('combat.alliance.enemy')})
+                </option>
+              ))}
+          </select>
         </div>
 
         {diceMode === 'manual' ? (

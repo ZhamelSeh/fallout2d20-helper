@@ -506,6 +506,8 @@ export function SessionDetailPage() {
                 <ActiveTurnPanel
                   active={activeParticipant}
                   target={selectedTarget}
+                  allParticipants={combatParticipants}
+                  onSelectTarget={setSelectedTargetId}
                   canUndo={canUndo}
                   onResolveAttack={handleResolveAttack}
                   onUndo={handleUndo}
