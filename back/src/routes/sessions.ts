@@ -37,6 +37,9 @@ async function getParticipantWithCharacter(participantId: number) {
       characterId: sessionParticipants.characterId,
       turnOrder: sessionParticipants.turnOrder,
       combatStatus: sessionParticipants.combatStatus,
+      isAlly: sessionParticipants.isAlly,
+      temporaryActive: sessionParticipants.temporaryActive,
+      skipNormalActions: sessionParticipants.skipNormalActions,
       // Character details
       characterName: characters.name,
       characterType: characters.type,
@@ -181,6 +184,9 @@ async function getParticipantWithCharacter(participantId: number) {
     characterId: participant.characterId,
     turnOrder: participant.turnOrder,
     combatStatus: participant.combatStatus,
+    isAlly: participant.isAlly,
+    temporaryActive: participant.temporaryActive,
+    skipNormalActions: participant.skipNormalActions,
     character: {
       id: participant.characterId,
       name: participant.characterName,
@@ -220,6 +226,9 @@ async function getFullSession(sessionId: number) {
       characterId: sessionParticipants.characterId,
       turnOrder: sessionParticipants.turnOrder,
       combatStatus: sessionParticipants.combatStatus,
+      isAlly: sessionParticipants.isAlly,
+      temporaryActive: sessionParticipants.temporaryActive,
+      skipNormalActions: sessionParticipants.skipNormalActions,
       // Character details
       characterName: characters.name,
       characterType: characters.type,
@@ -385,6 +394,9 @@ async function getFullSession(sessionId: number) {
     characterId: p.characterId,
     turnOrder: p.turnOrder,
     combatStatus: p.combatStatus,
+    isAlly: p.isAlly,
+    temporaryActive: p.temporaryActive,
+    skipNormalActions: p.skipNormalActions,
     character: {
       id: p.characterId,
       name: p.characterName,
