@@ -1,5 +1,6 @@
 // front/src/domain/rules/injuryRules.ts
 import type { BodyLocation } from '../models/shared';
+import type { CharacterInjuryApi } from '../../services/api';
 
 export type InjuryType =
   | 'arm_broken_left'
@@ -69,3 +70,30 @@ export const INJURY_BY_ZONE: Record<BodyLocation, InjuryDefinition> = {
 };
 
 export const INJURY_THRESHOLD_DAMAGE = 5;
+
+export function isArmDisabled(side: 'left' | 'right', injuries: CharacterInjuryApi[]): boolean {
+  const wanted = side === 'left' ? 'arm_broken_left' : 'arm_broken_right';
+  return injuries.some(i => i.injuryType === wanted);
+}
+
+export function isSprintDisabled(injuries: CharacterInjuryApi[]): boolean {
+  return injuries.some(i => i.injuryType === 'leg_broken');
+}
+
+export function getEffectiveAPCost(actionId: string, defaultCost: number, injuries: CharacterInjuryApi[]): number {
+  if (actionId === 'move' && injuries.some(i => i.injuryType === 'leg_broken')) {
+    return 2;
+  }
+  return defaultCost;
+}
+
+export function weaponBlockedByInjuries(
+  equippedHand: 'left' | 'right' | 'both' | null | undefined,
+  injuries: CharacterInjuryApi[],
+): boolean {
+  if (!equippedHand) return false;
+  if (equippedHand === 'both') {
+    return isArmDisabled('left', injuries) || isArmDisabled('right', injuries);
+  }
+  return isArmDisabled(equippedHand, injuries);
+}
