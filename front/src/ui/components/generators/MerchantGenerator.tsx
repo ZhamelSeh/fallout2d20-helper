@@ -165,7 +165,7 @@ export function MerchantGenerator({ showWealthDescriptions = true, compact = fal
 
           {/* Inventory */}
           <h3 className="text-vault-yellow font-bold mb-4">{t('merchant.inventory')}</h3>
-          <ItemTable items={tableItems} onItemClick={handleItemClick} />
+          <ItemTable items={tableItems} onItemClick={handleItemClick} onInjectItem={handleInjectItem} />
         </Card>
       )}
 
@@ -192,6 +192,13 @@ export function MerchantGenerator({ showWealthDescriptions = true, compact = fal
         onClose={() => setSelectedItem(null)}
         itemId={selectedItem?.id ?? null}
         itemType={selectedItem?.itemType ?? null}
+      />
+
+      <CharacterPickerModal
+        isOpen={injectItem !== null}
+        onClose={() => setInjectItem(null)}
+        onSelect={handleCharacterSelected}
+        title={t('inventory.addToCharacter')}
       />
     </div>
   );
