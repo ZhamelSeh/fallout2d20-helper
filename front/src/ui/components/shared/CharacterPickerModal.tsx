@@ -22,9 +22,11 @@ export function CharacterPickerModal({
   const [searchTerm, setSearchTerm] = useState('');
 
   const filteredCharacters = useMemo(() => {
-    if (!searchTerm.trim()) return characters;
+    // Only PCs — adding loot/merchant items to NPCs doesn't make sense.
+    const pcs = characters.filter((c) => c.type === 'PC');
+    if (!searchTerm.trim()) return pcs;
     const lower = searchTerm.toLowerCase();
-    return characters.filter((c) => {
+    return pcs.filter((c) => {
       const translated = t(c.name);
       return c.name.toLowerCase().includes(lower) || translated.toLowerCase().includes(lower);
     });
