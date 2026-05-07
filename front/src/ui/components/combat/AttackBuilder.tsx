@@ -128,8 +128,10 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   }, [weapon]);
 
   const isMeleeOrThrown = weapon?.skill ? MELEE_OR_THROWN_SKILLS.has(weapon.skill) : false;
-  const hasBurstQuality = effectiveQualities.some(q => q.quality === 'burst');
-  const burstMax = hasBurstQuality ? (weapon?.fireRate ?? 0) : 0;
+  // Cadence de tir = nombre max de munitions supp pour +CD (règle F2d20).
+  // Désactivé pour melee/lancer ou si fireRate non défini.
+  const fireRate = weapon?.fireRate ?? 0;
+  const burstMax = isMeleeOrThrown ? 0 : fireRate;
   const damageAPMax = isMeleeOrThrown ? 3 : 0;
 
   // Passive derived stat: meleeDamageBonus auto-adds CDs for melee/unarmed/throwing
@@ -305,7 +307,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
       <div className="grid grid-cols-2 gap-3 border border-vault-yellow-dark rounded p-2 bg-vault-blue-dark">
         <div>
           <label className="text-xs text-vault-yellow-dark">
-            ⚡ Cadence de tir (munitions extra) {hasBurstQuality ? `— max ${burstMax}` : '— indispo (pas de Burst)'}
+            ⚡ Cadence de tir (munitions extra) {burstMax > 0 ? `— max ${burstMax}` : '— indispo'}
           </label>
           <input
             type="number"
@@ -313,7 +315,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
             max={burstMax}
             value={extraBurstAmmo}
             onChange={e => setExtraBurstAmmo(Math.max(0, Math.min(burstMax, +e.target.value || 0)))}
-            disabled={!hasBurstQuality}
+            disabled={burstMax === 0}
             className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm disabled:opacity-50"
           />
         </div>
