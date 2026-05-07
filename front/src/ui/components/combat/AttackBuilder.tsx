@@ -135,6 +135,10 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   // Désactivé pour melee/lancer ou si fireRate non défini.
   const fireRate = weapon?.fireRate ?? 0;
   const burstMax = isMeleeOrThrown ? 0 : fireRate;
+  // Quality "Gatling" : chaque "rafale" coûte 10 munitions et donne +2 CD (au lieu
+  // de +1 CD pour une munition standard). burstMax devient le nombre max de rafales.
+  const isGatling = effectiveQualities.some(q => q.quality === 'gatling');
+  const burstCDPerUnit = isGatling ? 2 : 1;
   const damageAPMax = isMeleeOrThrown ? 3 : 0;
 
   // Passive derived stat: meleeDamageBonus auto-adds CDs for melee/unarmed/throwing
@@ -142,9 +146,10 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   const meleeBonusApplied = isMeleeOrThrown ? meleeDamageBonus : 0;
 
   const baseCDCount = stats?.damage ?? 0;
+  const burstCDBonus = extraBurstAmmo * burstCDPerUnit;
   const totalCDCount = baseCDCount
     + meleeBonusApplied
-    + extraBurstAmmo
+    + burstCDBonus
     + (isMeleeOrThrown ? extraDamageAP : 0);
 
   // Reset inputs when the weapon changes (so burst from a previous gun doesn't
@@ -321,7 +326,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
       <div className="grid grid-cols-2 gap-3 border border-vault-yellow-dark rounded p-2 bg-vault-blue-dark">
         <div>
           <label className="text-xs text-vault-yellow-dark">
-            ⚡ Cadence de tir (munitions extra) {burstMax > 0 ? `— max ${burstMax}` : '— indispo'}
+            ⚡ Cadence de tir {isGatling ? '(rafales ×10 munitions, +2 CD/rafale)' : '(munitions extra, +1 CD/munition)'} {burstMax > 0 ? `— max ${burstMax}` : '— indispo'}
           </label>
           <input
             type="number"
@@ -357,7 +362,12 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
         <div className="text-xs text-vault-yellow-light space-y-0.5 font-mono">
           <div>Base (arme + mods) : <b>{baseCDCount}</b>{stats?.damageModified ? ' (modifié)' : ''}</div>
           {meleeBonusApplied > 0 && <div>+ Bonus dégâts CaC (passif) : <b>+{meleeBonusApplied}</b></div>}
-          {extraBurstAmmo > 0 && <div>+ Cadence de tir : <b>+{extraBurstAmmo}</b></div>}
+          {burstCDBonus > 0 && (
+            <div>
+              + Cadence de tir : <b>+{burstCDBonus}</b>
+              {isGatling ? ` (${extraBurstAmmo} rafale${extraBurstAmmo > 1 ? 's' : ''} × 2 CD)` : ''}
+            </div>
+          )}
           {isMeleeOrThrown && extraDamageAP > 0 && <div>+ Dégâts supp. (PA) : <b>+{extraDamageAP}</b></div>}
         </div>
         {viciousBonus > 0 && (
