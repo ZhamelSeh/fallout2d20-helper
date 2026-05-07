@@ -9,6 +9,8 @@ import { ItemTable } from '../items/ItemTable';
 import type { TableItem } from '../items/ItemTable';
 import { ItemDetailModal } from '../items/ItemDetailSheet';
 import { generatorsApi } from '../../../services/api';
+import { useCharactersApi } from '../../../hooks/useCharactersApi';
+import { CharacterPickerModal } from '../shared/CharacterPickerModal';
 import type { MerchantResultApi, MerchantCategory, ItemType } from '../../../services/api';
 import { formatCaps } from '../../../generators/utils';
 
@@ -29,7 +31,23 @@ export function MerchantGenerator({ showWealthDescriptions = true, compact = fal
   const [selectedCategories, setSelectedCategories] = useState<MerchantCategory[]>([]);
   const [result, setResult] = useState<MerchantResultApi | null>(null);
   const [selectedItem, setSelectedItem] = useState<{ id: number; itemType: ItemType } | null>(null);
+  const [injectItem, setInjectItem] = useState<TableItem | null>(null);
   const [loading, setLoading] = useState(false);
+  const { addToInventory } = useCharactersApi();
+
+  const handleInjectItem = (tableItem: TableItem) => {
+    setInjectItem(tableItem);
+  };
+
+  const handleCharacterSelected = async (characterId: string) => {
+    if (!injectItem?.itemId) return;
+    try {
+      await addToInventory(characterId, { itemId: injectItem.itemId, quantity: injectItem.quantity, equipped: false });
+    } catch (err) {
+      console.error('Failed to inject item:', err);
+    }
+    setInjectItem(null);
+  };
 
   const handleCategoryToggle = (category: MerchantCategory) => {
     setSelectedCategories(prev =>
