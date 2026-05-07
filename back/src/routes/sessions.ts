@@ -498,25 +498,67 @@ router.get('/', async (req, res) => {
   try {
     const { status } = req.query;
 
-    let results;
+    let sessionRows;
     if (status && ['active', 'paused', 'completed'].includes(status as string)) {
-      results = await db
+      sessionRows = await db
         .select()
         .from(sessions)
         .where(eq(sessions.status, status as any));
     } else {
-      results = await db.select().from(sessions);
+      sessionRows = await db.select().from(sessions);
     }
 
-    // Optionally fetch with participants
+    // Heavy mode: full participant data (inventory, DR, weapons, mods, injuries...).
+    // Used by detail-like consumers; very expensive — avoid for list views.
     if (req.query.full === 'true') {
       const fullSessions = await Promise.all(
-        results.map(s => getFullSession(s.id))
+        sessionRows.map(s => getFullSession(s.id))
       );
       return res.json(fullSessions);
     }
 
-    res.json(results);
+    // Light mode: only what the list view needs — minimal participant info to
+    // count PCs and show "in combat" badges. ONE batched query for participants.
+    const sessionIds = sessionRows.map(s => s.id);
+    const participantsLite: Array<{
+      id: number;
+      sessionId: number;
+      characterId: number;
+      combatStatus: string;
+      character: { id: number; name: string; type: 'pc' | 'npc' };
+    }> = [];
+
+    if (sessionIds.length > 0) {
+      const rows = await db
+        .select({
+          id: sessionParticipants.id,
+          sessionId: sessionParticipants.sessionId,
+          characterId: sessionParticipants.characterId,
+          combatStatus: sessionParticipants.combatStatus,
+          characterName: characters.name,
+          characterType: characters.type,
+        })
+        .from(sessionParticipants)
+        .innerJoin(characters, eq(sessionParticipants.characterId, characters.id));
+
+      for (const r of rows) {
+        if (!sessionIds.includes(r.sessionId)) continue;
+        participantsLite.push({
+          id: r.id,
+          sessionId: r.sessionId,
+          characterId: r.characterId,
+          combatStatus: r.combatStatus,
+          character: { id: r.characterId, name: r.characterName, type: r.characterType },
+        });
+      }
+    }
+
+    const result = sessionRows.map(s => ({
+      ...s,
+      participants: participantsLite.filter(p => p.sessionId === s.id),
+    }));
+
+    res.json(result);
   } catch (error) {
     console.error('Error fetching sessions:', error);
     res.status(500).json({ error: 'Failed to fetch sessions' });

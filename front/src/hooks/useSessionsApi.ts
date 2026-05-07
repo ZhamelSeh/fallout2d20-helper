@@ -20,7 +20,9 @@ export function useSessionsApi() {
     setLoading(true);
     setError(null);
     try {
-      const data = await sessionsApi.list({ ...filters, full: true });
+      // Light list — backend includes minimal participant info (id, type, name)
+      // for counting + badges, without loading inventory/DR/weapons/mods.
+      const data = await sessionsApi.list({ ...filters });
       setSessions(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load sessions');
