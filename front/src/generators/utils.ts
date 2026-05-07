@@ -111,11 +111,15 @@ export function formatCaps(value: number): string {
 }
 
 /**
- * Format weight
+ * Format weight — rounds to 2 decimals max, drops trailing zeros, avoids
+ * IEEE 754 floating-point artifacts like 0.6000000000000001.
  */
 export function formatWeight(weight: number): string {
   if (weight === 0) return '-';
-  return `${weight} lbs`;
+  const rounded = Math.round(weight * 100) / 100;
+  // Drop trailing zeros: "0.60" → "0.6", "1.00" → "1"
+  const display = rounded.toFixed(2).replace(/\.?0+$/, '');
+  return `${display} lbs`;
 }
 
 /**
