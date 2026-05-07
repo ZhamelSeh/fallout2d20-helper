@@ -784,6 +784,10 @@ export default {
       noPreview: 'Select weapon + target + zone then "Compute preview"',
       noWeapon: 'No weapon equipped. Equip one from the inventory tab.',
       armBroken: 'Arm broken: weapon unusable',
+      cdRolled: 'CD rolled',
+      effectsLabel: 'Effect',
+      effectsLabel_plural: 'Effects',
+      perTurn: 'turn',
     },
   },
 

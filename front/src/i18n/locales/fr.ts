@@ -783,6 +783,10 @@ export default {
       noPreview: 'Sélectionne arme + cible + zone puis "Calculer preview"',
       noWeapon: 'Aucune arme équipée. Équipe une arme dans l\'onglet inventaire.',
       armBroken: 'Bras cassé : arme inutilisable',
+      cdRolled: 'CD rollés',
+      effectsLabel: 'Effet',
+      effectsLabel_plural: 'Effets',
+      perTurn: 'tour',
     },
   },
 

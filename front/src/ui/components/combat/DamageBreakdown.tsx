@@ -22,7 +22,7 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
       <div className="text-vault-yellow-dark">🎯 {zoneLabel}</div>
       {result.cdResults && (
         <div>
-          CD rolled:{' '}
+          {t('combat.attackFlow.cdRolled')}:{' '}
           {result.cdResults.map((cd, i) => (
             <span key={i} className="mx-0.5">
               [{cd.damage}{cd.effect ? '★' : ''}]
@@ -31,7 +31,9 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
         </div>
       )}
       {result.effectsRolled > 0 && (
-        <div className="text-vault-yellow-dark">★ {result.effectsRolled} Effect{result.effectsRolled > 1 ? 's' : ''}</div>
+        <div className="text-vault-yellow-dark">
+          ★ {result.effectsRolled} {t(result.effectsRolled > 1 ? 'combat.attackFlow.effectsLabel_plural' : 'combat.attackFlow.effectsLabel')}
+        </div>
       )}
       <div className="border-t border-vault-yellow-dark pt-1 mt-1">
         {t('combat.attackFlow.raw')}: <b>{result.rawDamage}</b>
@@ -54,7 +56,7 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
       )}
       {result.persistentCondition && (
         <div className="text-vault-yellow-dark">
-          🩸 {result.persistentCondition.type} ({result.persistentCondition.damage}/turn)
+          🩸 {String(t(`conditions.${result.persistentCondition.type}`, result.persistentCondition.type))} ({result.persistentCondition.damage}/{t('combat.attackFlow.perTurn')})
         </div>
       )}
     </div>
