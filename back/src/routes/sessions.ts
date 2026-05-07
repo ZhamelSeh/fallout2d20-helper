@@ -9,6 +9,7 @@ import {
   characterSkills,
   characterTagSkills,
   characterConditions,
+  characterDr,
   characterInventory,
   characterInjuries,
   items,
@@ -109,6 +110,12 @@ async function getParticipantWithCharacter(participantId: number) {
     .select({ skill: characterSkills.skill, rank: characterSkills.rank })
     .from(characterSkills)
     .where(eq(characterSkills.characterId, participant.characterId));
+
+  // Get DR by zone
+  const drRows = await db
+    .select()
+    .from(characterDr)
+    .where(eq(characterDr.characterId, participant.characterId));
 
   const skills: Record<string, number> = {};
   for (const row of skillRows) {
@@ -216,6 +223,13 @@ async function getParticipantWithCharacter(participantId: number) {
       skills,
       conditions: conditions.map(c => c.condition),
       injuries,
+      dr: drRows.map(d => ({
+        location: d.location,
+        drPhysical: d.drPhysical,
+        drEnergy: d.drEnergy,
+        drRadiation: d.drRadiation,
+        drPoison: d.drPoison ?? 0,
+      })),
       equippedWeapons: equippedWeaponsWithMods,
       creatureAttributes: participant.creatureAttributes ?? undefined,
       creatureAttacks: participant.creatureAttacks ?? undefined,
@@ -284,6 +298,9 @@ async function getFullSession(sessionId: number) {
     itemId: number; name: string; nameKey: string | null; skill: string; damage: number; damageType: string; fireRate: number; range: string;
     installedMods: Array<{ modInventoryId: number; modItemId: number; modName: string; slot: string; nameAddKey?: string; effects: any[] }>;
   }>> = {};
+  const drByCharacter: Record<number, Array<{
+    location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number;
+  }>> = {};
 
   for (const charId of characterIds) {
     // Conditions
@@ -333,6 +350,19 @@ async function getFullSession(sessionId: number) {
     for (const row of skillRows) {
       skillsByCharacter[charId][row.skill] = row.rank;
     }
+
+    // DR by zone
+    const drRows = await db
+      .select()
+      .from(characterDr)
+      .where(eq(characterDr.characterId, charId));
+    drByCharacter[charId] = drRows.map(d => ({
+      location: d.location,
+      drPhysical: d.drPhysical,
+      drEnergy: d.drEnergy,
+      drRadiation: d.drRadiation,
+      drPoison: d.drPoison ?? 0,
+    }));
 
     // All weapons in inventory
     const weaponRows = await db
@@ -436,6 +466,7 @@ async function getFullSession(sessionId: number) {
       skills: skillsByCharacter[p.characterId] || {},
       conditions: conditionsByCharacter[p.characterId] || [],
       injuries: injuriesByCharacter[p.characterId] || [],
+      dr: drByCharacter[p.characterId] || [],
       equippedWeapons: equippedWeaponsByCharacter[p.characterId] || [],
       creatureAttributes: p.creatureAttributes ?? undefined,
       creatureAttacks: p.creatureAttacks ?? undefined,
