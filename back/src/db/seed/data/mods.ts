@@ -634,6 +634,111 @@ export const ENERGY_WEAPONS_MODS: ModEntry[] = [
       { effectType: 'loseQuality', qualityName: 'blast' },
     ],
   },
+
+  // ===== GUIDE DES COLONIES — Mods réservés au cryolator =====
+  {
+    name: 'Canon cristallisant', slot: 'canon', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.canon.canonCristallisant.nameAdd',
+    weightChange: 2.5, cost: 40, requiredPerk: 'science', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'rangeChange', numericValue: 1 },
+      { effectType: 'fireRateBonus', numericValue: -1 },
+      { effectType: 'loseQuality', qualityName: 'inaccurate' },
+    ],
+  },
+  {
+    name: 'Chargeur à fusion (cryolator)', slot: 'chargeur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.chargeur.chargeurFusionCryolator.nameAdd',
+    weightChange: 0, cost: 21, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'setDamage', numericValue: 2 },
+      { effectType: 'fireRateBonus', numericValue: -1 },
+      { effectType: 'setAmmo', ammoType: 'fusionCell' },
+    ],
+  },
+  {
+    name: 'Crosse à compensateur de recul (énergie)', slot: 'crosse', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.crosse.crosseCompensateurRecul.nameAdd',
+    weightChange: 1, cost: 45,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Viseur laser (énergie)', slot: 'viseur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.viseur.viseurLaser.nameAdd',
+    weightChange: 0, cost: 17,
+    effects: [{ effectType: 'special', descriptionKey: 'mods.effects.rerollLocationDie' }],
+  },
+
+  // ===== GUIDE DES COLONIES — Mods réservés au pistolet à acide =====
+  {
+    name: 'Caustique', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.caustique.nameAdd',
+    weightChange: 1, cost: 30, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [{ effectType: 'damageBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Grande ampoule', slot: 'chargeur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.chargeur.grandeAmpoule.nameAdd',
+    weightChange: 1, cost: 22, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 1 }],
+  },
+  {
+    name: 'Grande fiole', slot: 'chargeur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.chargeur.grandeFiole.nameAdd',
+    weightChange: 2, cost: 40, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [{ effectType: 'fireRateBonus', numericValue: 3 }],
+  },
+
+  // ===== GUIDE DES COLONIES — Mods réservés au laser céphalique =====
+  {
+    name: 'Condensateur Mk III', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.condensateurMk3.nameAdd',
+    weightChange: 0, cost: 4, requiredPerk: 'robotExpert', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 1 },
+      { effectType: 'special', descriptionKey: 'mods.effects.consume3AmmoPerAttack' },
+    ],
+  },
+  {
+    name: 'Condensateur Mk IV', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.condensateurMk4.nameAdd',
+    weightChange: 0.5, cost: 8, requiredPerk: 'robotExpert', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'special', descriptionKey: 'mods.effects.consume4AmmoPerAttack' },
+    ],
+  },
+  {
+    name: 'Condensateur Mk V', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.condensateurMk5.nameAdd',
+    weightChange: 0.5, cost: 12, requiredPerk: 'robotExpert', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 3 },
+      { effectType: 'special', descriptionKey: 'mods.effects.consume5AmmoPerAttack' },
+    ],
+  },
+  {
+    name: 'Condensateur Mk VI', slot: 'condensateur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.condensateur.condensateurMk6.nameAdd',
+    weightChange: 1, cost: 16, requiredPerk: 'robotExpert', requiredPerkRank: 1, requiredPerk2: 'science', requiredPerkRank2: 3,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 4 },
+      { effectType: 'special', descriptionKey: 'mods.effects.consume6AmmoPerAttack' },
+    ],
+  },
+
+  // ===== GUIDE DES COLONIES — Mod réservé au laser alien (pistolet) =====
+  {
+    name: 'Chargeur à fusion (alien)', slot: 'chargeur', applicableTo: 'energyWeapons',
+    nameAddKey: 'mods.energyWeapons.chargeur.chargeurFusionAlien.nameAdd',
+    weightChange: 0, cost: 21, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'setDamage', numericValue: 3 },
+      { effectType: 'fireRateBonus', numericValue: -1 },
+      { effectType: 'setAmmo', ammoType: 'fusionCell' },
+    ],
+  },
 ];
 
 // ===== MODS DES ARMES LOURDES (Big Guns) =====
@@ -882,6 +987,61 @@ export const BIG_GUNS_MODS: ModEntry[] = [
     nameAddKey: 'mods.bigGuns.bouche.stabilisateur.nameAdd',
     weightChange: 1, cost: 60, requiredPerk: 'gunNut', requiredPerkRank: 2,
     effects: [{ effectType: 'gainQuality', qualityName: 'piercing', qualityValue: 1 }],
+  },
+
+  // ===== GUIDE DES COLONIES — Mods réservés au canon de bordée =====
+  {
+    name: 'Canon long (canon de bordée)', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.canonLongBordee.nameAdd',
+    weightChange: 1, cost: 40, requiredPerk: 'gunNut', requiredPerkRank: 1,
+    effects: [{ effectType: 'rangeChange', numericValue: 1 }],
+  },
+  {
+    name: 'Canon léger (à cannelures)', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.canonLeger.nameAdd',
+    weightChange: 1.5, cost: 30, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'loseQuality', qualityName: 'blast' },
+    ],
+  },
+  {
+    name: 'Boîte multimunitions', slot: 'chargeur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.chargeur.boiteMultimunitions.nameAdd',
+    weightChange: 0.5, cost: 45, requiredPerk: 'gunNut', requiredPerkRank: 3,
+    effects: [
+      { effectType: 'fireRateBonus', numericValue: 1 },
+      { effectType: 'gainQuality', qualityName: 'inaccurate' },
+    ],
+  },
+  {
+    name: 'Lance-grenades M79 (canon de bordée)', slot: 'canon', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.canon.lanceGrenadesM79.nameAdd',
+    weightChange: 0, cost: 3, requiredPerk: 'science', requiredPerkRank: 1,
+    effects: [
+      { effectType: 'rangeChange', numericValue: 1 },
+      { effectType: 'setAmmo', ammoType: 'grenade40mm' },
+    ],
+  },
+
+  // ===== GUIDE DES COLONIES — Mods réservés au fusil harpon =====
+  {
+    name: 'Harpon barbelé', slot: 'chargeur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.chargeur.harponBarbele.nameAdd',
+    weightChange: 0, cost: 21,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'vicious' },
+      { effectType: 'gainQuality', qualityName: 'persistent' },
+    ],
+  },
+  {
+    name: 'Fléchettes', slot: 'chargeur', applicableTo: 'bigGuns',
+    nameAddKey: 'mods.bigGuns.chargeur.flechettes.nameAdd',
+    weightChange: 0, cost: 15, requiredPerk: 'gunNut', requiredPerkRank: 2,
+    effects: [
+      { effectType: 'gainQuality', qualityName: 'spread' },
+      { effectType: 'rangeChange', numericValue: -1 },
+    ],
   },
 ];
 
@@ -1337,6 +1497,27 @@ export const MELEE_WEAPONS_MODS: ModEntry[] = [
     weightChange: 0, cost: 100, requiredPerk: 'blacksmith', requiredPerkRank: 3,
     effects: [
       { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+
+  // ===== GUIDE DES COLONIES — Mods réservés à la pince (robot) =====
+  {
+    name: 'Mod électrique (pince)', slot: 'improvement', applicableTo: 'unarmed',
+    nameAddKey: 'mods.meleeWeapons.improvement.modElectrique.nameAdd',
+    weightChange: 0, cost: 15, requiredPerk: 'blacksmith', requiredPerkRank: 2, requiredPerk2: 'robotExpert', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 2 },
+      { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
+    ],
+  },
+  {
+    name: 'Mod étourdissant (pince)', slot: 'improvement', applicableTo: 'unarmed',
+    nameAddKey: 'mods.meleeWeapons.improvement.modEtourdissant.nameAdd',
+    weightChange: 0, cost: 30, requiredPerk: 'blacksmith', requiredPerkRank: 2, requiredPerk2: 'robotExpert', requiredPerkRank2: 1,
+    effects: [
+      { effectType: 'damageBonus', numericValue: 3 },
+      { effectType: 'gainQuality', qualityName: 'stun' },
       { effectType: 'special', descriptionKey: 'mods.effects.changeDamageTypeToEnergy' },
     ],
   },

@@ -1510,6 +1510,12 @@ export default {
         quatreCharges: { nameAdd: 'Quatre charges' },
         cinqCharges: { nameAdd: 'Cinq charges' },
         sixCharges: { nameAdd: 'Six charges' },
+        // Guide des Colonies
+        caustique: { nameAdd: 'Caustique' },
+        condensateurMk3: { nameAdd: 'Mk III' },
+        condensateurMk4: { nameAdd: 'Mk IV' },
+        condensateurMk5: { nameAdd: 'Mk V' },
+        condensateurMk6: { nameAdd: 'Mk VI' },
       },
       canon: {
         canonLong: { nameAdd: 'Longueur' },
@@ -1518,6 +1524,23 @@ export default {
         canonAmeliore: { nameAdd: 'Amélioré' },
         canonPrecision: { nameAdd: 'Précision' },
         canonLanceFlammes: { nameAdd: 'Lanceur' },
+        // Guide des Colonies
+        canonCristallisant: { nameAdd: 'Cristallisant' },
+      },
+      chargeur: {
+        // Guide des Colonies
+        chargeurFusionCryolator: { nameAdd: 'Converti' },
+        chargeurFusionAlien: { nameAdd: 'Converti' },
+        grandeAmpoule: { nameAdd: 'Grande capacité' },
+        grandeFiole: { nameAdd: 'Capacité max' },
+      },
+      crosse: {
+        // Guide des Colonies
+        crosseCompensateurRecul: { nameAdd: 'Compensation de recul' },
+      },
+      viseur: {
+        // Guide des Colonies
+        viseurLaser: { nameAdd: 'Tactique' },
       },
       bouche: {
         diviseurRayon: { nameAdd: 'Dispersion' },
@@ -1541,6 +1564,16 @@ export default {
         tripleCanonMinigun: { nameAdd: 'Grande puissance' },
         tripleCanon: { nameAdd: 'Triple canon' },
         quadrupleCanon: { nameAdd: 'Quadruple canon' },
+        // Guide des Colonies
+        canonLongBordee: { nameAdd: 'À canon long' },
+        canonLeger: { nameAdd: 'À cannelures' },
+        lanceGrenadesM79: { nameAdd: 'Converti' },
+      },
+      chargeur: {
+        // Guide des Colonies
+        boiteMultimunitions: { nameAdd: 'À répétition' },
+        harponBarbele: { nameAdd: 'Barbelé' },
+        flechettes: { nameAdd: 'Minuscule' },
       },
       reservoir: {
         grandReservoir: { nameAdd: 'Grande capacité' },
@@ -1590,6 +1623,11 @@ export default {
         bobineThermique: { nameAdd: 'Chaleur' },
         revetementPlomb: { nameAdd: 'Revêtement en plomb' },
         griffeSupplementaire: { nameAdd: 'Extra' },
+      },
+      improvement: {
+        // Guide des Colonies — Pince
+        modElectrique: { nameAdd: 'À décharge' },
+        modEtourdissant: { nameAdd: 'KO' },
       },
     },
     armor: {
@@ -1822,6 +1860,10 @@ export default {
       laserMusket4charges: 'Consomme 4 tirs de munitions par attaque',
       laserMusket5charges: 'Consomme 5 tirs de munitions par attaque',
       laserMusket6charges: 'Consomme 6 tirs de munitions par attaque',
+      consume3AmmoPerAttack: 'Consomme 3 tirs de munitions par attaque',
+      consume4AmmoPerAttack: 'Consomme 4 tirs de munitions par attaque',
+      consume5AmmoPerAttack: 'Consomme 5 tirs de munitions par attaque',
+      consume6AmmoPerAttack: 'Consomme 6 tirs de munitions par attaque',
       aimingComputer: 'Quand vous visez une cible, elle ne bénéficie pas de son abri et le bonus de visée s\'applique à l\'attaque suivante lors de tout tour ultérieur pendant la scène.',
       bayonetLauncher: 'Peut être utilisée comme arme de corps à corps : inflige 4 dégâts balistiques, Perforant 1.',
       minigunGrinder: 'Peut être utilisée comme arme de corps à corps : inflige un nombre de dés de dégâts balistiques égal à la cadence de tir.',

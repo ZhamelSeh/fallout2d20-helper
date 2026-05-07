@@ -1508,6 +1508,12 @@ export default {
         quatreCharges: { nameAdd: 'Four Charges' },
         cinqCharges: { nameAdd: 'Five Charges' },
         sixCharges: { nameAdd: 'Six Charges' },
+        // Guide to the Colonies
+        caustique: { nameAdd: 'Caustic' },
+        condensateurMk3: { nameAdd: 'Mk III' },
+        condensateurMk4: { nameAdd: 'Mk IV' },
+        condensateurMk5: { nameAdd: 'Mk V' },
+        condensateurMk6: { nameAdd: 'Mk VI' },
       },
       canon: {
         canonLong: { nameAdd: 'Long' },
@@ -1516,6 +1522,23 @@ export default {
         canonAmeliore: { nameAdd: 'Improved' },
         canonPrecision: { nameAdd: 'Sniper' },
         canonLanceFlammes: { nameAdd: 'Flamer' },
+        // Guide to the Colonies
+        canonCristallisant: { nameAdd: 'Crystallizing' },
+      },
+      chargeur: {
+        // Guide to the Colonies
+        chargeurFusionCryolator: { nameAdd: 'Converted' },
+        chargeurFusionAlien: { nameAdd: 'Converted' },
+        grandeAmpoule: { nameAdd: 'Large Capacity' },
+        grandeFiole: { nameAdd: 'Max Capacity' },
+      },
+      crosse: {
+        // Guide to the Colonies
+        crosseCompensateurRecul: { nameAdd: 'Recoil Compensating' },
+      },
+      viseur: {
+        // Guide to the Colonies
+        viseurLaser: { nameAdd: 'Tactical' },
       },
       bouche: {
         diviseurRayon: { nameAdd: 'Disperser' },
@@ -1539,6 +1562,16 @@ export default {
         tripleCanonMinigun: { nameAdd: 'High Power' },
         tripleCanon: { nameAdd: 'Triple Barrel' },
         quadrupleCanon: { nameAdd: 'Quad Barrel' },
+        // Guide to the Colonies
+        canonLongBordee: { nameAdd: 'Long-Barreled' },
+        canonLeger: { nameAdd: 'Rifled' },
+        lanceGrenadesM79: { nameAdd: 'Converted' },
+      },
+      chargeur: {
+        // Guide to the Colonies
+        boiteMultimunitions: { nameAdd: 'Repeating' },
+        harponBarbele: { nameAdd: 'Barbed' },
+        flechettes: { nameAdd: 'Tiny' },
       },
       reservoir: {
         grandReservoir: { nameAdd: 'Large Capacity' },
@@ -1588,6 +1621,11 @@ export default {
         bobineThermique: { nameAdd: 'Heat' },
         revetementPlomb: { nameAdd: 'Lead Coating' },
         griffeSupplementaire: { nameAdd: 'Extra' },
+      },
+      improvement: {
+        // Guide to the Colonies — Pincer
+        modElectrique: { nameAdd: 'Electric Discharge' },
+        modEtourdissant: { nameAdd: 'K.O.' },
       },
     },
     armor: {
@@ -1820,6 +1858,10 @@ export default {
       laserMusket4charges: 'Consumes 4 ammo shots per attack',
       laserMusket5charges: 'Consumes 5 ammo shots per attack',
       laserMusket6charges: 'Consumes 6 ammo shots per attack',
+      consume3AmmoPerAttack: 'Consumes 3 ammo shots per attack',
+      consume4AmmoPerAttack: 'Consumes 4 ammo shots per attack',
+      consume5AmmoPerAttack: 'Consumes 5 ammo shots per attack',
+      consume6AmmoPerAttack: 'Consumes 6 ammo shots per attack',
       aimingComputer: 'When you aim at a target, it does not benefit from cover and the aim bonus applies to the next attack on any subsequent turn during the scene.',
       bayonetLauncher: 'Can be used as a melee weapon: deals 4 ballistic damage, Piercing 1.',
       minigunGrinder: 'Can be used as a melee weapon: deals a number of ballistic damage dice equal to the fire rate.',
