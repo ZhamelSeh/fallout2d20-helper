@@ -14,6 +14,18 @@ import { DamageBreakdown } from './DamageBreakdown';
 type Zone = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
 type DiceMode = 'app' | 'manual';
 
+const SKILL_TO_SPECIAL: Record<string, string> = {
+  smallGuns: 'agility',
+  bigGuns: 'endurance',
+  energyWeapons: 'perception',
+  meleeWeapons: 'strength',
+  unarmed: 'strength',
+  throwing: 'agility',
+  explosives: 'perception',
+};
+
+const MELEE_OR_THROWN_SKILLS = new Set(['meleeWeapons', 'unarmed', 'throwing']);
+
 interface AttackBuilderProps {
   attacker: SessionParticipantApi;
   target: SessionParticipantApi | null;
@@ -27,9 +39,6 @@ interface AttackBuilderProps {
 export function AttackBuilder({ attacker, target, allParticipants, onSelectTarget, onResolve, onUndo, canUndo }: AttackBuilderProps) {
   const { t } = useTranslation();
 
-  // The backend already returns ALL weapons in inventory under `equippedWeapons`
-  // (the field is misnamed — see sessions.ts "Get all weapons in inventory").
-  // Also fall back to `inventory` filtered to weapon items when needed.
   const equippedWeaponsApi: any[] =
     (attacker as any).equippedWeapons ?? (attacker.character as any).equippedWeapons ?? [];
   const inventoryRaw: any[] = (attacker.character as any).inventory ?? [];
@@ -48,6 +57,8 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
       damageType: entry.weapon?.damageType ?? entry.damageType,
       qualities: entry.weapon?.qualities ?? entry.qualities ?? [],
       installedMods: entry.installedMods ?? [],
+      skill: entry.weapon?.skill ?? entry.skill,
+      fireRate: entry.weapon?.fireRate ?? entry.fireRate,
     }));
   const inventoryWeapons: any[] =
     equippedWeaponsApi.length > 0 ? equippedWeaponsApi : inventoryWeaponsFromInv;
@@ -57,12 +68,9 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   );
   const [zone, setZone] = useState<Zone>('torso');
   const [diceMode, setDiceMode] = useState<DiceMode>('app');
-  const [manual, setManual] = useState({
-    successes: 0,
-    d20Critical: false,
-    rawDamage: 0,
-    effectsRolled: 0,
-  });
+  const [extraBurstAmmo, setExtraBurstAmmo] = useState(0);
+  const [extraDamageAP, setExtraDamageAP] = useState(0);
+  const [manual, setManual] = useState({ rawDamage: 0, effectsRolled: 0 });
   const [previewResult, setPreviewResult] = useState<AttackResult | null>(null);
 
   const weapon = useMemo(
@@ -70,25 +78,43 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
     [inventoryWeapons, weaponId],
   );
 
-  const computeDR = (z: Zone) => {
-    if (!target) return { drPhysical: 0, drEnergy: 0 };
-    const drList = (target.character as any).dr ?? (target as any).dr ?? [];
-    const drEntry = drList.find((d: any) => d.location === z);
-    return drEntry ?? { drPhysical: 0, drEnergy: 0 };
-  };
-
   const armLocked = useMemo(() => {
     if (!weapon?.equippedHand) return false;
     return weaponBlockedByInjuries(weapon.equippedHand, attacker.injuries ?? []);
   }, [weapon, attacker.injuries]);
 
-  const computePreview = () => {
-    if (!weapon) return;
+  // Compute TN = skill rank + SPECIAL value (informational — d20 rolls are physical)
+  const tnInfo = useMemo(() => {
+    if (!weapon) return null;
+    const skill: string | undefined = weapon.skill;
+    if (!skill) return null;
+    const skills: Record<string, number> = (attacker.character as any).skills ?? {};
+    const special: Record<string, number> = (attacker.character as any).special ?? {};
+    const specialAttr = SKILL_TO_SPECIAL[skill];
+    const skillRank = skills[skill] ?? 0;
+    const specialValue = specialAttr ? (special[specialAttr] ?? 0) : 0;
+    return {
+      skill,
+      specialAttr,
+      skillRank,
+      specialValue,
+      tn: skillRank + specialValue,
+    };
+  }, [weapon, attacker]);
+
+  // Effective weapon stats after mods (damage, fireRate)
+  const stats = useMemo(() => {
+    if (!weapon) return null;
+    return computeEffectiveWeaponStats(weapon as any);
+  }, [weapon]);
+
+  // Mod-adjusted qualities (gainQuality / loseQuality from installed mods)
+  const effectiveQualities = useMemo((): { quality: string; value?: number }[] => {
+    if (!weapon) return [];
     const qualities = ((weapon.qualities ?? []) as any[]).map(q => ({
       quality: q.quality ?? q.id ?? String(q),
       value: q.value,
     }));
-    // Merge mod-derived qualities (gainQuality / loseQuality)
     const modEffects = ((weapon.installedMods ?? []) as any[]).flatMap((m: any) => m.effects ?? []);
     for (const eff of modEffects) {
       if (eff.effectType === 'gainQuality' && eff.qualityName) {
@@ -98,9 +124,29 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
         if (idx !== -1) qualities.splice(idx, 1);
       }
     }
+    return qualities;
+  }, [weapon]);
+
+  const isMeleeOrThrown = weapon?.skill ? MELEE_OR_THROWN_SKILLS.has(weapon.skill) : false;
+  const burstMax = weapon?.fireRate ?? 0;
+  const damageAPMax = isMeleeOrThrown ? 3 : 0;
+
+  const baseCDCount = stats?.damage ?? 0;
+  const totalCDCount = baseCDCount + extraBurstAmmo + (isMeleeOrThrown ? extraDamageAP : 0);
+
+  const viciousQuality = effectiveQualities.find(q => q.quality === 'vicious');
+  const viciousBonus = viciousQuality?.value ?? 0;
+
+  const computeDR = (z: Zone) => {
+    if (!target) return { drPhysical: 0, drEnergy: 0 };
+    const drList = (target.character as any).dr ?? (target as any).dr ?? [];
+    const drEntry = drList.find((d: any) => d.location === z);
+    return drEntry ?? { drPhysical: 0, drEnergy: 0 };
+  };
+
+  const computePreview = () => {
+    if (!weapon || !stats) return;
     const damageKind = ((weapon.damageType as DamageKind) ?? 'physical');
-    const stats = computeEffectiveWeaponStats(weapon as any);
-    const baseCDCount = stats.damage ?? 1;
 
     let actualZone: Zone = zone;
     if (diceMode === 'app') {
@@ -110,29 +156,16 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
     }
 
     const dr = computeDR(actualZone);
+    const common = { zoneDR: dr, damageKind, qualities: effectiveQualities, totalCDCount };
 
-    if (diceMode === 'app') {
-      // TODO: real TN computation from skill + SPECIAL.
-      const r = resolveAttackFromAppRoll({
-        tn: 10,
-        focus: 1,
-        baseCDCount,
-        zoneDR: dr,
-        damageKind,
-        qualities,
-      });
-      setPreviewResult(r);
-    } else {
-      const r = resolveAttackFromManualInput({
-        rawDamage: manual.rawDamage,
-        d20Critical: manual.d20Critical,
-        effectsRolled: manual.effectsRolled,
-        zoneDR: dr,
-        damageKind,
-        qualities,
-      });
-      setPreviewResult(r);
-    }
+    const r = diceMode === 'app'
+      ? resolveAttackFromAppRoll(common)
+      : resolveAttackFromManualInput({
+          ...common,
+          rawDamage: manual.rawDamage,
+          effectsRolled: manual.effectsRolled,
+        });
+    setPreviewResult(r);
   };
 
   const handleResolve = async () => {
@@ -141,15 +174,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
     setPreviewResult(null);
   };
 
-  if (inventoryWeapons.length === 0) {
-    return (
-      <div className="p-4 text-center text-vault-yellow-dark">
-        {t('combat.attackFlow.noWeapon')}
-      </div>
-    );
-  }
-
-  if (!weapon) {
+  if (inventoryWeapons.length === 0 || !weapon) {
     return (
       <div className="p-4 text-center text-vault-yellow-dark">
         {t('combat.attackFlow.noWeapon')}
@@ -159,6 +184,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
 
   return (
     <div className="space-y-3">
+      {/* Row 1: Weapon / Target / Zone */}
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="text-xs text-vault-yellow-dark">{t('combat.attackFlow.weapon')}</label>
@@ -235,23 +261,80 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
         )}
       </div>
 
-      {weapon.qualities && weapon.qualities.length > 0 && (
-        <div className="flex gap-1 flex-wrap">
-          {weapon.qualities.map((q: any, i: number) => {
-            const id = q.quality ?? q.id ?? String(q);
-            return (
-              <span
-                key={`${id}-${i}`}
-                title={String(t(`effects.weaponQualities.${id}.rules.0`, id))}
-                className="text-xs px-2 py-0.5 bg-vault-gray rounded-full text-vault-yellow-light cursor-help"
-              >
-                💡 {id}{q.value ? ` ${q.value}` : ''}
-              </span>
-            );
-          })}
+      {/* TN info */}
+      {tnInfo && (
+        <div className="text-xs text-vault-yellow-dark bg-vault-blue-dark border border-vault-yellow-dark rounded px-2 py-1">
+          🎯 <b className="text-vault-yellow">TN du jet d'attaque : {tnInfo.tn}</b>
+          {' '}({String(t(`skills.${tnInfo.skill}`, tnInfo.skill))} {tnInfo.skillRank}
+          {tnInfo.specialAttr ? ` + ${String(t(`special.${tnInfo.specialAttr}`, tnInfo.specialAttr))} ${tnInfo.specialValue}` : ''})
         </div>
       )}
 
+      {/* Weapon qualities chips (with mod-derived qualities included) */}
+      {effectiveQualities.length > 0 && (
+        <div className="flex gap-1 flex-wrap">
+          {effectiveQualities.map((q, i: number) => (
+            <span
+              key={`${q.quality}-${i}`}
+              title={String(t(`effects.weaponQualities.${q.quality}.rules.0`, q.quality))}
+              className="text-xs px-2 py-0.5 bg-vault-gray rounded-full text-vault-yellow-light cursor-help"
+            >
+              💡 {q.quality}{q.value ? ` ${q.value}` : ''}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {/* Player choices: burst + damage AP */}
+      <div className="grid grid-cols-2 gap-3 border border-vault-yellow-dark rounded p-2 bg-vault-blue-dark">
+        <div>
+          <label className="text-xs text-vault-yellow-dark">
+            ⚡ Cadence de tir (munitions extra) — max {burstMax}
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={burstMax}
+            value={extraBurstAmmo}
+            onChange={e => setExtraBurstAmmo(Math.max(0, Math.min(burstMax, +e.target.value || 0)))}
+            disabled={burstMax === 0}
+            className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm disabled:opacity-50"
+          />
+        </div>
+        <div>
+          <label className="text-xs text-vault-yellow-dark">
+            🥊 Dégâts supp. (1-3 PA) — {isMeleeOrThrown ? 'melee/lancer' : 'indispo'}
+          </label>
+          <input
+            type="number"
+            min={0}
+            max={damageAPMax}
+            value={extraDamageAP}
+            onChange={e => setExtraDamageAP(Math.max(0, Math.min(damageAPMax, +e.target.value || 0)))}
+            disabled={!isMeleeOrThrown}
+            className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm disabled:opacity-50"
+          />
+        </div>
+      </div>
+
+      {/* CD count breakdown */}
+      <div className="bg-vault-blue-dark border border-vault-yellow rounded p-3">
+        <div className="text-vault-yellow font-bold text-sm mb-1">
+          🎲 Le joueur doit lancer <span className="text-lg">{totalCDCount}</span> CD
+        </div>
+        <div className="text-xs text-vault-yellow-light space-y-0.5 font-mono">
+          <div>Base (arme + mods) : <b>{baseCDCount}</b>{stats?.damageModified ? ' (modifié)' : ''}</div>
+          {extraBurstAmmo > 0 && <div>+ Cadence de tir : <b>+{extraBurstAmmo}</b></div>}
+          {isMeleeOrThrown && extraDamageAP > 0 && <div>+ Dégâts supp. (PA) : <b>+{extraDamageAP}</b></div>}
+        </div>
+        {viciousBonus > 0 && (
+          <div className="text-xs text-vault-yellow-dark mt-2 italic">
+            ⚠ Si le d20 d'attaque est un critique, ajoute <b>+{viciousBonus}</b> CD pour Vicious
+          </div>
+        )}
+      </div>
+
+      {/* Mode toggle */}
       <div className="flex gap-2">
         <button
           type="button"
@@ -269,41 +352,27 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
         </button>
       </div>
 
+      {/* Manual input — only raw damage + effects */}
       {diceMode === 'manual' && (
-        <div className="grid grid-cols-4 gap-2 text-xs">
+        <div className="grid grid-cols-2 gap-3 border border-vault-yellow-dark rounded p-2 bg-vault-blue-dark">
           <div>
-            <label className="text-vault-yellow-dark">Succès</label>
+            <label className="text-xs text-vault-yellow-dark">Dégâts totaux (somme des CD)</label>
             <input
               type="number"
-              value={manual.successes}
-              onChange={e => setManual(m => ({ ...m, successes: +e.target.value }))}
-              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1"
-            />
-          </div>
-          <div>
-            <label className="text-vault-yellow-dark">d20 crit</label>
-            <input
-              type="checkbox"
-              checked={manual.d20Critical}
-              onChange={e => setManual(m => ({ ...m, d20Critical: e.target.checked }))}
-            />
-          </div>
-          <div>
-            <label className="text-vault-yellow-dark">Dégâts bruts</label>
-            <input
-              type="number"
+              min={0}
               value={manual.rawDamage}
-              onChange={e => setManual(m => ({ ...m, rawDamage: +e.target.value }))}
-              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1"
+              onChange={e => setManual(m => ({ ...m, rawDamage: Math.max(0, +e.target.value || 0) }))}
+              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm"
             />
           </div>
           <div>
-            <label className="text-vault-yellow-dark">Effects</label>
+            <label className="text-xs text-vault-yellow-dark">Effects rollés (CD = 5 ou 6)</label>
             <input
               type="number"
+              min={0}
               value={manual.effectsRolled}
-              onChange={e => setManual(m => ({ ...m, effectsRolled: +e.target.value }))}
-              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1"
+              onChange={e => setManual(m => ({ ...m, effectsRolled: Math.max(0, +e.target.value || 0) }))}
+              className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm"
             />
           </div>
         </div>

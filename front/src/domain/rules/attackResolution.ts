@@ -1,5 +1,5 @@
-import { rollD20s, rollCombatDice, countD20Successes, type CDResult } from './dice';
-import { calculateEffectiveDR, detectStunCondition, detectPersistentCondition, type ZoneDR, type DamageKind } from './attackQualities';
+import { rollCombatDice, type CDResult } from './dice';
+import { calculateEffectiveDR, type ZoneDR, type DamageKind } from './attackQualities';
 import { INJURY_THRESHOLD_DAMAGE } from './injuryRules';
 
 export interface WeaponQualityInput {
@@ -11,17 +11,22 @@ export interface AttackCommonInput {
   zoneDR: ZoneDR;
   damageKind: DamageKind;
   qualities: WeaponQualityInput[];
+  /**
+   * Total number of CD to roll. Caller computes this from weapon damage + mods +
+   * burst extra ammo + extra damage from AP (melee/thrown). Vicious bonus from a
+   * d20 critical is NOT included here — the player adds those CD themselves
+   * because the d20 attack roll is handled outside the app.
+   */
+  totalCDCount: number;
 }
 
-export interface AttackAppRollInput extends AttackCommonInput {
-  tn: number;
-  focus: number;
-  baseCDCount: number;
-}
+/** App rolls the CDs itself. */
+export type AttackAppRollInput = AttackCommonInput;
 
 export interface AttackManualInput extends AttackCommonInput {
+  /** Sum of damage from CDs rolled physically. */
   rawDamage: number;
-  d20Critical: boolean;
+  /** Number of CDs that rolled an Effect (5 or 6 on the d6). */
   effectsRolled: number;
 }
 
@@ -30,13 +35,10 @@ export interface AttackResult {
   effectiveDR: number;
   finalDamage: number;
   injuryTriggered: boolean;
-  d20Critical: boolean;
   appliedConditions: string[];
   persistentCondition: { type: 'persistent_physical' | 'persistent_radiation'; damage: number } | null;
-  d20Rolls?: number[];
   cdResults?: CDResult[];
-  successes?: number;
-  viciousBonusCD?: number;
+  effectsRolled: number;
 }
 
 function piercingValue(qualities: WeaponQualityInput[]): number | undefined {
@@ -44,7 +46,7 @@ function piercingValue(qualities: WeaponQualityInput[]): number | undefined {
   return p?.value;
 }
 
-function detectPersistentManual(qualities: WeaponQualityInput[]): AttackResult['persistentCondition'] {
+function detectPersistent(qualities: WeaponQualityInput[]): AttackResult['persistentCondition'] {
   const persistent = qualities.find(q => q.quality === 'persistent');
   if (persistent) return { type: 'persistent_physical', damage: persistent.value ?? 1 };
   const radioactive = qualities.find(q => q.quality === 'radioactive');
@@ -52,64 +54,41 @@ function detectPersistentManual(qualities: WeaponQualityInput[]): AttackResult['
   return null;
 }
 
-export function resolveAttackFromManualInput(input: AttackManualInput): AttackResult {
-  const effectiveDR = calculateEffectiveDR(input.zoneDR, input.damageKind, piercingValue(input.qualities));
-  const finalDamage = Math.max(0, input.rawDamage - effectiveDR);
-  const injuryTriggered = finalDamage >= INJURY_THRESHOLD_DAMAGE;
-  const appliedConditions: string[] = [];
-  if (input.effectsRolled > 0 && input.qualities.some(q => q.quality === 'stun')) {
-    appliedConditions.push('stunned');
-  }
-  const persistentCondition = input.effectsRolled > 0 ? detectPersistentManual(input.qualities) : null;
-  return {
-    rawDamage: input.rawDamage,
-    effectiveDR,
-    finalDamage,
-    injuryTriggered,
-    d20Critical: input.d20Critical,
-    appliedConditions,
-    persistentCondition,
-  };
-}
-
-export function resolveAttackFromAppRoll(input: AttackAppRollInput): AttackResult {
-  const d20Rolls = rollD20s(2);
-  const successes = countD20Successes(d20Rolls, input.tn, input.focus);
-  const d20Critical = d20Rolls.some(r => r <= input.focus);
-
-  let cdCount = input.baseCDCount;
-  if (input.qualities.some(q => q.quality === 'burst')) cdCount += 1;
-  let viciousBonusCD = 0;
-  if (d20Critical) {
-    const v = input.qualities.find(q => q.quality === 'vicious');
-    if (v) viciousBonusCD = v.value ?? 1;
-  }
-  cdCount += viciousBonusCD;
-
-  const cdResults = rollCombatDice(cdCount);
-  const rawDamage = cdResults.reduce((sum, cd) => sum + cd.damage, 0);
-
+function finalize(
+  input: AttackCommonInput,
+  rawDamage: number,
+  effectsRolled: number,
+  cdResults?: CDResult[],
+): AttackResult {
   const effectiveDR = calculateEffectiveDR(input.zoneDR, input.damageKind, piercingValue(input.qualities));
   const finalDamage = Math.max(0, rawDamage - effectiveDR);
   const injuryTriggered = finalDamage >= INJURY_THRESHOLD_DAMAGE;
 
   const appliedConditions: string[] = [];
-  if (detectStunCondition(cdResults, input.qualities.map(q => q.quality))) {
+  if (effectsRolled > 0 && input.qualities.some(q => q.quality === 'stun')) {
     appliedConditions.push('stunned');
   }
-  const persistentCondition = detectPersistentCondition(cdResults, input.qualities);
+  const persistentCondition = effectsRolled > 0 ? detectPersistent(input.qualities) : null;
 
   return {
     rawDamage,
     effectiveDR,
     finalDamage,
     injuryTriggered,
-    d20Critical,
     appliedConditions,
     persistentCondition,
-    d20Rolls,
     cdResults,
-    successes,
-    viciousBonusCD,
+    effectsRolled,
   };
+}
+
+export function resolveAttackFromAppRoll(input: AttackAppRollInput): AttackResult {
+  const cdResults = rollCombatDice(input.totalCDCount);
+  const rawDamage = cdResults.reduce((sum, cd) => sum + cd.damage, 0);
+  const effectsRolled = cdResults.filter(cd => cd.effect).length;
+  return finalize(input, rawDamage, effectsRolled, cdResults);
+}
+
+export function resolveAttackFromManualInput(input: AttackManualInput): AttackResult {
+  return finalize(input, input.rawDamage, input.effectsRolled);
 }

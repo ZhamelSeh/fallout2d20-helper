@@ -30,8 +30,8 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
           ))}
         </div>
       )}
-      {result.viciousBonusCD !== undefined && result.viciousBonusCD > 0 && (
-        <div className="text-vault-yellow-dark">+{result.viciousBonusCD} CD (Vicious crit)</div>
+      {result.effectsRolled > 0 && (
+        <div className="text-vault-yellow-dark">★ {result.effectsRolled} Effect{result.effectsRolled > 1 ? 's' : ''}</div>
       )}
       <div className="border-t border-vault-yellow-dark pt-1 mt-1">
         {t('combat.attackFlow.raw')}: <b>{result.rawDamage}</b>
