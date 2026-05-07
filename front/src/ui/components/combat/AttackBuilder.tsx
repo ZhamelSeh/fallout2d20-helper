@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Eye } from 'lucide-react';
 import type { SessionParticipantApi } from '../../../services/api';
 import {
   resolveAttackFromAppRoll,
@@ -10,6 +11,7 @@ import type { DamageKind } from '../../../domain/rules/attackQualities';
 import { weaponBlockedByInjuries } from '../../../domain/rules/injuryRules';
 import { computeModdedWeaponName, computeEffectiveWeaponStats } from '../../../domain/rules/weaponMods';
 import { DamageBreakdown } from './DamageBreakdown';
+import { ItemDetailModal } from '../../../components/ItemDetailModal';
 
 type Zone = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
 type DiceMode = 'app' | 'manual';
@@ -72,6 +74,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   const [extraDamageAP, setExtraDamageAP] = useState(0);
   const [manual, setManual] = useState({ rawDamage: 0, effectsRolled: 0 });
   const [previewResult, setPreviewResult] = useState<AttackResult | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
   const weapon = useMemo(
     () => inventoryWeapons.find((w: any) => (w.itemId ?? w.id) === weaponId) ?? null,
@@ -206,22 +209,33 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
       <div className="grid grid-cols-3 gap-3">
         <div>
           <label className="text-xs text-vault-yellow-dark">{t('combat.attackFlow.weapon')}</label>
-          <select
-            value={weaponId ?? ''}
-            onChange={e => setWeaponId(Number(e.target.value))}
-            className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm"
-          >
-            {inventoryWeapons.map((w: any) => {
-              const id = w.itemId ?? w.id;
-              const blocked = weaponBlockedByInjuries(w.equippedHand, attacker.injuries ?? []);
-              const displayName = computeModdedWeaponName(w as any, t as any);
-              return (
-                <option key={id} value={id} disabled={blocked}>
-                  🔫 {displayName}{blocked ? ' (bras cassé)' : ''}
-                </option>
-              );
-            })}
-          </select>
+          <div className="flex gap-1">
+            <select
+              value={weaponId ?? ''}
+              onChange={e => setWeaponId(Number(e.target.value))}
+              className="flex-1 bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm"
+            >
+              {inventoryWeapons.map((w: any) => {
+                const id = w.itemId ?? w.id;
+                const blocked = weaponBlockedByInjuries(w.equippedHand, attacker.injuries ?? []);
+                const displayName = computeModdedWeaponName(w as any, t as any);
+                return (
+                  <option key={id} value={id} disabled={blocked}>
+                    🔫 {displayName}{blocked ? ' (bras cassé)' : ''}
+                  </option>
+                );
+              })}
+            </select>
+            <button
+              type="button"
+              onClick={() => setDetailModalOpen(true)}
+              disabled={!weaponId}
+              className="px-2 py-1 bg-vault-gray text-vault-yellow-dark hover:text-vault-yellow rounded disabled:opacity-50"
+              title={String(t('common.details', 'Détails'))}
+            >
+              <Eye size={16} />
+            </button>
+          </div>
           {armLocked && (
             <p className="text-xs text-vault-danger mt-1">⚠ {t('combat.attackFlow.armBroken')}</p>
           )}
@@ -427,6 +441,14 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
           ✓ {t('combat.attackFlow.resolve')}
         </button>
       </div>
+
+      <ItemDetailModal
+        isOpen={detailModalOpen}
+        onClose={() => setDetailModalOpen(false)}
+        itemId={weaponId}
+        itemType={weaponId ? 'weapon' : null}
+        installedMods={weapon?.installedMods}
+      />
     </div>
   );
 }
