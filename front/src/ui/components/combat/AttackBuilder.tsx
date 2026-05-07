@@ -72,7 +72,6 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   const [zone, setZone] = useState<Zone>('torso');
   const [diceMode, setDiceMode] = useState<DiceMode>('app');
   const [extraBurstAmmo, setExtraBurstAmmo] = useState(0);
-  const [extraDamageAP, setExtraDamageAP] = useState(0);
   const [manual, setManual] = useState({ rawDamage: 0, effectsRolled: 0 });
   const [previewResult, setPreviewResult] = useState<AttackResult | null>(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
@@ -140,7 +139,6 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   // de +1 CD pour une munition standard). burstMax devient le nombre max de rafales.
   const isGatling = effectiveQualities.some(q => q.quality === 'gatling');
   const burstCDPerUnit = isGatling ? 2 : 1;
-  const damageAPMax = isMeleeOrThrown ? 3 : 0;
 
   // Passive derived stat: meleeDamageBonus auto-adds CDs for melee/unarmed/throwing
   const meleeDamageBonus = (attacker.character as any).meleeDamageBonus ?? 0;
@@ -148,16 +146,12 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
 
   const baseCDCount = stats?.damage ?? 0;
   const burstCDBonus = extraBurstAmmo * burstCDPerUnit;
-  const totalCDCount = baseCDCount
-    + meleeBonusApplied
-    + burstCDBonus
-    + (isMeleeOrThrown ? extraDamageAP : 0);
+  const totalCDCount = baseCDCount + meleeBonusApplied + burstCDBonus;
 
   // Reset inputs when the weapon changes (so burst from a previous gun doesn't
   // leak into a melee weapon, etc.)
   useEffect(() => {
     setExtraBurstAmmo(0);
-    setExtraDamageAP(0);
     setPreviewResult(null);
   }, [weaponId]);
 
@@ -325,23 +319,29 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
       {/* Weapon qualities chips (with mod-derived qualities included) */}
       {effectiveQualities.length > 0 && (
         <div className="flex gap-1 flex-wrap">
-          {effectiveQualities.map((q, i: number) => (
-            <span
-              key={`${q.quality}-${i}`}
-              title={String(t(`effects.weaponQualities.${q.quality}.rules.0`, q.quality))}
-              className="text-xs px-2 py-0.5 bg-vault-gray rounded-full text-vault-yellow-light cursor-help"
-            >
-              💡 {q.quality}{q.value ? ` ${q.value}` : ''}
-            </span>
-          ))}
+          {effectiveQualities.map((q, i: number) => {
+            const name = String(t(`qualities.${q.quality}.name`, q.quality));
+            const desc = String(t(`qualities.${q.quality}.description`, { value: q.value, defaultValue: q.quality }));
+            return (
+              <span
+                key={`${q.quality}-${i}`}
+                title={desc}
+                className="text-xs px-2 py-0.5 bg-vault-gray rounded-full text-vault-yellow-light cursor-help"
+              >
+                💡 {name}{q.value ? ` ${q.value}` : ''}
+              </span>
+            );
+          })}
         </div>
       )}
 
-      {/* Player choices: burst + damage AP */}
-      <div className="grid grid-cols-2 gap-3 border border-vault-yellow-dark rounded p-2 bg-vault-blue-dark">
-        <div>
+      {/* Cadence de tir — uniquement pour les armes à distance avec fireRate > 0.
+          Les armes melee/lancer n'ont pas d'input ici : le bonus dégâts CaC (passif,
+          stat dérivée meleeDamageBonus) est déjà appliqué automatiquement. */}
+      {burstMax > 0 && (
+        <div className="border border-vault-yellow-dark rounded p-2 bg-vault-blue-dark">
           <label className="text-xs text-vault-yellow-dark">
-            ⚡ Cadence de tir {isGatling ? '(rafales ×10 munitions, +2 CD/rafale)' : '(munitions extra, +1 CD/munition)'} {burstMax > 0 ? `— max ${burstMax}` : '— indispo'}
+            ⚡ Cadence de tir {isGatling ? '(rafales ×10 munitions, +2 CD/rafale)' : '(munitions extra, +1 CD/munition)'} — max {burstMax}
           </label>
           <input
             type="number"
@@ -349,25 +349,10 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
             max={burstMax}
             value={extraBurstAmmo}
             onChange={e => setExtraBurstAmmo(Math.max(0, Math.min(burstMax, +e.target.value || 0)))}
-            disabled={burstMax === 0}
-            className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm disabled:opacity-50"
+            className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm"
           />
         </div>
-        <div>
-          <label className="text-xs text-vault-yellow-dark">
-            🥊 Dégâts supp. (1-3 PA) — {isMeleeOrThrown ? 'melee/lancer' : 'indispo'}
-          </label>
-          <input
-            type="number"
-            min={0}
-            max={damageAPMax}
-            value={extraDamageAP}
-            onChange={e => setExtraDamageAP(Math.max(0, Math.min(damageAPMax, +e.target.value || 0)))}
-            disabled={!isMeleeOrThrown}
-            className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm disabled:opacity-50"
-          />
-        </div>
-      </div>
+      )}
 
       {/* CD count breakdown */}
       <div className="bg-vault-blue-dark border border-vault-yellow rounded p-3">
@@ -383,7 +368,6 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
               {isGatling ? ` (${extraBurstAmmo} rafale${extraBurstAmmo > 1 ? 's' : ''} × 2 CD)` : ''}
             </div>
           )}
-          {isMeleeOrThrown && extraDamageAP > 0 && <div>+ Dégâts supp. (PA) : <b>+{extraDamageAP}</b></div>}
         </div>
         {viciousBonus > 0 && (
           <div className="text-xs text-vault-yellow-dark mt-2 italic">
