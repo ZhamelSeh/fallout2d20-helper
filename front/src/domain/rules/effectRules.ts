@@ -112,11 +112,15 @@ export interface SurvivorTraitEffect {
     specialBonus?: Partial<Record<SpecialAttribute, number>>;
     skillPoints?: number;
     tagSkills?: number;
+    /** Restrict the tag-skill bonus to a specific list (e.g. goodMood: speech/medicine/repair/science/barter) */
+    tagSkillsFromList?: SkillName[];
     luckPoints?: number;
   };
   penalty?: {
     skillPoints?: number;
     carryCapacityMultiplier?: number;
+    /** Override the default skill rank cap (e.g. goodMood: other skills capped at 4) */
+    skillMaxOverride?: number;
   };
   requiresChoice?: boolean;
   specialRuleKeys?: string[];
@@ -148,6 +152,48 @@ export const SURVIVOR_TRAIT_EFFECTS: Record<string, SurvivorTraitEffect> = {
   fastShot: {
     id: 'fastShot',
     specialRuleKeys: ['effects.survivorTraits.fastShot.rules.0', 'effects.survivorTraits.fastShot.rules.1'],
+  },
+  // ===== Guide des Colonies — Néo-Californien sub-traits =====
+  goodMood: {
+    id: 'goodMood',
+    bonus: {
+      tagSkills: 2,
+      tagSkillsFromList: ['speech', 'medicine', 'repair', 'science', 'barter'],
+    },
+    penalty: { skillMaxOverride: 4 },
+    requiresChoice: true,
+    specialRuleKeys: [
+      'effects.survivorTraits.goodMood.rules.0',
+      'effects.survivorTraits.goodMood.rules.1',
+    ],
+  },
+  infantryman: {
+    id: 'infantryman',
+    specialRuleKeys: [
+      'effects.survivorTraits.infantryman.rules.0',
+      'effects.survivorTraits.infantryman.rules.1',
+    ],
+  },
+  homeOnPrairie: {
+    id: 'homeOnPrairie',
+    specialRuleKeys: [
+      'effects.survivorTraits.homeOnPrairie.rules.0',
+      'effects.survivorTraits.homeOnPrairie.rules.1',
+    ],
+  },
+  discipline: {
+    id: 'discipline',
+    specialRuleKeys: [
+      'effects.survivorTraits.discipline.rules.0',
+      'effects.survivorTraits.discipline.rules.1',
+    ],
+  },
+  brahminBaron: {
+    id: 'brahminBaron',
+    specialRuleKeys: [
+      'effects.survivorTraits.brahminBaron.rules.0',
+      'effects.survivorTraits.brahminBaron.rules.1',
+    ],
   },
 };
 
@@ -218,6 +264,10 @@ export const WEAPON_QUALITY_EFFECTS: Record<string, WeaponQualityEffect> = {
 export const ORIGIN_EFFECTS: Record<string, {
   traitKey: string;
   bonusTagSkills?: string[];
+  /** Constrained-choice tag skill list (player picks one) */
+  bonusTagSkillOptions?: string[];
+  /** Free-choice extra tag-skill slot count */
+  bonusTagSkillSlots?: number;
   specialModifiers?: Partial<Record<SpecialAttribute, number>>;
   specialMaxOverrides?: Partial<Record<SpecialAttribute, number>>;
   skillMaxOverride?: number;
@@ -225,6 +275,9 @@ export const ORIGIN_EFFECTS: Record<string, {
   isRobot?: boolean;
   bonusTraits?: number;
   bonusSkillPoints?: number;
+  /** Fixed carry capacity (kg) — does not scale with STR */
+  carryCapacityFixed?: number;
+  specialRuleKeys?: string[];
 }> = {
   brotherhood: { traitKey: 'effects.origins.brotherhood.trait', bonusTagSkills: ['energyWeapons'] },
   ghoul: { traitKey: 'effects.origins.ghoul.trait', specialModifiers: { endurance: 1 }, negativesKeys: ['effects.origins.ghoul.negatives.0'] },
@@ -232,6 +285,95 @@ export const ORIGIN_EFFECTS: Record<string, {
   misterHandy: { traitKey: 'effects.origins.misterHandy.trait', isRobot: true, negativesKeys: ['effects.origins.misterHandy.negatives.0', 'effects.origins.misterHandy.negatives.1'] },
   survivor: { traitKey: 'effects.origins.survivor.trait', bonusTraits: 2 },
   vaultDweller: { traitKey: 'effects.origins.vaultDweller.trait', bonusSkillPoints: 2 },
+  // ===== Guide des Colonies =====
+  commonwealthMilitia: {
+    traitKey: 'effects.origins.commonwealthMilitia.trait',
+    bonusTagSkillOptions: ['energyWeapons', 'smallGuns'],
+    specialRuleKeys: [
+      'effects.origins.commonwealthMilitia.rules.0', // caravan every 5 days
+      'effects.origins.commonwealthMilitia.rules.1', // colony defense base = 4
+      'effects.origins.commonwealthMilitia.rules.2', // +1 DR while in cover
+      'effects.origins.commonwealthMilitia.rules.3', // +1 CD when outnumbered with allies
+    ],
+  },
+  nca: {
+    traitKey: 'effects.origins.nca.trait',
+    bonusTraits: 2,
+    specialRuleKeys: [
+      'effects.origins.nca.rules.0', // 2 traits NCA, 2 traits Survivor, 1+1, OR 1 trait + 1 perk
+    ],
+  },
+  protectron: {
+    traitKey: 'effects.origins.protectron.trait',
+    isRobot: true,
+    carryCapacityFixed: 113,
+    specialRuleKeys: [
+      'effects.origins.protectron.rules.0', // 1/scene reroll vs environmental hazard
+      'effects.origins.protectron.rules.1', // immune to poison, radiation, disease
+      'effects.origins.protectron.rules.2', // no chems, no food/drink/rest effects
+      'effects.origins.protectron.rules.3', // no healing without repair
+      'effects.origins.protectron.rules.4', // max 2 robot mods
+      'effects.origins.protectron.rules.5', // dedicated model — first d20 from AP costs 0 in line of work
+      'effects.origins.protectron.rules.6', // fixed carry 113 kg
+      'effects.origins.protectron.rules.7', // built-in weapons (Pinces, Cryojet, Self-destruct, Electrified hand) — TODO weapons
+    ],
+  },
+  cerebrobot: {
+    traitKey: 'effects.origins.cerebrobot.trait',
+    isRobot: true,
+    carryCapacityFixed: 75,
+    specialRuleKeys: [
+      'effects.origins.cerebrobot.rules.0', // visual + infrared sensors — no PER malus in darkness
+      'effects.origins.cerebrobot.rules.1', // immune to poison, radiation, disease
+      'effects.origins.cerebrobot.rules.2', // no chems, no food/drink/rest effects
+      'effects.origins.cerebrobot.rules.3', // no healing without repair
+      'effects.origins.cerebrobot.rules.4', // movement: two treads
+      'effects.origins.cerebrobot.rules.5', // built-in Medusa weapon — TODO weapons
+      'effects.origins.cerebrobot.rules.6', // fixed carry 75 kg
+    ],
+  },
+  securitron: {
+    traitKey: 'effects.origins.securitron.trait',
+    isRobot: true,
+    carryCapacityFixed: 75,
+    specialRuleKeys: [
+      'effects.origins.securitron.rules.0', // forward visual sensors, visible spectrum
+      'effects.origins.securitron.rules.1', // immune to poison, radiation, disease
+      'effects.origins.securitron.rules.2', // no chems, no food/drink/rest effects
+      'effects.origins.securitron.rules.3', // no healing without repair
+      'effects.origins.securitron.rules.4', // movement: one wheel — +1 difficulty balance tests
+      'effects.origins.securitron.rules.5', // built-in pincer weapons + hidden missile/grenade launcher (Mk II) — TODO
+      'effects.origins.securitron.rules.6', // fixed carry 75 kg
+      'effects.origins.securitron.rules.7', // special hit-location table includes wheel zone
+    ],
+  },
+  synthGen3: {
+    traitKey: 'effects.origins.synthGen3.trait',
+    bonusTagSkillSlots: 1,
+    specialRuleKeys: [
+      'effects.origins.synthGen3.rules.0', // immune to hunger/thirst/sleep — rest = quiet activities
+      'effects.origins.synthGen3.rules.1', // no food/drink effects
+      'effects.origins.synthGen3.rules.2', // immune to poison, radiation, disease
+      'effects.origins.synthGen3.rules.3', // no aging, fixed body
+      'effects.origins.synthGen3.rules.4', // +2 difficulty CHR vs NPCs aware of synth nature (except friendly)
+      'effects.origins.synthGen3.rules.5', // complication: NPC hostile OR -1 reputation
+      'effects.origins.synthGen3.rules.6', // verbal recall code disables
+    ],
+  },
+  synthGen2: {
+    traitKey: 'effects.origins.synthGen2.trait',
+    bonusTagSkillSlots: 1,
+    specialRuleKeys: [
+      'effects.origins.synthGen2.rules.0', // visibly android — synth nature always evident
+      'effects.origins.synthGen2.rules.1', // immune to hunger/thirst/sleep — rest = quiet activities
+      'effects.origins.synthGen2.rules.2', // no food/drink effects
+      'effects.origins.synthGen2.rules.3', // immune to poison, radiation, disease
+      'effects.origins.synthGen2.rules.4', // no aging, fixed body
+      'effects.origins.synthGen2.rules.5', // +2 difficulty CHR vs NPCs with prejudice (always)
+      'effects.origins.synthGen2.rules.6', // verbal recall code disables
+      'effects.origins.synthGen2.rules.7', // starter pack = wasteland inhabitant pack
+    ],
+  },
 };
 
 // ===== HELPER FUNCTIONS =====

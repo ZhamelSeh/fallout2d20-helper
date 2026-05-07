@@ -14,9 +14,33 @@ export type Condition =
 
 export type CombatantStatus = 'active' | 'unconscious' | 'dead' | 'fled';
 
-export type OriginId = 'brotherhood' | 'ghoul' | 'superMutant' | 'misterHandy' | 'survivor' | 'vaultDweller';
+export type OriginId =
+  | 'brotherhood'
+  | 'ghoul'
+  | 'superMutant'
+  | 'misterHandy'
+  | 'survivor'
+  | 'vaultDweller'
+  | 'commonwealthMilitia'
+  | 'nca'
+  | 'protectron'
+  | 'cerebrobot'
+  | 'securitron'
+  | 'synthGen3'
+  | 'synthGen2';
 
-export type SurvivorTraitId = 'gifted' | 'educated' | 'smallFrame' | 'heavyHanded' | 'fastShot';
+export type SurvivorTraitId =
+  | 'gifted'
+  | 'educated'
+  | 'smallFrame'
+  | 'heavyHanded'
+  | 'fastShot'
+  // Guide des Colonies — Néo-Californien sub-traits (shared pool)
+  | 'goodMood'
+  | 'infantryman'
+  | 'homeOnPrairie'
+  | 'discipline'
+  | 'brahminBaron';
 
 export interface InventoryArmorDetails {
   location: string;

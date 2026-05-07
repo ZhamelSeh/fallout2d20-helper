@@ -91,7 +91,14 @@ export type OriginId =
   | 'superMutant'
   | 'misterHandy'
   | 'survivor'
-  | 'vaultDweller';
+  | 'vaultDweller'
+  | 'commonwealthMilitia'
+  | 'nca'
+  | 'protectron'
+  | 'cerebrobot'
+  | 'securitron'
+  | 'synthGen3'
+  | 'synthGen2';
 
 export interface OriginTrait {
   nameKey: string;
@@ -116,6 +123,9 @@ export interface Origin {
   skillMaxOverride?: number;
   // Is this a robot? (different damage locations)
   isRobot?: boolean;
+  // Fixed carry capacity (e.g., Protectron 113kg, Cerebrobot/Securitron 75kg) — does not scale with STR
+  carryCapacity?: number;
+  carryCapacityFixed?: boolean;
 }
 
 export const ORIGINS: Origin[] = [
@@ -186,11 +196,103 @@ export const ORIGINS: Origin[] = [
     // Born in the Vault: -1 difficulty to END tests vs disease, +1 bonus tag skill at rank 2
     bonusTagSkillSlots: 1,
   },
+  // ===== Guide des Colonies =====
+  {
+    id: 'commonwealthMilitia',
+    nameKey: 'origins.commonwealthMilitia.name',
+    descriptionKey: 'origins.commonwealthMilitia.description',
+    trait: {
+      nameKey: 'origins.commonwealthMilitia.trait.name',
+      descriptionKey: 'origins.commonwealthMilitia.trait.description',
+    },
+    // L'union fait la force: choose one weapon training (Energy or Small Guns) as bonus tag skill
+    bonusTagSkillOptions: ['energyWeapons', 'smallGuns'],
+  },
+  {
+    id: 'nca',
+    nameKey: 'origins.nca.name',
+    descriptionKey: 'origins.nca.description',
+    trait: {
+      nameKey: 'origins.nca.trait.name',
+      descriptionKey: 'origins.nca.trait.description',
+    },
+    // Néo-Californien: choose 2 traits from a shared pool (NCA + Survivor)
+  },
+  {
+    id: 'protectron',
+    nameKey: 'origins.protectron.name',
+    descriptionKey: 'origins.protectron.description',
+    trait: {
+      nameKey: 'origins.protectron.trait.name',
+      descriptionKey: 'origins.protectron.trait.description',
+    },
+    isRobot: true,
+    carryCapacity: 113,
+    carryCapacityFixed: true,
+  },
+  {
+    id: 'cerebrobot',
+    nameKey: 'origins.cerebrobot.name',
+    descriptionKey: 'origins.cerebrobot.description',
+    trait: {
+      nameKey: 'origins.cerebrobot.trait.name',
+      descriptionKey: 'origins.cerebrobot.trait.description',
+    },
+    isRobot: true,
+    carryCapacity: 75,
+    carryCapacityFixed: true,
+  },
+  {
+    id: 'securitron',
+    nameKey: 'origins.securitron.name',
+    descriptionKey: 'origins.securitron.description',
+    trait: {
+      nameKey: 'origins.securitron.trait.name',
+      descriptionKey: 'origins.securitron.trait.description',
+    },
+    isRobot: true,
+    carryCapacity: 75,
+    carryCapacityFixed: true,
+    // Special hit-location table includes 'wheel' (handled in rollHitLocation)
+  },
+  {
+    id: 'synthGen3',
+    nameKey: 'origins.synthGen3.name',
+    descriptionKey: 'origins.synthGen3.description',
+    trait: {
+      nameKey: 'origins.synthGen3.trait.name',
+      descriptionKey: 'origins.synthGen3.trait.description',
+    },
+    // Plus qu'humain: +1 bonus tag skill slot ("atout personnel supplémentaire")
+    bonusTagSkillSlots: 1,
+  },
+  {
+    id: 'synthGen2',
+    nameKey: 'origins.synthGen2.name',
+    descriptionKey: 'origins.synthGen2.description',
+    trait: {
+      nameKey: 'origins.synthGen2.trait.name',
+      descriptionKey: 'origins.synthGen2.trait.description',
+    },
+    // Same as Gen3 but visible android — CHR malus always applies vs prejudiced NPCs
+    bonusTagSkillSlots: 1,
+  },
 ];
 
 // ===== SURVIVOR TRAITS =====
 
-export type SurvivorTraitId = 'gifted' | 'educated' | 'smallFrame' | 'heavyHanded' | 'fastShot';
+export type SurvivorTraitId =
+  | 'gifted'
+  | 'educated'
+  | 'smallFrame'
+  | 'heavyHanded'
+  | 'fastShot'
+  // Guide des Colonies — Néo-Californien sub-traits (shared pool with Survivor)
+  | 'goodMood'
+  | 'infantryman'
+  | 'homeOnPrairie'
+  | 'discipline'
+  | 'brahminBaron';
 
 export interface SurvivorTrait {
   id: SurvivorTraitId;
@@ -239,6 +341,47 @@ export const SURVIVOR_TRAITS: SurvivorTrait[] = [
     drawbackKey: 'survivorTraits.fastShot.drawback',
     // Benefit: Second major action for ranged attack costs 1 AP instead of 2
     // Drawback: Cannot benefit from Aim minor action
+  },
+  // ===== Guide des Colonies — Néo-Californien sub-traits =====
+  {
+    id: 'goodMood',
+    nameKey: 'survivorTraits.goodMood.name',
+    benefitKey: 'survivorTraits.goodMood.benefit',
+    drawbackKey: 'survivorTraits.goodMood.drawback',
+    // Benefit: 2 skills among Speech/Medicine/Repair/Science/Barter become tag skills
+    // Drawback: Other skills capped at 4 (instead of 6)
+  },
+  {
+    id: 'infantryman',
+    nameKey: 'survivorTraits.infantryman.name',
+    benefitKey: 'survivorTraits.infantryman.benefit',
+    drawbackKey: 'survivorTraits.infantryman.drawback',
+    // Benefit: +1 CD with SMGs, combat shotguns, assault rifles, frag grenades, combat knives
+    // Drawback: Complication margin +2 with heavy or energy weapons
+  },
+  {
+    id: 'homeOnPrairie',
+    nameKey: 'survivorTraits.homeOnPrairie.name',
+    benefitKey: 'survivorTraits.homeOnPrairie.benefit',
+    drawbackKey: 'survivorTraits.homeOnPrairie.drawback',
+    // Benefit: Sleep 6h+ near a campfire → injury rest recovery difficulty -1
+    // Drawback: Never well-rested
+  },
+  {
+    id: 'discipline',
+    nameKey: 'survivorTraits.discipline.name',
+    benefitKey: 'survivorTraits.discipline.benefit',
+    drawbackKey: 'survivorTraits.discipline.drawback',
+    // Benefit: Ranged attack with small/energy weapon — may reroll 1d20
+    // Drawback: -1 fire rate with small/energy weapons while wielding
+  },
+  {
+    id: 'brahminBaron',
+    nameKey: 'survivorTraits.brahminBaron.name',
+    benefitKey: 'survivorTraits.brahminBaron.benefit',
+    drawbackKey: 'survivorTraits.brahminBaron.drawback',
+    // Benefit: Brahmin trough feeds 3 brahmins instead of 2; +1 CD brahmin milk per trough on "tend crops"
+    // Drawback: +1d20 to determine attack risk if Food reserve > Settlers value
   },
 ];
 
@@ -438,8 +581,19 @@ export function calculateMaxLuckPoints(luck: number, hasGiftedTrait: boolean = f
  * Calculate carry capacity based on Fallout 2d20 rules
  * Normal: 75 + (5 x STR) kg
  * Small Frame trait: 75 + (2.5 x STR) kg
+ * Some origins (robots from Guide des Colonies) have a fixed carry capacity that does not scale with STR.
  */
-export function calculateCarryCapacity(strength: number, hasSmallFrame: boolean = false): number {
+export function calculateCarryCapacity(
+  strength: number,
+  hasSmallFrame: boolean = false,
+  originId?: OriginId | null,
+): number {
+  if (originId) {
+    const origin = ORIGINS.find((o) => o.id === originId);
+    if (origin?.carryCapacityFixed && origin.carryCapacity != null) {
+      return origin.carryCapacity;
+    }
+  }
   const multiplier = hasSmallFrame ? 2.5 : 5;
   return 75 + multiplier * strength;
 }
@@ -620,7 +774,7 @@ export function recalculateCharacterStats(character: Character): Partial<Charact
   const defense = calculateDefense(character.special.agility);
   const meleeDamageBonus = calculateMeleeDamageBonus(character.special.strength);
   const maxLuckPoints = calculateMaxLuckPoints(character.special.luck, hasGifted);
-  const carryCapacity = calculateCarryCapacity(character.special.strength, hasSmallFrame);
+  const carryCapacity = calculateCarryCapacity(character.special.strength, hasSmallFrame, character.origin);
 
   return {
     maxHp,

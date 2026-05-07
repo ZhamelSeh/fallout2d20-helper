@@ -646,6 +646,63 @@ export default {
         description: '-1 difficulté aux tests d\'END contre les maladies. +1 atout personnel au rang 2.',
       },
     },
+    // ===== Guide des Colonies =====
+    commonwealthMilitia: {
+      name: 'Milicien du Commonwealth',
+      description: 'Un colon engagé dans la milice locale, défenseur des colonies du Commonwealth.',
+      trait: {
+        name: 'L\'union fait la force',
+        description: 'Caravane commerciale tous les 5 jours. Défense de base des colonies = 4. Choisissez Armes à énergie OU Armes légères comme atout personnel supplémentaire. +1 RD à l\'abri. +1 [CD] de dégâts en sous-effectif avec vos camarades.',
+      },
+    },
+    nca: {
+      name: 'République de Nouvelle Californie',
+      description: 'Citoyen de la RNC, héritier d\'une civilisation reconstruite à l\'ouest.',
+      trait: {
+        name: 'Néo-Californien',
+        description: 'Choisissez 2 traits parmi : 2 traits néo-californiens, 2 traits de survivant, 1 trait de chaque, ou 1 trait + 1 aptitude supplémentaire.',
+      },
+    },
+    protectron: {
+      name: 'Protectron',
+      description: 'Un robot RobCo conçu pour protéger ou détruire selon sa programmation.',
+      trait: {
+        name: 'Protéger ou détruire',
+        description: 'Robot. 1×/scène : relancer un test contre un péril environnemental. Immunisé poison/radiations/maladies. Pas d\'effets de chems, nourriture, boissons ou repos. Pas de guérison sans réparations. Max 2 mods de robot. Modèle dédié (pompier, policier, etc.) : 1er d20 acheté avec PA gratuit pour les tests liés à sa fonction. Charge max fixe : 113 kg. Armement intégré : Pinces, Cryojet, Autodestruction, Main électrifiée.',
+      },
+    },
+    cerebrobot: {
+      name: 'Cérébrobot',
+      description: 'Un robot cérébral monté sur chenilles, conçu pour la recherche et la sécurité.',
+      trait: {
+        name: 'Cérébrobot',
+        description: 'Robot. Capteurs visibles + infrarouges (pas de malus PER dans l\'obscurité). Immunisé poison/radiations/maladies. Pas d\'effets de chems, nourriture, boissons ou repos. Pas de guérison sans réparations. Mouvement : deux chenilles. Médusatron de série. Charge max fixe : 75 kg.',
+      },
+    },
+    securitron: {
+      name: 'Sécuritron',
+      description: 'Un robot de sécurité monté sur une roue unique, fierté de Mr House.',
+      trait: {
+        name: 'Sécuritron Mk I',
+        description: 'Robot. Capteurs visuels avant (spectre visible). Immunisé poison/radiations/maladies. Pas d\'effets de chems, nourriture, boissons ou repos. Pas de guérison sans réparations. Mouvement : une roue (+1 difficulté tests d\'équilibre). Pinces avec armes intégrées + lance-missiles/grenades cachés (Mk II requis). Charge max fixe : 75 kg. Localisation des dégâts : 1-2 tête, 3-11 buste, 12-14 bras gauche, 15-17 bras droit, 18-20 roue.',
+      },
+    },
+    synthGen3: {
+      name: 'Synthé de 3e génération',
+      description: 'Un androïde de l\'Institut, indiscernable d\'un humain.',
+      trait: {
+        name: 'Plus qu\'humain',
+        description: 'Atout personnel supplémentaire. Immunisé faim/soif/sommeil (repos = activités calmes). Pas d\'effets de nourriture/boissons. Immunisé poison/radiations/maladies. Pas de vieillissement, corpulence inchangée. +2 difficulté tests CHR avec les PNJ au courant de votre nature (sauf sympathiques). Complication : PNJ devient hostile OU réputation -1. Code de rappel verbal qui désactive.',
+      },
+    },
+    synthGen2: {
+      name: 'Synthé de 2e génération',
+      description: 'Un androïde de l\'Institut, à l\'apparence visiblement artificielle.',
+      trait: {
+        name: 'Plus qu\'humain',
+        description: 'Atout personnel supplémentaire. Apparence visiblement androïde : votre nature est toujours évidente. Immunisé faim/soif/sommeil (repos = activités calmes). Pas d\'effets de nourriture/boissons. Immunisé poison/radiations/maladies. Pas de vieillissement, corpulence inchangée. +2 difficulté tests CHR avec les PNJ ayant un préjugé. Complication : PNJ devient hostile OU réputation -1. Code de rappel verbal qui désactive. Pack de départ : pack "habitant des terres désolées".',
+      },
+    },
   },
 
   survivorTraits: {
@@ -673,6 +730,32 @@ export default {
       name: 'Tir rapide',
       benefit: '2e action majeure pour attaque à distance = 1 PA au lieu de 2.',
       drawback: 'Aucun bénéfice de l\'action Viser.',
+    },
+    // ===== Guide des Colonies — sous-traits néo-californiens =====
+    goodMood: {
+      name: 'Bonne humeur',
+      benefit: '2 compétences parmi Discours, Médecine, Réparation, Science et Troc deviennent des atouts personnels.',
+      drawback: 'Maximum des autres compétences = 4 (au lieu de 6).',
+    },
+    infantryman: {
+      name: 'Fantassin',
+      benefit: '+1 [CD] avec mitraillettes, carabines de combat, fusils d\'assaut, grenades à fragmentation et couteaux de combat.',
+      drawback: 'La marge de complication des tests avec arme lourde ou arme à énergie augmente de 2.',
+    },
+    homeOnPrairie: {
+      name: 'Maison sur la prairie',
+      benefit: 'Lorsque vous dormez 6 h ou plus près d\'un feu de camp, la difficulté de récupération de blessures par repos est diminuée de 1.',
+      drawback: 'Vous n\'êtes jamais bien reposé (livre de base, p. 35).',
+    },
+    discipline: {
+      name: 'Discipline',
+      benefit: 'Lors d\'une attaque à distance avec une arme légère ou à énergie, vous pouvez relancer 1d20.',
+      drawback: '-1 cadence de tir pour les armes légères et à énergie tant que vous les maniez.',
+    },
+    brahminBaron: {
+      name: 'Baron des brahmines',
+      benefit: 'Chaque mangeoire à brahmines nourrit 3 brahmines (au lieu de 2). Action de colonie « S\'occuper des cultures » : +1 [CD] de lait de brahmine par mangeoire.',
+      drawback: 'Lancez +1d20 pour déterminer le risque d\'attaque sur la colonie si la réserve de Vivres dépasse la valeur de Colons.',
     },
   },
 

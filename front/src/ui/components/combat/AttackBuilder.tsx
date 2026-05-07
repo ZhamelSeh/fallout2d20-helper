@@ -11,11 +11,12 @@ import type { DamageKind } from '../../../domain/rules/attackQualities';
 import { weaponBlockedByInjuries } from '../../../domain/rules/injuryRules';
 import { computeModdedWeaponName, computeEffectiveWeaponStats } from '../../../domain/rules/weaponMods';
 import { computeBodyDR, type BodyLocation } from '../../../domain/rules/bodyResistance';
+import { rollHitLocation } from '../../../domain/rules/hitLocation';
 import { damageTypeColor, damageTypeIcon } from '../../../domain/rules/damageTypes';
 import { DamageBreakdown } from './DamageBreakdown';
 import { ItemDetailModal } from '../../../components/ItemDetailModal';
 
-type Zone = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
+type Zone = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight' | 'wheel';
 type DiceMode = 'app' | 'manual';
 
 const SKILL_TO_SPECIAL: Record<string, string> = {
@@ -186,8 +187,8 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
 
     let actualZone: Zone = zone;
     if (diceMode === 'app') {
-      const zones: Zone[] = ['head', 'torso', 'armLeft', 'armRight', 'legLeft', 'legRight'];
-      actualZone = zones[Math.floor(Math.random() * zones.length)];
+      const targetOriginId = (target?.character as any)?.origin ?? (target?.character as any)?.originId ?? null;
+      actualZone = rollHitLocation(targetOriginId) as Zone;
       setZone(actualZone);
     }
 

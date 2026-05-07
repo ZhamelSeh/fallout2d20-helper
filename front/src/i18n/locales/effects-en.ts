@@ -471,6 +471,37 @@ export const effectsEn = {
           1: 'Cannot make aimed/called shots',
         },
       },
+      // ===== Guide des Colonies — New Californian sub-traits =====
+      goodMood: {
+        rules: {
+          0: '2 skills among Speech, Medicine, Repair, Science and Barter become tag skills.',
+          1: 'Maximum for other skills = 4 (instead of 6).',
+        },
+      },
+      infantryman: {
+        rules: {
+          0: '+1 [CD] with submachine guns, combat shotguns, assault rifles, frag grenades, and combat knives.',
+          1: 'Complication margin of tests with heavy or energy weapons increases by 2.',
+        },
+      },
+      homeOnPrairie: {
+        rules: {
+          0: 'When you sleep 6h+ near a campfire, the difficulty of injury recovery by rest is reduced by 1.',
+          1: 'You are never well-rested (Core Rulebook, p. 35).',
+        },
+      },
+      discipline: {
+        rules: {
+          0: 'On a ranged attack with a small or energy weapon, you may reroll 1d20.',
+          1: '-1 fire rate with small and energy weapons while wielding them.',
+        },
+      },
+      brahminBaron: {
+        rules: {
+          0: 'Each brahmin trough feeds 3 brahmins (instead of 2). "Tend crops" colony action: +1 [CD] of brahmin milk per trough.',
+          1: 'Roll +1d20 to determine attack risk on the colony if Food reserve exceeds Settlers value.',
+        },
+      },
     },
     weaponQualities: {
       // === DAMAGE EFFECTS ===
@@ -624,6 +655,85 @@ export const effectsEn = {
       },
       vaultDweller: {
         trait: 'Well-educated: +2 skill points at character creation',
+      },
+      // ===== Guide des Colonies =====
+      commonwealthMilitia: {
+        trait: 'Strength in Unity: caravan every 5 days, base defense = 4, additional tag skill (Energy or Small Guns), +1 DR in cover, +1 [CD] when outnumbered',
+        rules: {
+          0: 'A trade caravan arrives every 5 days (instead of 7).',
+          1: 'Base defense value of your colonies is 4.',
+          2: '+1 DR while in cover.',
+          3: '+1 [CD] damage while you and your allies are outnumbered.',
+        },
+      },
+      nca: {
+        trait: 'New Californian: 2 traits from a shared pool (NCA / Survivor) or 1 trait + 1 perk',
+        rules: {
+          0: 'Choose 2 traits from: 2 New Californian traits, 2 Survivor traits, 1 of each, or 1 trait + 1 additional perk.',
+        },
+      },
+      protectron: {
+        trait: 'Protect or Destroy: RobCo robot programmed for security',
+        rules: {
+          0: '1×/scene: reroll a test against an environmental hazard.',
+          1: 'Immune to poison, radiation, and disease.',
+          2: 'No effect from chems, food, drink, or rest.',
+          3: 'No healing without repairs.',
+          4: 'Maximum 2 robot mods installed.',
+          5: 'Dedicated model (firefighter, police, worker, medic, etc.): 1st d20 bought with AP costs 0 AP for tests directly related to its function.',
+          6: 'Fixed carry capacity: 113 kg (does not scale with Strength or perks).',
+          7: 'Built-in weapons: Pincers, Cryojet, Self-destruct, Electrified hand (to be implemented).',
+        },
+      },
+      cerebrobot: {
+        trait: 'Cerebrobot: cerebral robot mounted on treads',
+        rules: {
+          0: 'Visible + infrared visual sensors: no PER malus in darkness.',
+          1: 'Immune to poison, radiation, and disease.',
+          2: 'No effect from chems, food, drink, or rest.',
+          3: 'No healing without repairs.',
+          4: 'Movement: two treads.',
+          5: 'Standard Medusa-tron weapon (to be implemented).',
+          6: 'Fixed carry capacity: 75 kg.',
+        },
+      },
+      securitron: {
+        trait: 'Securitron Mk I: security robot on a single wheel',
+        rules: {
+          0: 'Forward visual sensors, visible spectrum.',
+          1: 'Immune to poison, radiation, and disease.',
+          2: 'No effect from chems, food, drink, or rest.',
+          3: 'No healing without repairs.',
+          4: 'Movement: one wheel. +1 difficulty to balance tests.',
+          5: 'Pincers with built-in weapons + hidden missile and grenade launchers (unusable without Mk II; to be implemented).',
+          6: 'Fixed carry capacity: 75 kg.',
+          7: 'Special hit-location table: 1-2 head, 3-11 torso, 12-14 left arm, 15-17 right arm, 18-20 wheel.',
+        },
+      },
+      synthGen3: {
+        trait: 'More than Human: Institute android indistinguishable from a human',
+        rules: {
+          0: 'Immune to hunger, thirst, and sleep. Rest consists of quiet activities (crafting, reading, light scouting).',
+          1: 'No effect from food or drink.',
+          2: 'Immune to poison, radiation, and disease.',
+          3: 'No aging, body unchanged.',
+          4: '+2 difficulty to CHR tests with NPCs aware of your synth nature (except friendly ones).',
+          5: 'Complication: NPC becomes hostile OR your reputation is reduced by 1.',
+          6: 'A verbal recall code can disable you.',
+        },
+      },
+      synthGen2: {
+        trait: 'More than Human: visibly artificial Institute android',
+        rules: {
+          0: 'Visibly android appearance: your synth nature is always evident.',
+          1: 'Immune to hunger, thirst, and sleep. Rest consists of quiet activities.',
+          2: 'No effect from food or drink.',
+          3: 'Immune to poison, radiation, and disease.',
+          4: 'No aging, body unchanged.',
+          5: '+2 difficulty to CHR tests with prejudiced NPCs (always applies).',
+          6: 'A verbal recall code can disable you.',
+          7: 'Starter pack: "Wastelander" pack (Core Rulebook, page 78).',
+        },
       },
     },
   },

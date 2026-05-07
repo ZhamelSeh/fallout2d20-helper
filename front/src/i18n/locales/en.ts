@@ -646,6 +646,63 @@ export default {
         description: '-1 difficulty to END tests against diseases. +1 tag skill at rank 2.',
       },
     },
+    // ===== Guide des Colonies =====
+    commonwealthMilitia: {
+      name: 'Commonwealth Militia',
+      description: 'A settler enlisted in the local militia, defender of the Commonwealth colonies.',
+      trait: {
+        name: 'Strength in Unity',
+        description: 'Trade caravan every 5 days. Base colony defense = 4. Choose Energy Weapons OR Small Guns as an additional tag skill. +1 DR while in cover. +1 [CD] damage when outnumbered alongside allies.',
+      },
+    },
+    nca: {
+      name: 'New California Republic',
+      description: 'A citizen of the NCR, heir to a civilization rebuilt in the west.',
+      trait: {
+        name: 'New Californian',
+        description: 'Choose 2 traits from: 2 New Californian traits, 2 Survivor traits, 1 of each, or 1 trait + 1 additional perk.',
+      },
+    },
+    protectron: {
+      name: 'Protectron',
+      description: 'A RobCo robot designed to protect or destroy according to its programming.',
+      trait: {
+        name: 'Protect or Destroy',
+        description: 'Robot. 1×/scene: reroll a test against an environmental hazard. Immune to poison/radiation/disease. No effect from chems, food, drink, or rest. No healing without repairs. Max 2 robot mods. Dedicated model (firefighter, police, etc.): 1st d20 bought with AP costs 0 for tests related to its function. Fixed carry capacity: 113 kg. Built-in weapons: Pincers, Cryojet, Self-destruct, Electrified hand.',
+      },
+    },
+    cerebrobot: {
+      name: 'Cerebrobot',
+      description: 'A cerebral robot mounted on treads, designed for research and security.',
+      trait: {
+        name: 'Cerebrobot',
+        description: 'Robot. Visible + infrared sensors (no PER malus in darkness). Immune to poison/radiation/disease. No effect from chems, food, drink, or rest. No healing without repairs. Movement: two treads. Standard Medusa-tron weapon. Fixed carry capacity: 75 kg.',
+      },
+    },
+    securitron: {
+      name: 'Securitron',
+      description: 'A security robot mounted on a single wheel, the pride of Mr House.',
+      trait: {
+        name: 'Securitron Mk I',
+        description: 'Robot. Forward visual sensors (visible spectrum). Immune to poison/radiation/disease. No effect from chems, food, drink, or rest. No healing without repairs. Movement: one wheel (+1 difficulty to balance tests). Pincers with built-in weapons + hidden missile/grenade launchers (Mk II required). Fixed carry capacity: 75 kg. Hit location table: 1-2 head, 3-11 torso, 12-14 left arm, 15-17 right arm, 18-20 wheel.',
+      },
+    },
+    synthGen3: {
+      name: 'Gen-3 Synth',
+      description: 'An Institute android indistinguishable from a human.',
+      trait: {
+        name: 'More than Human',
+        description: 'Additional tag skill. Immune to hunger/thirst/sleep (rest = quiet activities). No effect from food/drink. Immune to poison/radiation/disease. No aging, body unchanged. +2 difficulty to CHR tests with NPCs aware of your synth nature (except friendly ones). Complication: NPC becomes hostile OR reputation -1. Verbal recall code can disable you.',
+      },
+    },
+    synthGen2: {
+      name: 'Gen-2 Synth',
+      description: 'An Institute android with a visibly artificial appearance.',
+      trait: {
+        name: 'More than Human',
+        description: 'Additional tag skill. Visibly android: your synth nature is always evident. Immune to hunger/thirst/sleep (rest = quiet activities). No effect from food/drink. Immune to poison/radiation/disease. No aging, body unchanged. +2 difficulty to CHR tests with prejudiced NPCs (always). Complication: NPC becomes hostile OR reputation -1. Verbal recall code can disable you. Starter pack: "Wastelander" pack.',
+      },
+    },
   },
 
   survivorTraits: {
@@ -673,6 +730,32 @@ export default {
       name: 'Fast Shot',
       benefit: '2nd major action for ranged attack = 1 AP instead of 2.',
       drawback: 'No benefit from Aim action.',
+    },
+    // ===== Guide des Colonies — New Californian sub-traits =====
+    goodMood: {
+      name: 'Good Mood',
+      benefit: '2 skills among Speech, Medicine, Repair, Science and Barter become tag skills.',
+      drawback: 'Maximum for other skills = 4 (instead of 6).',
+    },
+    infantryman: {
+      name: 'Infantryman',
+      benefit: '+1 [CD] with submachine guns, combat shotguns, assault rifles, frag grenades, and combat knives.',
+      drawback: 'Complication margin of tests with heavy or energy weapons increases by 2.',
+    },
+    homeOnPrairie: {
+      name: 'Home on the Prairie',
+      benefit: 'When you sleep 6h+ near a campfire, the difficulty of injury recovery by rest is reduced by 1.',
+      drawback: 'You are never well-rested (Core Rulebook, p. 35).',
+    },
+    discipline: {
+      name: 'Discipline',
+      benefit: 'On a ranged attack with a small or energy weapon, you may reroll 1d20.',
+      drawback: '-1 fire rate with small and energy weapons while wielding them.',
+    },
+    brahminBaron: {
+      name: 'Brahmin Baron',
+      benefit: 'Each brahmin trough feeds 3 brahmins (instead of 2). "Tend crops" colony action: +1 [CD] of brahmin milk per trough.',
+      drawback: 'Roll +1d20 to determine attack risk on the colony if Food reserve exceeds Settlers value.',
     },
   },
 
