@@ -37,7 +37,7 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
         {t('combat.attackFlow.raw')}: <b>{result.rawDamage}</b>
       </div>
       <div>
-        {t('combat.attackFlow.dr')}: <b className="text-vault-danger">−{result.effectiveDR}</b>
+        {t('combat.attackFlow.dr')} {String(t(`damageTypes.${result.damageKind}`, result.damageKind))}: <b className="text-vault-danger">−{result.effectiveDR}</b>
       </div>
       <div className="text-sm">
         {t('combat.attackFlow.final')}: <b className="text-vault-danger">{result.finalDamage}</b>

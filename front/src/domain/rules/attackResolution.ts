@@ -34,6 +34,7 @@ export interface AttackResult {
   rawDamage: number;
   effectiveDR: number;
   finalDamage: number;
+  damageKind: DamageKind;
   injuryTriggered: boolean;
   appliedConditions: string[];
   persistentCondition: { type: 'persistent_physical' | 'persistent_radiation'; damage: number } | null;
@@ -74,6 +75,7 @@ function finalize(
     rawDamage,
     effectiveDR,
     finalDamage,
+    damageKind: input.damageKind,
     injuryTriggered,
     appliedConditions,
     persistentCondition,

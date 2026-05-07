@@ -307,12 +307,19 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
         )}
       </div>
 
-      {/* TN info */}
+      {/* TN info + damage type */}
       {tnInfo && (
-        <div className="text-xs text-vault-yellow-dark bg-vault-blue-dark border border-vault-yellow-dark rounded px-2 py-1">
-          🎯 <b className="text-vault-yellow">TN du jet d'attaque : {tnInfo.tn}</b>
-          {' '}({String(t(`skills.${tnInfo.skill}`, tnInfo.skill))} {tnInfo.skillRank}
-          {tnInfo.specialAttr ? ` + ${String(t(`special.${tnInfo.specialAttr}`, tnInfo.specialAttr))} ${tnInfo.specialValue}` : ''})
+        <div className="text-xs text-vault-yellow-dark bg-vault-blue-dark border border-vault-yellow-dark rounded px-2 py-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>
+            🎯 <b className="text-vault-yellow">TN du jet d'attaque : {tnInfo.tn}</b>
+            {' '}({String(t(`skills.${tnInfo.skill}`, tnInfo.skill))} {tnInfo.skillRank}
+            {tnInfo.specialAttr ? ` + ${String(t(`special.${tnInfo.specialAttr}`, tnInfo.specialAttr))} ${tnInfo.specialValue}` : ''})
+          </span>
+          {weapon?.damageType && (
+            <span>
+              💥 <b className="text-vault-yellow">{String(t(`damageTypes.${weapon.damageType}`, weapon.damageType))}</b>
+            </span>
+          )}
         </div>
       )}
 
