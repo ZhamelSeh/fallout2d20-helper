@@ -96,6 +96,33 @@ function SortableHeader({
   );
 }
 
+// Compact sort icon button (used next to filter inputs/selects)
+function SortIconButton({
+  field,
+  currentField,
+  currentDirection,
+  onClick,
+}: {
+  field: SortField;
+  currentField: SortField | null;
+  currentDirection: SortDirection;
+  onClick: () => void;
+}) {
+  const isActive = currentField === field;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Sort"
+      className="flex-shrink-0 p-1 text-vault-yellow-dark hover:text-vault-yellow transition-colors cursor-pointer"
+    >
+      {isActive && currentDirection === 'asc' && <ChevronUp size={14} />}
+      {isActive && currentDirection === 'desc' && <ChevronDown size={14} />}
+      {!isActive && <ChevronsUpDown size={12} className="opacity-60" />}
+    </button>
+  );
+}
+
 // Inline sortable header label (no <th> wrapper — used inside a custom <th>)
 function SortableHeaderInline({
   label,
@@ -775,50 +802,52 @@ export function EncyclopediaPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-vault-yellow-dark text-left border-b border-vault-yellow-dark align-top">
-                        {/* Name: sortable label + text filter input below */}
-                        <th className="pb-2 pr-2 font-medium">
-                          <div className="flex flex-col gap-1">
-                            <SortableHeaderInline
-                              label={t('common.labels.name')}
-                              field="name"
-                              currentField={sortState?.direction ? sortState.field : null}
-                              currentDirection={sortState?.direction ?? null}
-                              onClick={(f) => handleColumnSort(categoryKey, f)}
-                            />
+                      <tr className="text-vault-yellow-dark text-left border-b border-vault-yellow-dark">
+                        {/* Name: text input + sort icon */}
+                        <th className="pb-2 pr-2">
+                          <div className="flex items-center gap-1">
                             <input
                               type="text"
                               value={filters.name}
                               onChange={(e) => updateFilter(categoryKey, { name: e.target.value })}
                               placeholder={t('common.labels.name')}
-                              className="bg-vault-gray text-vault-yellow-light text-xs px-2 py-1 rounded w-full border border-vault-gray-light focus:outline-none focus:border-vault-yellow-dark placeholder:text-vault-yellow-dark/50 font-normal"
+                              className="flex-1 bg-vault-gray text-vault-yellow-light text-xs px-2 py-1 rounded border border-vault-gray-light focus:outline-none focus:border-vault-yellow-dark placeholder:text-vault-yellow-dark/70 font-normal"
+                            />
+                            <SortIconButton
+                              field="name"
+                              currentField={sortState?.direction ? sortState.field : null}
+                              currentDirection={sortState?.direction ?? null}
+                              onClick={() => handleColumnSort(categoryKey, 'name')}
                             />
                           </div>
                         </th>
-                        {/* Type: sortable label + multi-select below */}
-                        <th className="pb-2 pr-2 font-medium hidden sm:table-cell">
-                          <div className="flex flex-col gap-1">
-                            <SortableHeaderInline
-                              label={t('common.labels.type')}
+                        {/* Type: multi-select + sort icon */}
+                        <th className="pb-2 pr-2 hidden sm:table-cell">
+                          <div className="flex items-center gap-1">
+                            {availableSubTypes.length > 0 ? (
+                              <div className="flex-1">
+                                <MultiSelectDropdown<string>
+                                  values={availableSubTypes}
+                                  selected={filters.subTypes}
+                                  onChange={(next) => updateFilter(categoryKey, { subTypes: next })}
+                                  renderLabel={(v) => t(`skills.${v}`, v)}
+                                  placeholder={t('common.labels.type')}
+                                />
+                              </div>
+                            ) : (
+                              <span className="flex-1 font-medium">{t('common.labels.type')}</span>
+                            )}
+                            <SortIconButton
                               field="subType"
                               currentField={sortState?.direction ? sortState.field : null}
                               currentDirection={sortState?.direction ?? null}
-                              onClick={(f) => handleColumnSort(categoryKey, f)}
+                              onClick={() => handleColumnSort(categoryKey, 'subType')}
                             />
-                            {availableSubTypes.length > 0 ? (
-                              <MultiSelectDropdown<string>
-                                values={availableSubTypes}
-                                selected={filters.subTypes}
-                                onChange={(next) => updateFilter(categoryKey, { subTypes: next })}
-                                renderLabel={(v) => t(`skills.${v}`, v)}
-                                placeholder={t('common.labels.type')}
-                              />
-                            ) : <div className="h-6" />}
                           </div>
                         </th>
                         {hasItemColumns && (
                           <>
-                            <th className="pb-2 font-medium text-right align-bottom">
+                            <th className="pb-2 font-medium text-right">
                               <SortableHeaderInline
                                 label={t('common.labels.value')}
                                 field="value"
@@ -828,7 +857,7 @@ export function EncyclopediaPage() {
                                 align="right"
                               />
                             </th>
-                            <th className="pb-2 font-medium text-right align-bottom hidden md:table-cell">
+                            <th className="pb-2 font-medium text-right hidden md:table-cell">
                               <SortableHeaderInline
                                 label={t('common.labels.weight')}
                                 field="weight"
@@ -838,19 +867,11 @@ export function EncyclopediaPage() {
                                 align="right"
                               />
                             </th>
-                            {/* Rarity: sortable label + multi-select below */}
-                            <th className="pb-2 pl-2 font-medium text-right">
-                              <div className="flex flex-col gap-1 items-end">
-                                <SortableHeaderInline
-                                  label={t('common.labels.rarity')}
-                                  field="rarity"
-                                  currentField={sortState?.direction ? sortState.field : null}
-                                  currentDirection={sortState?.direction ?? null}
-                                  onClick={(f) => handleColumnSort(categoryKey, f)}
-                                  align="right"
-                                />
+                            {/* Rarity: multi-select + sort icon */}
+                            <th className="pb-2 pl-2 text-right">
+                              <div className="flex items-center justify-end gap-1">
                                 {availableRarities.length > 0 ? (
-                                  <div className="w-full">
+                                  <div className="flex-1 min-w-0">
                                     <MultiSelectDropdown<number>
                                       values={availableRarities}
                                       selected={filters.rarities}
@@ -859,12 +880,20 @@ export function EncyclopediaPage() {
                                       placeholder={t('common.labels.rarity')}
                                     />
                                   </div>
-                                ) : <div className="h-6" />}
+                                ) : (
+                                  <span className="font-medium">{t('common.labels.rarity')}</span>
+                                )}
+                                <SortIconButton
+                                  field="rarity"
+                                  currentField={sortState?.direction ? sortState.field : null}
+                                  currentDirection={sortState?.direction ?? null}
+                                  onClick={() => handleColumnSort(categoryKey, 'rarity')}
+                                />
                               </div>
                             </th>
                           </>
                         )}
-                        <th className="pb-2 font-medium text-right align-bottom hidden lg:table-cell">{t('common.labels.info')}</th>
+                        <th className="pb-2 font-medium text-right hidden lg:table-cell">{t('common.labels.info')}</th>
                         {hasItemColumns && <th className="pb-2 w-10"></th>}
                       </tr>
                     </thead>
