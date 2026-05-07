@@ -196,6 +196,7 @@ async function getParticipantWithCharacter(participantId: number) {
     isAlly: participant.isAlly,
     temporaryActive: participant.temporaryActive,
     skipNormalActions: participant.skipNormalActions,
+    injuries,
     character: {
       id: participant.characterId,
       name: participant.characterName,
@@ -415,6 +416,7 @@ async function getFullSession(sessionId: number) {
     isAlly: p.isAlly,
     temporaryActive: p.temporaryActive,
     skipNormalActions: p.skipNormalActions,
+    injuries: injuriesByCharacter[p.characterId] || [],
     character: {
       id: p.characterId,
       name: p.characterName,
