@@ -162,7 +162,7 @@ export function AddParticipantSection({
                     <OriginIcon originId={character.origin} emoji={character.emoji} type={character.type} size="sm" className="flex-shrink-0" />
                     <div className="flex-1 min-w-0">
                       <div className="text-vault-yellow font-medium truncate">
-                        {character.name}
+                        {String(t(character.name, character.name))}
                       </div>
                       <div className="text-xs text-gray-400">
                         {character.type === 'PC' ? t('characters.pc') : t('characters.npc')} - Nv. {character.level}
