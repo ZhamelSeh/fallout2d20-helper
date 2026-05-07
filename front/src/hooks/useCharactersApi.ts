@@ -1,4 +1,5 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { charactersApi, type CharacterApi, type CreateCharacterData, type InventoryItemApi, type AddInventoryData, type UpdateInventoryData } from '../services/api';
 import type { Character, SkillName, SpecialAttribute } from '../data/characters';
 import {
@@ -135,6 +136,7 @@ export interface UseCharactersApiReturn {
  * Hook for managing characters with API persistence
  */
 export function useCharactersApi(): UseCharactersApiReturn {
+  const { t } = useTranslation();
   const [characters, setCharacters] = useState<Character[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -257,12 +259,16 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const original = characters.find((char) => char.id === id);
       if (!original) return undefined;
 
-      const duplicated = await charactersApi.duplicate(numericId, `${original.name} (copie)`);
+      // Translate the name first if it's an i18n key (e.g. bestiary.creatures.X.name)
+      // so the duplicate gets a readable literal (e.g. "Enfant d'Atome (copie)")
+      // instead of "bestiary.creatures.childOfAtom.name (copie)".
+      const resolvedName = String(t(original.name, original.name));
+      const duplicated = await charactersApi.duplicate(numericId, `${resolvedName} (copie)`);
       const newChar = apiToFrontend(duplicated);
       setCharacters((prev) => [...prev, newChar]);
       return newChar;
     },
-    [characters]
+    [characters, t]
   );
 
   // Recalculate derived stats using the official rules

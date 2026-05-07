@@ -763,6 +763,7 @@ router.post('/:id/duplicate', async (req, res) => {
         creatureAttributes: character.creatureAttributes,
         creatureSkills: character.creatureSkills,
         creatureAttacks: character.creatureAttacks,
+        emoji: character.emoji,
       })
       .returning();
 
