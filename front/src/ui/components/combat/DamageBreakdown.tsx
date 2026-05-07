@@ -39,11 +39,18 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
       <div className="border-t border-vault-yellow-dark pt-1 mt-1">
         {t('combat.attackFlow.raw')}: <b>{result.rawDamage}</b>
       </div>
-      <div>
-        {t('combat.attackFlow.dr')}{' '}
-        <span className={damageTypeColor(result.damageKind)}>
-          {damageTypeIcon(result.damageKind)} {String(t(`damageTypes.${result.damageKind}`, result.damageKind))}
-        </span>: <b className="text-vault-danger">−{result.effectiveDR}</b>
+      <div className="flex items-center gap-1">
+        <span>{t('combat.attackFlow.dr')}</span>
+        {(() => {
+          const Icon = damageTypeIcon(result.damageKind);
+          return (
+            <span className={`flex items-center gap-1 ${damageTypeColor(result.damageKind)}`}>
+              {Icon ? <Icon size={12} /> : null}
+              {String(t(`damageTypes.${result.damageKind}`, result.damageKind))}
+            </span>
+          );
+        })()}
+        <span>: <b className="text-vault-danger">−{result.effectiveDR}</b></span>
       </div>
       <div className="text-sm">
         {t('combat.attackFlow.final')}: <b className="text-vault-danger">{result.finalDamage}</b>

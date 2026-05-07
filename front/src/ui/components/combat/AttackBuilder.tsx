@@ -316,11 +316,16 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
             {' '}({String(t(`skills.${tnInfo.skill}`, tnInfo.skill))} {tnInfo.skillRank}
             {tnInfo.specialAttr ? ` + ${String(t(`special.${tnInfo.specialAttr}`, tnInfo.specialAttr))} ${tnInfo.specialValue}` : ''})
           </span>
-          {weapon?.damageType && (
-            <span>
-              {damageTypeIcon(weapon.damageType)} <b className={damageTypeColor(weapon.damageType)}>{String(t(`damageTypes.${weapon.damageType}`, weapon.damageType))}</b>
-            </span>
-          )}
+          {weapon?.damageType && (() => {
+            const Icon = damageTypeIcon(weapon.damageType);
+            const colorCls = damageTypeColor(weapon.damageType);
+            return (
+              <span className={`flex items-center gap-1 ${colorCls}`}>
+                {Icon ? <Icon size={14} /> : null}
+                <b>{String(t(`damageTypes.${weapon.damageType}`, weapon.damageType))}</b>
+              </span>
+            );
+          })()}
         </div>
       )}
 
