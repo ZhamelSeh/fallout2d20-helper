@@ -96,6 +96,37 @@ function SortableHeader({
   );
 }
 
+// Inline sortable header label (no <th> wrapper — used inside a custom <th>)
+function SortableHeaderInline({
+  label,
+  field,
+  currentField,
+  currentDirection,
+  onClick,
+  align = 'left',
+}: {
+  label: string;
+  field: SortField;
+  currentField: SortField | null;
+  currentDirection: SortDirection;
+  onClick: (field: SortField) => void;
+  align?: 'left' | 'right';
+}) {
+  const isActive = currentField === field;
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(field)}
+      className={`font-medium cursor-pointer select-none hover:text-vault-yellow transition-colors inline-flex items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`}
+    >
+      <span>{label}</span>
+      {isActive && currentDirection === 'asc' && <ChevronUp size={14} />}
+      {isActive && currentDirection === 'desc' && <ChevronDown size={14} />}
+      {!isActive && <ChevronsUpDown size={12} className="opacity-40" />}
+    </button>
+  );
+}
+
 // Multi-select dropdown component (used for type and rarity filters)
 function MultiSelectDropdown<T extends string | number>({
   values,
@@ -744,74 +775,97 @@ export function EncyclopediaPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-vault-yellow-dark text-left border-b border-vault-yellow-dark">
-                        <th className="pb-2 font-medium">{t('common.labels.name')}</th>
-                        <th className="pb-2 font-medium hidden sm:table-cell">{t('common.labels.type')}</th>
-                        {hasItemColumns && (
-                          <>
-                            <SortableHeader
-                              label={t('common.labels.value')}
-                              field="value"
+                      <tr className="text-vault-yellow-dark text-left border-b border-vault-yellow-dark align-top">
+                        {/* Name: sortable label + text filter input below */}
+                        <th className="pb-2 pr-2 font-medium">
+                          <div className="flex flex-col gap-1">
+                            <SortableHeaderInline
+                              label={t('common.labels.name')}
+                              field="name"
                               currentField={sortState?.direction ? sortState.field : null}
                               currentDirection={sortState?.direction ?? null}
                               onClick={(f) => handleColumnSort(categoryKey, f)}
-                              className="text-right"
                             />
-                            <SortableHeader
-                              label={t('common.labels.weight')}
-                              field="weight"
+                            <input
+                              type="text"
+                              value={filters.name}
+                              onChange={(e) => updateFilter(categoryKey, { name: e.target.value })}
+                              placeholder={t('common.labels.name')}
+                              className="bg-vault-gray text-vault-yellow-light text-xs px-2 py-1 rounded w-full border border-vault-gray-light focus:outline-none focus:border-vault-yellow-dark placeholder:text-vault-yellow-dark/50 font-normal"
+                            />
+                          </div>
+                        </th>
+                        {/* Type: sortable label + multi-select below */}
+                        <th className="pb-2 pr-2 font-medium hidden sm:table-cell">
+                          <div className="flex flex-col gap-1">
+                            <SortableHeaderInline
+                              label={t('common.labels.type')}
+                              field="subType"
                               currentField={sortState?.direction ? sortState.field : null}
                               currentDirection={sortState?.direction ?? null}
                               onClick={(f) => handleColumnSort(categoryKey, f)}
-                              className="text-right hidden md:table-cell"
                             />
-                            <th className="pb-2 font-medium text-right">{t('common.labels.rarity')}</th>
-                          </>
-                        )}
-                        <th className="pb-2 font-medium text-right hidden lg:table-cell">{t('common.labels.info')}</th>
-                        {hasItemColumns && <th className="pb-2 w-10"></th>}
-                      </tr>
-                      {/* Per-column filter row */}
-                      <tr className="text-vault-yellow-dark text-left border-b border-vault-gray-light align-top">
-                        <th className="pb-2 pt-1 pr-2 font-normal">
-                          <input
-                            type="text"
-                            value={filters.name}
-                            onChange={(e) => updateFilter(categoryKey, { name: e.target.value })}
-                            placeholder={t('common.labels.name')}
-                            className="bg-vault-gray text-vault-yellow-light text-xs px-2 py-1 rounded w-full border border-vault-gray-light focus:outline-none focus:border-vault-yellow-dark placeholder:text-vault-yellow-dark/50"
-                          />
-                        </th>
-                        <th className="pb-2 pt-1 pr-2 font-normal hidden sm:table-cell">
-                          {availableSubTypes.length > 0 ? (
-                            <MultiSelectDropdown<string>
-                              values={availableSubTypes}
-                              selected={filters.subTypes}
-                              onChange={(next) => updateFilter(categoryKey, { subTypes: next })}
-                              renderLabel={(v) => t(`skills.${v}`, v)}
-                              placeholder={t('common.labels.type')}
-                            />
-                          ) : null}
+                            {availableSubTypes.length > 0 ? (
+                              <MultiSelectDropdown<string>
+                                values={availableSubTypes}
+                                selected={filters.subTypes}
+                                onChange={(next) => updateFilter(categoryKey, { subTypes: next })}
+                                renderLabel={(v) => t(`skills.${v}`, v)}
+                                placeholder={t('common.labels.type')}
+                              />
+                            ) : <div className="h-6" />}
+                          </div>
                         </th>
                         {hasItemColumns && (
                           <>
-                            <th className="pb-2 pt-1"></th>
-                            <th className="pb-2 pt-1 hidden md:table-cell"></th>
-                            <th className="pb-2 pt-1 pl-2 font-normal text-right">
-                              {availableRarities.length > 0 ? (
-                                <MultiSelectDropdown<number>
-                                  values={availableRarities}
-                                  selected={filters.rarities}
-                                  onChange={(next) => updateFilter(categoryKey, { rarities: next })}
-                                  renderLabel={(v) => t(`common.rarity.${v}`)}
-                                  placeholder={t('common.labels.rarity')}
+                            <th className="pb-2 font-medium text-right align-bottom">
+                              <SortableHeaderInline
+                                label={t('common.labels.value')}
+                                field="value"
+                                currentField={sortState?.direction ? sortState.field : null}
+                                currentDirection={sortState?.direction ?? null}
+                                onClick={(f) => handleColumnSort(categoryKey, f)}
+                                align="right"
+                              />
+                            </th>
+                            <th className="pb-2 font-medium text-right align-bottom hidden md:table-cell">
+                              <SortableHeaderInline
+                                label={t('common.labels.weight')}
+                                field="weight"
+                                currentField={sortState?.direction ? sortState.field : null}
+                                currentDirection={sortState?.direction ?? null}
+                                onClick={(f) => handleColumnSort(categoryKey, f)}
+                                align="right"
+                              />
+                            </th>
+                            {/* Rarity: sortable label + multi-select below */}
+                            <th className="pb-2 pl-2 font-medium text-right">
+                              <div className="flex flex-col gap-1 items-end">
+                                <SortableHeaderInline
+                                  label={t('common.labels.rarity')}
+                                  field="rarity"
+                                  currentField={sortState?.direction ? sortState.field : null}
+                                  currentDirection={sortState?.direction ?? null}
+                                  onClick={(f) => handleColumnSort(categoryKey, f)}
+                                  align="right"
                                 />
-                              ) : null}
+                                {availableRarities.length > 0 ? (
+                                  <div className="w-full">
+                                    <MultiSelectDropdown<number>
+                                      values={availableRarities}
+                                      selected={filters.rarities}
+                                      onChange={(next) => updateFilter(categoryKey, { rarities: next })}
+                                      renderLabel={(v) => t(`common.rarity.${v}`)}
+                                      placeholder={t('common.labels.rarity')}
+                                    />
+                                  </div>
+                                ) : <div className="h-6" />}
+                              </div>
                             </th>
                           </>
                         )}
-                        <th className="pb-2 pt-1 hidden lg:table-cell"></th>
-                        {hasItemColumns && <th className="pb-2 pt-1"></th>}
+                        <th className="pb-2 font-medium text-right align-bottom hidden lg:table-cell">{t('common.labels.info')}</th>
+                        {hasItemColumns && <th className="pb-2 w-10"></th>}
                       </tr>
                     </thead>
                     <tbody>
