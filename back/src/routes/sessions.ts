@@ -27,6 +27,7 @@ import {
 } from '../shared/lastAttackStore';
 import { INJURY_BY_ZONE } from '../shared/injuryMap';
 import { processEndOfTurn } from '../domain/endOfTurn';
+import { getCharacterInventory } from './characters';
 
 const router = Router();
 
@@ -116,6 +117,9 @@ async function getParticipantWithCharacter(participantId: number) {
     .select()
     .from(characterDr)
     .where(eq(characterDr.characterId, participant.characterId));
+
+  // Get full inventory (armor/clothing/PA + mods) — needed for PC body DR computation
+  const inventory = await getCharacterInventory(participant.characterId);
 
   const skills: Record<string, number> = {};
   for (const row of skillRows) {
@@ -231,6 +235,7 @@ async function getParticipantWithCharacter(participantId: number) {
         drPoison: d.drPoison ?? 0,
       })),
       equippedWeapons: equippedWeaponsWithMods,
+      inventory,
       creatureAttributes: participant.creatureAttributes ?? undefined,
       creatureAttacks: participant.creatureAttacks ?? undefined,
       creatureSkills: participant.creatureSkills ?? undefined,
@@ -301,6 +306,7 @@ async function getFullSession(sessionId: number) {
   const drByCharacter: Record<number, Array<{
     location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number;
   }>> = {};
+  const inventoryByCharacter: Record<number, Awaited<ReturnType<typeof getCharacterInventory>>> = {};
 
   for (const charId of characterIds) {
     // Conditions
@@ -363,6 +369,9 @@ async function getFullSession(sessionId: number) {
       drRadiation: d.drRadiation,
       drPoison: d.drPoison ?? 0,
     }));
+
+    // Full inventory (for PC body DR computation on the front)
+    inventoryByCharacter[charId] = await getCharacterInventory(charId);
 
     // All weapons in inventory
     const weaponRows = await db
@@ -468,6 +477,7 @@ async function getFullSession(sessionId: number) {
       injuries: injuriesByCharacter[p.characterId] || [],
       dr: drByCharacter[p.characterId] || [],
       equippedWeapons: equippedWeaponsByCharacter[p.characterId] || [],
+      inventory: inventoryByCharacter[p.characterId] || [],
       creatureAttributes: p.creatureAttributes ?? undefined,
       creatureAttacks: p.creatureAttacks ?? undefined,
       creatureSkills: p.creatureSkills ?? undefined,

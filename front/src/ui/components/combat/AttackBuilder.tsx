@@ -10,6 +10,7 @@ import {
 import type { DamageKind } from '../../../domain/rules/attackQualities';
 import { weaponBlockedByInjuries } from '../../../domain/rules/injuryRules';
 import { computeModdedWeaponName, computeEffectiveWeaponStats } from '../../../domain/rules/weaponMods';
+import { computeBodyDR, type BodyLocation } from '../../../domain/rules/bodyResistance';
 import { DamageBreakdown } from './DamageBreakdown';
 import { ItemDetailModal } from '../../../components/ItemDetailModal';
 
@@ -163,11 +164,25 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   const viciousQuality = effectiveQualities.find(q => q.quality === 'vicious');
   const viciousBonus = viciousQuality?.value ?? 0;
 
+  const targetDRMap = useMemo(() => {
+    if (!target) return null;
+    const character = target.character as any;
+    return computeBodyDR({
+      inventory: character.inventory ?? [],
+      fixedDr: character.dr ?? [],
+    });
+  }, [target]);
+
   const computeDR = (z: Zone) => {
-    if (!target) return { drPhysical: 0, drEnergy: 0 };
-    const drList = (target.character as any).dr ?? (target as any).dr ?? [];
-    const drEntry = drList.find((d: any) => d.location === z);
-    return drEntry ?? { drPhysical: 0, drEnergy: 0 };
+    if (!targetDRMap) return { drPhysical: 0, drEnergy: 0 };
+    const zoneDR = targetDRMap[z as BodyLocation];
+    if (!zoneDR) return { drPhysical: 0, drEnergy: 0 };
+    return {
+      drPhysical: zoneDR.physical,
+      drEnergy: zoneDR.energy,
+      drRadiation: zoneDR.radiation,
+      drPoison: zoneDR.poison,
+    };
   };
 
   const computePreview = () => {

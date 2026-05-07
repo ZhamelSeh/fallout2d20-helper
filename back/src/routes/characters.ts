@@ -30,7 +30,7 @@ import {
 const router = Router();
 
 // Helper to get inventory items with full item details including armor/clothing stats
-async function getCharacterInventory(characterId: number) {
+export async function getCharacterInventory(characterId: number) {
   const inventoryRows = await db
     .select({
       id: characterInventory.id,
