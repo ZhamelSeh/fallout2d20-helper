@@ -1374,6 +1374,47 @@ export default {
       raider_desc: 'In the Wasteland, might makes right. You take what you need.',
       wanderer: 'Wanderer',
       wanderer_desc: 'You travel from settlement to settlement and scavenge the ruins of the old world for supplies.',
+      // ===== Guide to the Colonies =====
+      // Commonwealth Militia
+      commonwealthMilitia_fusilier: 'Fusilier',
+      commonwealthMilitia_fusilier_desc: 'Trained in marksmanship and rifle maintenance, you belong to the bulk of the Militia.',
+      commonwealthMilitia_dur: 'Tough',
+      commonwealthMilitia_dur_desc: 'You like to close the distance with your targets, with slightly better protection and a much louder gun.',
+      // NCA
+      nca_soldat: 'Soldier',
+      nca_soldat_desc: 'Volunteer or conscript in the NCA army, on the front line of military operations.',
+      nca_sniper: 'Sniper',
+      nca_sniper_desc: 'Specialized in precision shooting, you support your fellow soldiers in tactical operations.',
+      nca_crimsonCaravan: 'Crimson Caravan Member',
+      nca_crimsonCaravan_desc: 'You lead brahmin caravans on the less-traveled routes from New California colonies.',
+      // Protectron
+      protectron_base: 'Protectron',
+      protectron_base_desc: 'Standard security model, designed to protect a specific location.',
+      protectron_pompier: 'Firefighter Protectron',
+      protectron_pompier_desc: 'Designed to extinguish fires and identify fire hazards.',
+      protectron_secouriste: 'Medic Protectron',
+      protectron_secouriste_desc: 'Designed to provide medical response in emergency situations.',
+      protectron_service: 'Service Protectron',
+      protectron_service_desc: 'Heavy-duty model, sometimes used by police for riot control.',
+      protectron_nukatron: 'Nukatron',
+      protectron_nukatron_desc: 'A RobCo and Nuka-Cola creation, half bottling worker, half party automaton.',
+      protectron_x: 'Protectron X',
+      protectron_x_desc: 'Modified beyond all factory recognition.',
+      // Cerebrobot
+      cerebrobot_servomech: 'Servomech',
+      cerebrobot_servomech_desc: 'Salvaged or modified from a factory model, your weapons are a bit jury-rigged.',
+      cerebrobot_armyModel: 'US Army Model',
+      cerebrobot_armyModel_desc: 'From the line equipped for military customers.',
+      cerebrobot_strayPersonality: 'Stray Personality',
+      cerebrobot_strayPersonality_desc: 'Your travels in the Wasteland have left your original design unrecognizable.',
+      // Securitron
+      securitron_default: 'Securitron',
+      securitron_default_desc: 'Built for one purpose: security.',
+      // Synth Gen3
+      synthGen3_infiltrator: 'Synth Infiltrator',
+      synthGen3_infiltrator_desc: 'The Institute created you to infiltrate one of the Commonwealth colonies and serve its interests.',
+      synthGen3_courser: 'Synth Courser',
+      synthGen3_courser_desc: 'Designed to scour the Commonwealth\'s back roads for resources, new colonies and Institute fugitives.',
     },
     items: {
       'Brotherhood Holotags': 'Brotherhood Holotags',
@@ -1414,6 +1455,14 @@ export default {
       // Robot plating
       'Standard Plating': 'Standard Plating',
       'Mister Gutsy Plating': 'Mister Gutsy Plating',
+      // ===== Guide to the Colonies =====
+      'Tricorn Hat': 'Tricorn Hat',
+      'Hacking Module': 'Hacking Module',
+      'Detector': 'Detector',
+      'Radiation Coils': 'Radiation Coils',
+      'Playing Cards': 'Playing Cards',
+      'Protectron Fire Axe': 'Protectron Fire Axe',
+      'Electrified Hands': 'Electrified Hands',
     },
     trinkets: {
       'Gold Pocket Watch': 'Gold Pocket Watch',

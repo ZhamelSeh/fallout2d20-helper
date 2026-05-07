@@ -94,6 +94,8 @@ export default {
       'Construction Pincer': 'Pince de construction',
       'Vice Pincer': 'Pince étau',
       'Circular Saw': 'Scie circulaire',
+      'Protectron Fire Axe': 'Hache de Protectron pompier',
+      'Electrified Hands': 'Mains électrifiées',
     },
     ammunition: {
       '.38 Rounds': 'Cartouches .38',
@@ -290,6 +292,8 @@ export default {
       'Welding Mask': 'Masque de soudeur',
       'Fancy Hat': 'Chapeau chic',
       'Gas Mask': 'Masque à gaz',
+      // Guide des Colonies
+      'Tricorn Hat': 'Tricorne',
     },
     chems: {
       // Les noms des chems restent en anglais (comme dans le livre FR)

@@ -526,4 +526,18 @@ export const weapons: Weapon[] = [
     qualities: [{ quality: 'piercing', value: 1 }],
     ammo: 'none', weight: 1.5, value: 25, rarity: 2,
   },
+  {
+    // Robot integrated melee — Protectron Pompier starter pack
+    name: 'Protectron Fire Axe', skill: 'meleeWeapons',
+    damage: 3, damageType: 'physical', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'piercing', value: 1 }],
+    ammo: 'none', weight: 2, value: 0, rarity: 0,
+  },
+  {
+    // Robot integrated unarmed — Protectron Secouriste starter pack
+    name: 'Electrified Hands', skill: 'unarmed',
+    damage: 3, damageType: 'energy', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'stun' }],
+    ammo: 'none', weight: 0, value: 0, rarity: 0,
+  },
 ];

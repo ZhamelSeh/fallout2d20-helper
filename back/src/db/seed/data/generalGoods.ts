@@ -280,6 +280,30 @@ export const generalGoods: GeneralGood[] = [
     effectKey: 'itemEffects.generalGoods.fertilizerBag',
   },
 
+  // ===== Guide des Colonies =====
+  {
+    name: 'Hacking Module',
+    value: 120, rarity: 3, weight: 1,
+    type: 'Tool/Utility',
+    effectKey: 'itemEffects.robotEquipment.hackingModule',
+  },
+  {
+    name: 'Detector',
+    value: 80, rarity: 2, weight: 1,
+    type: 'Tool/Utility',
+    effectKey: 'itemEffects.robotEquipment.detector',
+  },
+  {
+    name: 'Radiation Coils',
+    value: 100, rarity: 3, weight: 2,
+    type: 'Tool/Utility',
+    effectKey: 'itemEffects.robotEquipment.radiationCoils',
+  },
+  {
+    name: 'Playing Cards',
+    value: 5, rarity: 0, weight: 0.1,
+    type: 'Tool/Utility',
+  },
 ];
 
 export const oddities: GeneralGood[] = [

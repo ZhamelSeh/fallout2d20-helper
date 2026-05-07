@@ -997,6 +997,22 @@ export const weapons: Weapon[] = [
     qualities: [{ quality: 'piercing', value: 1 }],
     ammo: 'none',
   },
+  {
+    name: 'Protectron Fire Axe',
+    value: 0, rarity: 0, weight: 2,
+    skill: 'meleeWeapons',
+    damage: 3, damageType: 'physical', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'piercing', value: 1 }],
+    ammo: 'none',
+  },
+  {
+    name: 'Electrified Hands',
+    value: 0, rarity: 0, weight: 0,
+    skill: 'unarmed',
+    damage: 3, damageType: 'energy', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'stun' }],
+    ammo: 'none',
+  },
 ];
 
 // Helper exports for filtering

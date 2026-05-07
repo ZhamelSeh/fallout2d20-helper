@@ -1374,6 +1374,47 @@ export default {
       raider_desc: 'Dans les Terres Désolées, la loi du plus fort est en vigueur. Vous prenez ce dont vous avez besoin.',
       wanderer: 'Vagabond',
       wanderer_desc: 'Vous voyagez de communauté en communauté et fouillez les ruines de l\'ancien monde pour vous servir de vos trouvailles.',
+      // ===== Guide des Colonies =====
+      // Milicien du Commonwealth
+      commonwealthMilitia_fusilier: 'Fusilier',
+      commonwealthMilitia_fusilier_desc: 'Formé au tir de précision et à l\'entretien de votre fusil, vous appartenez au gros des Miliciens.',
+      commonwealthMilitia_dur: 'Dur',
+      commonwealthMilitia_dur_desc: 'Vous aimez vous rapprocher de vos cibles avec une protection un peu meilleure et une pétoire plus bruyante.',
+      // RNC
+      nca_soldat: 'Soldat',
+      nca_soldat_desc: 'Volontaire ou conscrit dans l\'armée de la RNC, en première ligne des opérations militaires.',
+      nca_sniper: 'Tireur d\'élite',
+      nca_sniper_desc: 'Spécialisé dans le tir de précision, vous soutenez vos camarades soldats dans les opérations tactiques.',
+      nca_crimsonCaravan: 'Membre de la Crimson Caravan',
+      nca_crimsonCaravan_desc: 'Vous menez des caravanes de brahmines sur les routes les moins fréquentées au départ des colonies de Nouvelle Californie.',
+      // Protectron
+      protectron_base: 'Protectron',
+      protectron_base_desc: 'Modèle de sécurité standard, conçu pour assurer la protection d\'un lieu précis.',
+      protectron_pompier: 'Protectron Pompier',
+      protectron_pompier_desc: 'Modèle conçu pour éteindre les feux et identifier les risques d\'incendie.',
+      protectron_secouriste: 'Protectron Secouriste',
+      protectron_secouriste_desc: 'Conçu pour apporter une réponse médicale en situation d\'urgence.',
+      protectron_service: 'Protectron de Service',
+      protectron_service_desc: 'Modèle destiné au travail intensif, parfois utilisé par les services de police pour la répression d\'émeutes.',
+      protectron_nukatron: 'Nukatron',
+      protectron_nukatron_desc: 'Création RobCo et Nuka-Cola, à mi-chemin entre l\'ouvrier de mise en bouteille et l\'automate de fête.',
+      protectron_x: 'Protectron X',
+      protectron_x_desc: 'Unité modifiée au point de ne plus appartenir aux modèles d\'usine classiques.',
+      // Cérébrobot
+      cerebrobot_servomech: 'Servomech',
+      cerebrobot_servomech_desc: 'Récupéré ou modifié à partir d\'un modèle d\'usine, votre armement est un peu plus bricolé.',
+      cerebrobot_armyModel: 'Modèle de l\'Armée Américaine',
+      cerebrobot_armyModel_desc: 'Issu de la gamme équipée pour les clients militaires.',
+      cerebrobot_strayPersonality: 'Personnalité Égarée',
+      cerebrobot_strayPersonality_desc: 'Votre voyage dans les Terres désolées s\'éternise et votre conception d\'origine n\'est plus reconnaissable.',
+      // Sécuritron
+      securitron_default: 'Sécuritron',
+      securitron_default_desc: 'Construit dans un unique but : la sécurité.',
+      // Synthé Gen3
+      synthGen3_infiltrator: 'Agent Infiltré Synthétique',
+      synthGen3_infiltrator_desc: 'L\'Institut vous a créé afin d\'infiltrer l\'une des colonies du Commonwealth pour servir ses intérêts.',
+      synthGen3_courser: 'Synthétique Chercheur',
+      synthGen3_courser_desc: 'Conçu pour sillonner les routes secondaires du Commonwealth en quête de ressources, de nouvelles colonies et de fugitifs de l\'Institut.',
     },
     items: {
       'Brotherhood Holotags': 'Holoplaques de la Confrérie',
@@ -1416,6 +1457,14 @@ export default {
       // Robot plating
       'Standard Plating': 'Blindage standard',
       'Mister Gutsy Plating': 'Blindage Mister Gutsy',
+      // ===== Guide des Colonies =====
+      'Tricorn Hat': 'Tricorne',
+      'Hacking Module': 'Module de piratage informatique',
+      'Detector': 'Détecteur',
+      'Radiation Coils': 'Bobines de radiation',
+      'Playing Cards': 'Jeu de cartes',
+      'Protectron Fire Axe': 'Hache de Protectron pompier',
+      'Electrified Hands': 'Mains électrifiées',
     },
     trinkets: {
       'Gold Pocket Watch': 'Montre à gousset en or',

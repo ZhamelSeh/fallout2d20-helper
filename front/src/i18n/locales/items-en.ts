@@ -92,6 +92,8 @@ export default {
       'Construction Pincer': 'Construction Pincer',
       'Vice Pincer': 'Vice Pincer',
       'Circular Saw': 'Circular Saw',
+      'Protectron Fire Axe': 'Protectron Fire Axe',
+      'Electrified Hands': 'Electrified Hands',
     },
     ammunition: {
       '.38 Rounds': '.38 Rounds',
@@ -269,6 +271,8 @@ export default {
       'Welding Mask': 'Welding Mask',
       'Fancy Hat': 'Fancy Hat',
       'Gas Mask': 'Gas Mask',
+      // Guide to the Colonies
+      'Tricorn Hat': 'Tricorn Hat',
     },
     chems: {
       // Most chem names stay the same in English
