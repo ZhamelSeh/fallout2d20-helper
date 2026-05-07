@@ -150,3 +150,16 @@ export const injuryTypeEnum = pgEnum('injury_type', [
   'torso_bleeding',
   'head_dazed',
 ]);
+
+// ===== CRAFTING =====
+export const workbenchTypeEnum = pgEnum('workbench_type', [
+  'weapon', 'armor', 'chemistry', 'cooking', 'power_armor', 'robot'
+]);
+
+export const craftingSkillEnum = pgEnum('crafting_skill', [
+  'repair', 'science', 'survival', 'explosives'
+]);
+
+export const recipeRarityEnum = pgEnum('recipe_rarity', [
+  'frequente', 'peu_frequente', 'rare'
+]);

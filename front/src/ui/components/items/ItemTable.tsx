@@ -105,7 +105,7 @@ export function ItemTable({ items, showCategory = true, onItemClick, onInjectIte
                   <th className="pb-2 font-medium text-right">{t('common.labels.value')}</th>
                   <th className="pb-2 font-medium text-right hidden sm:table-cell">{t('common.labels.weight')}</th>
                   <th className="pb-2 font-medium text-right hidden md:table-cell">{t('common.labels.rarity')}</th>
-                  {onInjectItem && <th className="pb-2"></th>}
+                  {onInjectItem && <th className="pb-2 w-10"></th>}
                 </tr>
               </thead>
               <tbody>

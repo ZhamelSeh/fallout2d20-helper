@@ -35,20 +35,6 @@ export function MerchantGenerator({ showWealthDescriptions = true, compact = fal
   const [loading, setLoading] = useState(false);
   const { addToInventory } = useCharactersApi();
 
-  const handleInjectItem = (tableItem: TableItem) => {
-    setInjectItem(tableItem);
-  };
-
-  const handleCharacterSelected = async (characterId: string) => {
-    if (!injectItem?.itemId) return;
-    try {
-      await addToInventory(characterId, { itemId: injectItem.itemId, quantity: injectItem.quantity, equipped: false });
-    } catch (err) {
-      console.error('Failed to inject item:', err);
-    }
-    setInjectItem(null);
-  };
-
   const handleCategoryToggle = (category: MerchantCategory) => {
     setSelectedCategories(prev =>
       prev.includes(category)
@@ -77,6 +63,20 @@ export function MerchantGenerator({ showWealthDescriptions = true, compact = fal
     if (tableItem.itemId && tableItem.itemType) {
       setSelectedItem({ id: tableItem.itemId, itemType: tableItem.itemType as ItemType });
     }
+  };
+
+  const handleInjectItem = (tableItem: TableItem) => {
+    setInjectItem(tableItem);
+  };
+
+  const handleCharacterSelected = async (characterId: string) => {
+    if (!injectItem?.itemId) return;
+    try {
+      await addToInventory(characterId, { itemId: injectItem.itemId, quantity: injectItem.quantity, equipped: false });
+    } catch (err) {
+      console.error('Failed to inject item:', err);
+    }
+    setInjectItem(null);
   };
 
   const wealthOptions = [1, 2, 3, 4, 5].map(level => ({
@@ -212,6 +212,7 @@ export function MerchantGenerator({ showWealthDescriptions = true, compact = fal
         itemType={selectedItem?.itemType ?? null}
       />
 
+      {/* Character Picker for item injection */}
       <CharacterPickerModal
         isOpen={injectItem !== null}
         onClose={() => setInjectItem(null)}

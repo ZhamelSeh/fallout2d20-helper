@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect, type ChangeEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Users, UserPlus, Bot, Search, Loader2 } from 'lucide-react';
+import { Users, UserPlus, Bot, Search, Upload } from 'lucide-react';
+import { CharacterListSkeleton } from '../components/shared/Skeleton';
 import { Card, Button, CharacterCard, CharacterForm } from '../../components';
 import { ConfirmModal } from '../components/ConfirmModal';
 import { useCharactersApi } from '../../hooks/useCharactersApi';
+import type { ImportWarning } from '../../services/api';
 import type { Character } from '../../data/characters';
 
 type FilterType = 'all' | 'PC' | 'NPC';
@@ -22,6 +24,8 @@ export function CharactersPage() {
     updateCharacter,
     deleteCharacter,
     duplicateCharacter,
+    exportCharacter,
+    importCharacter,
   } = useCharactersApi();
 
   const [filter, setFilter] = useState<FilterType>('all');
@@ -30,6 +34,19 @@ export function CharactersPage() {
   const [editingCharacter, setEditingCharacter] = useState<Character | undefined>();
   const [defaultType, setDefaultType] = useState<'PC' | 'NPC'>('PC');
   const [deleteTarget, setDeleteTarget] = useState<Character | null>(null);
+  const [importFeedback, setImportFeedback] = useState<{
+    type: 'success' | 'error';
+    message: string;
+    warnings?: ImportWarning[];
+  } | null>(null);
+
+  const feedbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    };
+  }, []);
 
   // Filtered characters
   const filteredCharacters = (() => {
@@ -101,6 +118,35 @@ export function CharactersPage() {
     }
   };
 
+  const handleExport = async (character: Character) => {
+    try {
+      await exportCharacter(character);
+    } catch (err) {
+      console.error('Failed to export character:', err);
+      if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = setTimeout(() => setImportFeedback(null), 6000);
+      setImportFeedback({ type: 'error', message: 'characters.exportError' });
+    }
+  };
+
+  const handleImportChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    try {
+      const result = await importCharacter(file);
+      setImportFeedback({
+        type: 'success',
+        message: 'characters.importSuccess',
+        warnings: result.warnings.length > 0 ? result.warnings : undefined,
+      });
+    } catch (err) {
+      setImportFeedback({ type: 'error', message: 'characters.importError' });
+    }
+    if (feedbackTimerRef.current) clearTimeout(feedbackTimerRef.current);
+    feedbackTimerRef.current = setTimeout(() => setImportFeedback(null), 6000);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -116,6 +162,18 @@ export function CharactersPage() {
               <Bot size={18} className="mr-2" />
               {t('characters.createNPC')}
             </Button>
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept=".json"
+                className="hidden"
+                onChange={handleImportChange}
+              />
+              <span className="inline-flex items-center px-4 py-2 text-sm font-bold uppercase border-2 border-vault-yellow text-vault-yellow hover:bg-vault-blue transition-colors rounded cursor-pointer">
+                <Upload size={18} className="mr-2" />
+                {t('characters.import')}
+              </span>
+            </label>
           </div>
 
           {/* Filters */}
@@ -158,13 +216,24 @@ export function CharactersPage() {
         </div>
       </Card>
 
-      {/* Loading state */}
-      {loading && (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 size={32} className="animate-spin text-vault-yellow" />
-          <span className="ml-3 text-gray-400">{t('common.loading')}</span>
+      {/* Import feedback */}
+      {importFeedback && (
+        <div className={`text-center py-3 px-4 rounded border ${
+          importFeedback.type === 'success'
+            ? 'text-green-400 bg-green-900/20 border-green-600'
+            : 'text-red-400 bg-red-900/20 border-red-600'
+        }`}>
+          <p>{t(importFeedback.message)}</p>
+          {importFeedback.warnings && importFeedback.warnings.length > 0 && (
+            <p className="text-yellow-400 text-sm mt-1">
+              {t('characters.importMissingItems', { items: importFeedback.warnings.map(w => w.itemName).join(', ') })}
+            </p>
+          )}
         </div>
       )}
+
+      {/* Loading state */}
+      {loading && <CharacterListSkeleton />}
 
       {/* Error state */}
       {error && (
@@ -187,6 +256,7 @@ export function CharactersPage() {
               onClick={() => navigate(`/characters/${character.id}`, { state: { from: '/characters' } })}
               onEdit={() => handleEdit(character)}
               onDuplicate={() => handleDuplicate(character)}
+              onExport={() => handleExport(character)}
               onDelete={() => handleDelete(character)}
             />
           ))}

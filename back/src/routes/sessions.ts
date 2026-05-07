@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/index';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, inArray } from 'drizzle-orm';
 import {
   sessions,
   sessionParticipants,
@@ -144,59 +144,77 @@ async function getParticipantWithCharacter(participantId: number) {
     .innerJoin(weapons, eq(items.id, weapons.itemId))
     .where(eq(characterInventory.characterId, participant.characterId));
 
-  // Enrich weapons with installed mods + base qualities
-  const equippedWeaponsWithMods = await Promise.all(
-    equippedWeaponRows.map(async (weapon) => {
-      const modRows = await db
-        .select({
-          modInventoryId: inventoryItemMods.modInventoryId,
-          modItemId: characterInventory.itemId,
-          modName: items.name,
-          slot: mods.slot,
-          nameAddKey: mods.nameAddKey,
-          modTableId: mods.id,
-        })
-        .from(inventoryItemMods)
-        .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
-        .innerJoin(items, eq(characterInventory.itemId, items.id))
-        .innerJoin(mods, eq(mods.itemId, characterInventory.itemId))
-        .where(eq(inventoryItemMods.targetInventoryId, weapon.inventoryId));
+  // Batch fetch installed mods for all weapons
+  const weaponInvIds = equippedWeaponRows.map(w => w.inventoryId);
+  const modsByWeaponInvId: Record<number, any[]> = {};
 
-      let installedMods: any[] = [];
-      if (modRows.length > 0) {
-        installedMods = await Promise.all(
-          modRows.map(async (r) => {
-            const effects = await db.select().from(modEffects).where(eq(modEffects.modId, r.modTableId));
-            return {
-              modInventoryId: r.modInventoryId,
-              modItemId: r.modItemId,
-              modName: r.modName,
-              slot: r.slot,
-              nameAddKey: r.nameAddKey ?? undefined,
-              effects: effects.map(e => ({
-                effectType: e.effectType,
-                numericValue: e.numericValue,
-                qualityName: e.qualityName,
-                qualityValue: e.qualityValue,
-                ammoType: e.ammoType,
-                descriptionKey: e.descriptionKey,
-              })),
-            };
-          })
-        );
+  if (weaponInvIds.length > 0) {
+    const allModRows = await db
+      .select({
+        targetInventoryId: inventoryItemMods.targetInventoryId,
+        modInventoryId: inventoryItemMods.modInventoryId,
+        modItemId: characterInventory.itemId,
+        modName: items.name,
+        slot: mods.slot,
+        nameAddKey: mods.nameAddKey,
+        modTableId: mods.id,
+      })
+      .from(inventoryItemMods)
+      .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
+      .innerJoin(items, eq(characterInventory.itemId, items.id))
+      .innerJoin(mods, eq(mods.itemId, characterInventory.itemId))
+      .where(inArray(inventoryItemMods.targetInventoryId, weaponInvIds));
+
+    if (allModRows.length > 0) {
+      const allModTableIds = [...new Set(allModRows.map(r => r.modTableId))];
+      const allEffectRows = await db.select().from(modEffects).where(inArray(modEffects.modId, allModTableIds));
+      const effectsByModId: Record<number, typeof allEffectRows> = {};
+      for (const e of allEffectRows) {
+        (effectsByModId[e.modId] ??= []).push(e);
       }
 
-      // Fetch base qualities for this weapon's item
-      const qualityRows = await db
-        .select({ quality: weaponQualities.quality, value: weaponQualities.value })
-        .from(weaponQualities)
-        .where(eq(weaponQualities.itemId, weapon.itemId));
-      const qualities = qualityRows.map(q => ({ quality: q.quality, value: q.value ?? undefined }));
+      for (const r of allModRows) {
+        const effects = (effectsByModId[r.modTableId] ?? []).map(e => ({
+          effectType: e.effectType,
+          numericValue: e.numericValue,
+          qualityName: e.qualityName,
+          qualityValue: e.qualityValue,
+          ammoType: e.ammoType,
+          descriptionKey: e.descriptionKey,
+        }));
+        (modsByWeaponInvId[r.targetInventoryId] ??= []).push({
+          modInventoryId: r.modInventoryId,
+          modItemId: r.modItemId,
+          modName: r.modName,
+          slot: r.slot,
+          nameAddKey: r.nameAddKey ?? undefined,
+          effects,
+        });
+      }
+    }
+  }
 
-      const { inventoryId, ...rest } = weapon;
-      return { ...rest, installedMods, qualities };
-    })
-  );
+  // Batch fetch base qualities for all weapon items
+  const weaponItemIds = [...new Set(equippedWeaponRows.map(w => w.itemId))];
+  const qualitiesByItemId: Record<number, Array<{ quality: string; value: number | undefined }>> = {};
+  if (weaponItemIds.length > 0) {
+    const qualityRows = await db
+      .select({ itemId: weaponQualities.itemId, quality: weaponQualities.quality, value: weaponQualities.value })
+      .from(weaponQualities)
+      .where(inArray(weaponQualities.itemId, weaponItemIds));
+    for (const q of qualityRows) {
+      (qualitiesByItemId[q.itemId] ??= []).push({ quality: q.quality, value: q.value ?? undefined });
+    }
+  }
+
+  const equippedWeaponsWithMods = equippedWeaponRows.map(weapon => {
+    const { inventoryId, ...rest } = weapon;
+    return {
+      ...rest,
+      installedMods: modsByWeaponInvId[inventoryId] || [],
+      qualities: qualitiesByItemId[weapon.itemId] || [],
+    };
+  });
 
   return {
     id: participant.id,
@@ -283,7 +301,7 @@ async function getFullSession(sessionId: number) {
     .innerJoin(characters, eq(sessionParticipants.characterId, characters.id))
     .where(eq(sessionParticipants.sessionId, sessionId));
 
-  // Get conditions, SPECIAL, skills, and equipped weapons for all characters
+  // Batch fetch conditions, SPECIAL, skills, and weapons for ALL characters
   const characterIds = participantRows.map(p => p.characterId);
 
   const conditionsByCharacter: Record<number, string[]> = {};
@@ -302,23 +320,20 @@ async function getFullSession(sessionId: number) {
   const equippedWeaponsByCharacter: Record<number, Array<{
     itemId: number; name: string; nameKey: string | null; skill: string; damage: number; damageType: string; fireRate: number; range: string;
     installedMods: Array<{ modInventoryId: number; modItemId: number; modName: string; slot: string; nameAddKey?: string; effects: any[] }>;
+    qualities: Array<{ quality: string; value: number | undefined }>;
   }>> = {};
   const drByCharacter: Record<number, Array<{
     location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number;
   }>> = {};
   const inventoryByCharacter: Record<number, Awaited<ReturnType<typeof getCharacterInventory>>> = {};
 
-  for (const charId of characterIds) {
-    // Conditions
-    const conditions = await db
-      .select({ condition: characterConditions.condition })
-      .from(characterConditions)
-      .where(eq(characterConditions.characterId, charId));
-    conditionsByCharacter[charId] = conditions.map(c => c.condition);
-
-    // Active injuries (healedAt IS NULL)
-    const injuries = await db
-      .select({
+  if (characterIds.length > 0) {
+    // Batch: conditions, injuries, SPECIAL, skills, DR, weapons
+    const [allConditions, allInjuries, allSpecial, allSkills, allDr, allWeaponRows] = await Promise.all([
+      db.select({ characterId: characterConditions.characterId, condition: characterConditions.condition })
+        .from(characterConditions)
+        .where(inArray(characterConditions.characterId, characterIds)),
+      db.select({
         id: characterInjuries.id,
         characterId: characterInjuries.characterId,
         sessionId: characterInjuries.sessionId,
@@ -328,54 +343,24 @@ async function getFullSession(sessionId: number) {
         healedAt: characterInjuries.healedAt,
         createdAt: characterInjuries.createdAt,
       })
-      .from(characterInjuries)
-      .where(
-        and(
-          eq(characterInjuries.characterId, charId),
-          isNull(characterInjuries.healedAt)
-        )
-      );
-    injuriesByCharacter[charId] = injuries;
-
-    // SPECIAL
-    const specialRows = await db
-      .select({ attribute: characterSpecial.attribute, value: characterSpecial.value })
-      .from(characterSpecial)
-      .where(eq(characterSpecial.characterId, charId));
-    specialByCharacter[charId] = {};
-    for (const row of specialRows) {
-      specialByCharacter[charId][row.attribute] = row.value;
-    }
-
-    // Skills
-    const skillRows = await db
-      .select({ skill: characterSkills.skill, rank: characterSkills.rank })
-      .from(characterSkills)
-      .where(eq(characterSkills.characterId, charId));
-    skillsByCharacter[charId] = {};
-    for (const row of skillRows) {
-      skillsByCharacter[charId][row.skill] = row.rank;
-    }
-
-    // DR by zone
-    const drRows = await db
-      .select()
-      .from(characterDr)
-      .where(eq(characterDr.characterId, charId));
-    drByCharacter[charId] = drRows.map(d => ({
-      location: d.location,
-      drPhysical: d.drPhysical,
-      drEnergy: d.drEnergy,
-      drRadiation: d.drRadiation,
-      drPoison: d.drPoison ?? 0,
-    }));
-
-    // Full inventory (for PC body DR computation on the front)
-    inventoryByCharacter[charId] = await getCharacterInventory(charId);
-
-    // All weapons in inventory
-    const weaponRows = await db
-      .select({
+        .from(characterInjuries)
+        .where(
+          and(
+            inArray(characterInjuries.characterId, characterIds),
+            isNull(characterInjuries.healedAt)
+          )
+        ),
+      db.select({ characterId: characterSpecial.characterId, attribute: characterSpecial.attribute, value: characterSpecial.value })
+        .from(characterSpecial)
+        .where(inArray(characterSpecial.characterId, characterIds)),
+      db.select({ characterId: characterSkills.characterId, skill: characterSkills.skill, rank: characterSkills.rank })
+        .from(characterSkills)
+        .where(inArray(characterSkills.characterId, characterIds)),
+      db.select()
+        .from(characterDr)
+        .where(inArray(characterDr.characterId, characterIds)),
+      db.select({
+        characterId: characterInventory.characterId,
         inventoryId: characterInventory.id,
         itemId: items.id,
         name: items.name,
@@ -386,64 +371,122 @@ async function getFullSession(sessionId: number) {
         fireRate: weapons.fireRate,
         range: weapons.range,
       })
-      .from(characterInventory)
-      .innerJoin(items, eq(characterInventory.itemId, items.id))
-      .innerJoin(weapons, eq(items.id, weapons.itemId))
-      .where(eq(characterInventory.characterId, charId));
+        .from(characterInventory)
+        .innerJoin(items, eq(characterInventory.itemId, items.id))
+        .innerJoin(weapons, eq(items.id, weapons.itemId))
+        .where(inArray(characterInventory.characterId, characterIds)),
+    ]);
 
-    // Enrich with installed mods + base qualities
-    equippedWeaponsByCharacter[charId] = await Promise.all(
-      weaponRows.map(async (weapon) => {
-        const modRows = await db
-          .select({
-            modInventoryId: inventoryItemMods.modInventoryId,
-            modItemId: characterInventory.itemId,
-            modName: items.name,
-            slot: mods.slot,
-            nameAddKey: mods.nameAddKey,
-            modTableId: mods.id,
-          })
-          .from(inventoryItemMods)
-          .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
-          .innerJoin(items, eq(characterInventory.itemId, items.id))
-          .innerJoin(mods, eq(mods.itemId, characterInventory.itemId))
-          .where(eq(inventoryItemMods.targetInventoryId, weapon.inventoryId));
+    // Group conditions by character
+    for (const c of allConditions) {
+      (conditionsByCharacter[c.characterId] ??= []).push(c.condition);
+    }
 
-        let installedMods: any[] = [];
-        if (modRows.length > 0) {
-          installedMods = await Promise.all(
-            modRows.map(async (r) => {
-              const effects = await db.select().from(modEffects).where(eq(modEffects.modId, r.modTableId));
-              return {
-                modInventoryId: r.modInventoryId,
-                modItemId: r.modItemId,
-                modName: r.modName,
-                slot: r.slot,
-                nameAddKey: r.nameAddKey ?? undefined,
-                effects: effects.map(e => ({
-                  effectType: e.effectType,
-                  numericValue: e.numericValue,
-                  qualityName: e.qualityName,
-                  qualityValue: e.qualityValue,
-                  ammoType: e.ammoType,
-                  descriptionKey: e.descriptionKey,
-                })),
-              };
-            })
-          );
-        }
+    // Group active injuries by character
+    for (const inj of allInjuries) {
+      (injuriesByCharacter[inj.characterId] ??= []).push(inj);
+    }
 
-        // Base qualities for this weapon's item
-        const qualityRows = await db
-          .select({ quality: weaponQualities.quality, value: weaponQualities.value })
-          .from(weaponQualities)
-          .where(eq(weaponQualities.itemId, weapon.itemId));
-        const qualities = qualityRows.map(q => ({ quality: q.quality, value: q.value ?? undefined }));
+    // Group DR by character
+    for (const d of allDr) {
+      (drByCharacter[d.characterId] ??= []).push({
+        location: d.location,
+        drPhysical: d.drPhysical,
+        drEnergy: d.drEnergy,
+        drRadiation: d.drRadiation,
+        drPoison: d.drPoison ?? 0,
+      });
+    }
 
-        const { inventoryId, ...rest } = weapon;
-        return { ...rest, installedMods, qualities };
+    // Full inventory per character (needed for PC body DR computation)
+    await Promise.all(
+      characterIds.map(async (charId) => {
+        inventoryByCharacter[charId] = await getCharacterInventory(charId);
       })
     );
+
+    // Group SPECIAL by character
+    for (const s of allSpecial) {
+      (specialByCharacter[s.characterId] ??= {})[s.attribute] = s.value;
+    }
+
+    // Group skills by character
+    for (const s of allSkills) {
+      (skillsByCharacter[s.characterId] ??= {})[s.skill] = s.rank;
+    }
+
+    // Batch fetch installed mods for all weapons across all characters
+    const allWeaponInvIds = allWeaponRows.map(w => w.inventoryId);
+    const modsByWeaponInvId: Record<number, any[]> = {};
+
+    if (allWeaponInvIds.length > 0) {
+      const allModRows = await db
+        .select({
+          targetInventoryId: inventoryItemMods.targetInventoryId,
+          modInventoryId: inventoryItemMods.modInventoryId,
+          modItemId: characterInventory.itemId,
+          modName: items.name,
+          slot: mods.slot,
+          nameAddKey: mods.nameAddKey,
+          modTableId: mods.id,
+        })
+        .from(inventoryItemMods)
+        .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
+        .innerJoin(items, eq(characterInventory.itemId, items.id))
+        .innerJoin(mods, eq(mods.itemId, characterInventory.itemId))
+        .where(inArray(inventoryItemMods.targetInventoryId, allWeaponInvIds));
+
+      if (allModRows.length > 0) {
+        const allModTableIds = [...new Set(allModRows.map(r => r.modTableId))];
+        const allEffectRows = await db.select().from(modEffects).where(inArray(modEffects.modId, allModTableIds));
+        const effectsByModId: Record<number, typeof allEffectRows> = {};
+        for (const e of allEffectRows) {
+          (effectsByModId[e.modId] ??= []).push(e);
+        }
+
+        for (const r of allModRows) {
+          const effects = (effectsByModId[r.modTableId] ?? []).map(e => ({
+            effectType: e.effectType,
+            numericValue: e.numericValue,
+            qualityName: e.qualityName,
+            qualityValue: e.qualityValue,
+            ammoType: e.ammoType,
+            descriptionKey: e.descriptionKey,
+          }));
+          (modsByWeaponInvId[r.targetInventoryId] ??= []).push({
+            modInventoryId: r.modInventoryId,
+            modItemId: r.modItemId,
+            modName: r.modName,
+            slot: r.slot,
+            nameAddKey: r.nameAddKey ?? undefined,
+            effects,
+          });
+        }
+      }
+    }
+
+    // Batch fetch base qualities for all weapon items
+    const allWeaponItemIds = [...new Set(allWeaponRows.map(w => w.itemId))];
+    const qualitiesByItemId: Record<number, Array<{ quality: string; value: number | undefined }>> = {};
+    if (allWeaponItemIds.length > 0) {
+      const qualityRows = await db
+        .select({ itemId: weaponQualities.itemId, quality: weaponQualities.quality, value: weaponQualities.value })
+        .from(weaponQualities)
+        .where(inArray(weaponQualities.itemId, allWeaponItemIds));
+      for (const q of qualityRows) {
+        (qualitiesByItemId[q.itemId] ??= []).push({ quality: q.quality, value: q.value ?? undefined });
+      }
+    }
+
+    // Group weapons by character
+    for (const w of allWeaponRows) {
+      const { characterId, inventoryId, ...rest } = w;
+      (equippedWeaponsByCharacter[characterId] ??= []).push({
+        ...rest,
+        installedMods: modsByWeaponInvId[inventoryId] || [],
+        qualities: qualitiesByItemId[w.itemId] || [],
+      });
+    }
   }
 
   const participants = participantRows.map(p => ({
@@ -524,8 +567,16 @@ router.get('/', async (req, res) => {
       id: number;
       sessionId: number;
       characterId: number;
+      turnOrder: number | null;
       combatStatus: string;
-      character: { id: number; name: string; type: 'pc' | 'npc' };
+      character: {
+        id: number;
+        name: string;
+        type: 'pc' | 'npc';
+        level: number;
+        emoji: string | null;
+        originId: string | null;
+      };
     }> = [];
 
     if (sessionIds.length > 0) {
@@ -534,21 +585,33 @@ router.get('/', async (req, res) => {
           id: sessionParticipants.id,
           sessionId: sessionParticipants.sessionId,
           characterId: sessionParticipants.characterId,
+          turnOrder: sessionParticipants.turnOrder,
           combatStatus: sessionParticipants.combatStatus,
           characterName: characters.name,
           characterType: characters.type,
+          characterLevel: characters.level,
+          emoji: characters.emoji,
+          originId: characters.originId,
         })
         .from(sessionParticipants)
-        .innerJoin(characters, eq(sessionParticipants.characterId, characters.id));
+        .innerJoin(characters, eq(sessionParticipants.characterId, characters.id))
+        .where(inArray(sessionParticipants.sessionId, sessionIds));
 
       for (const r of rows) {
-        if (!sessionIds.includes(r.sessionId)) continue;
         participantsLite.push({
           id: r.id,
           sessionId: r.sessionId,
           characterId: r.characterId,
+          turnOrder: r.turnOrder,
           combatStatus: r.combatStatus,
-          character: { id: r.characterId, name: r.characterName, type: r.characterType },
+          character: {
+            id: r.characterId,
+            name: r.characterName,
+            type: r.characterType,
+            level: r.characterLevel,
+            emoji: r.emoji,
+            originId: r.originId,
+          },
         });
       }
     }

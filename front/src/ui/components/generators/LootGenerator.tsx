@@ -54,20 +54,6 @@ export function LootGenerator({ showZoneDescriptions = true }: LootGeneratorProp
   const [injectItem, setInjectItem] = useState<TableItem | null>(null);
   const { addToInventory } = useCharactersApi();
 
-  const handleInjectItem = (tableItem: TableItem) => {
-    setInjectItem(tableItem);
-  };
-
-  const handleCharacterSelected = async (characterId: string) => {
-    if (!injectItem?.itemId) return;
-    try {
-      await addToInventory(characterId, { itemId: injectItem.itemId, quantity: injectItem.quantity, equipped: false });
-    } catch (err) {
-      console.error('Failed to inject item:', err);
-    }
-    setInjectItem(null);
-  };
-
   const maxRarity = getMaxRarityForLevel(locationLevel);
 
   const table = scavengingTables[areaType];
@@ -135,6 +121,20 @@ export function LootGenerator({ showZoneDescriptions = true }: LootGeneratorProp
     if (tableItem.itemId && tableItem.itemType) {
       setSelectedItem({ id: tableItem.itemId, itemType: tableItem.itemType as ItemType });
     }
+  };
+
+  const handleInjectItem = (tableItem: TableItem) => {
+    setInjectItem(tableItem);
+  };
+
+  const handleCharacterSelected = async (characterId: string) => {
+    if (!injectItem?.itemId) return;
+    try {
+      await addToInventory(characterId, { itemId: injectItem.itemId, quantity: injectItem.quantity, equipped: false });
+    } catch (err) {
+      console.error('Failed to inject item:', err);
+    }
+    setInjectItem(null);
   };
 
   const areaTypeOptions = areaTypes.map(type => ({
@@ -436,6 +436,7 @@ export function LootGenerator({ showZoneDescriptions = true }: LootGeneratorProp
         itemType={selectedItem?.itemType ?? null}
       />
 
+      {/* Character Picker for item injection */}
       <CharacterPickerModal
         isOpen={injectItem !== null}
         onClose={() => setInjectItem(null)}

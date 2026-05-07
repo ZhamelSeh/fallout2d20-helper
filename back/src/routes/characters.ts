@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/index';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import {
   characters,
   characterSpecial,
@@ -62,118 +62,125 @@ export async function getCharacterInventory(characterId: number) {
     .filter(r => r.itemType === 'clothing')
     .map(r => r.itemId);
 
-  // Get armor details
+  // Batch fetch armor details (single query instead of N queries)
   const armorDetails: Record<number, { location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number | null; hp: number | null }> = {};
   if (armorItemIds.length > 0) {
-    for (const itemId of armorItemIds) {
-      const [armor] = await db.select().from(armors).where(eq(armors.itemId, itemId));
-      if (armor) {
-        armorDetails[itemId] = {
-          location: armor.location,
-          drPhysical: armor.drPhysical,
-          drEnergy: armor.drEnergy,
-          drRadiation: armor.drRadiation,
-          drPoison: armor.drPoison,
-          hp: armor.hp,
-        };
-      }
+    const armorRows = await db.select().from(armors).where(inArray(armors.itemId, armorItemIds));
+    for (const armor of armorRows) {
+      armorDetails[armor.itemId] = {
+        location: armor.location,
+        drPhysical: armor.drPhysical,
+        drEnergy: armor.drEnergy,
+        drRadiation: armor.drRadiation,
+        drPoison: armor.drPoison,
+        hp: armor.hp,
+      };
     }
   }
 
-  // Get power armor details
+  // Batch fetch power armor details
   const powerArmorDetails: Record<number, { set: string; location: string; drPhysical: number; drEnergy: number; drRadiation: number; hp: number }> = {};
   if (powerArmorItemIds.length > 0) {
-    for (const itemId of powerArmorItemIds) {
-      const [pa] = await db.select().from(powerArmors).where(eq(powerArmors.itemId, itemId));
-      if (pa) {
-        powerArmorDetails[itemId] = {
-          set: pa.set,
-          location: pa.location,
-          drPhysical: pa.drPhysical,
-          drEnergy: pa.drEnergy,
-          drRadiation: pa.drRadiation,
-          hp: pa.hp,
-        };
-      }
+    const paRows = await db.select().from(powerArmors).where(inArray(powerArmors.itemId, powerArmorItemIds));
+    for (const pa of paRows) {
+      powerArmorDetails[pa.itemId] = {
+        set: pa.set,
+        location: pa.location,
+        drPhysical: pa.drPhysical,
+        drEnergy: pa.drEnergy,
+        drRadiation: pa.drRadiation,
+        hp: pa.hp,
+      };
     }
   }
 
-  // Get clothing details with locations
+  // Batch fetch clothing details + locations (2 queries instead of 2*N)
   const clothingDetails: Record<number, { locations: string[]; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number | null }> = {};
   if (clothingItemIds.length > 0) {
-    for (const itemId of clothingItemIds) {
-      const [cloth] = await db.select().from(clothing).where(eq(clothing.itemId, itemId));
-      const locations = await db.select().from(clothingLocations).where(eq(clothingLocations.itemId, itemId));
-      if (cloth) {
-        clothingDetails[itemId] = {
-          locations: locations.map(l => l.location),
-          drPhysical: cloth.drPhysical ?? 0,
-          drEnergy: cloth.drEnergy ?? 0,
-          drRadiation: cloth.drRadiation ?? 0,
-          drPoison: cloth.drPoison,
-        };
-      }
+    const [clothRows, locRows] = await Promise.all([
+      db.select().from(clothing).where(inArray(clothing.itemId, clothingItemIds)),
+      db.select().from(clothingLocations).where(inArray(clothingLocations.itemId, clothingItemIds)),
+    ]);
+    const locsByItemId: Record<number, string[]> = {};
+    for (const loc of locRows) {
+      (locsByItemId[loc.itemId] ??= []).push(loc.location);
+    }
+    for (const cloth of clothRows) {
+      clothingDetails[cloth.itemId] = {
+        locations: locsByItemId[cloth.itemId] ?? [],
+        drPhysical: cloth.drPhysical ?? 0,
+        drEnergy: cloth.drEnergy ?? 0,
+        drRadiation: cloth.drRadiation ?? 0,
+        drPoison: cloth.drPoison,
+      };
     }
   }
 
-  // Fetch installed mods for all inventory items
+  // Batch fetch installed mods for ALL inventory items (2 queries instead of N*M)
   const allInventoryIds = inventoryRows.map(r => r.id);
   const installedModsMap: Record<number, { modInventoryId: number; modItemId: number; modName: string; slot: string; nameAddKey?: string; effects: { effectType: string; numericValue: number | null; qualityName: string | null; qualityValue: number | null; ammoType: string | null; descriptionKey: string | null }[] }[]> = {};
 
   if (allInventoryIds.length > 0) {
-    for (const invId of allInventoryIds) {
-      const modRows = await db
-        .select({
-          modInventoryId: inventoryItemMods.modInventoryId,
-          modItemId: characterInventory.itemId,
-          modName: items.name,
-          slot: mods.slot,
-          nameAddKey: mods.nameAddKey,
-          modTableId: mods.id,
-        })
-        .from(inventoryItemMods)
-        .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
-        .innerJoin(items, eq(characterInventory.itemId, items.id))
-        .innerJoin(mods, eq(mods.itemId, characterInventory.itemId))
-        .where(eq(inventoryItemMods.targetInventoryId, invId));
+    const allModRows = await db
+      .select({
+        targetInventoryId: inventoryItemMods.targetInventoryId,
+        modInventoryId: inventoryItemMods.modInventoryId,
+        modItemId: characterInventory.itemId,
+        modName: items.name,
+        slot: mods.slot,
+        nameAddKey: mods.nameAddKey,
+        modTableId: mods.id,
+      })
+      .from(inventoryItemMods)
+      .innerJoin(characterInventory, eq(inventoryItemMods.modInventoryId, characterInventory.id))
+      .innerJoin(items, eq(characterInventory.itemId, items.id))
+      .innerJoin(mods, eq(mods.itemId, characterInventory.itemId))
+      .where(inArray(inventoryItemMods.targetInventoryId, allInventoryIds));
 
-      if (modRows.length > 0) {
-        const modsWithEffects = await Promise.all(
-          modRows.map(async (r) => {
-            const effects = await db.select().from(modEffects).where(eq(modEffects.modId, r.modTableId));
-            return {
-              modInventoryId: r.modInventoryId,
-              modItemId: r.modItemId,
-              modName: r.modName,
-              slot: r.slot,
-              nameAddKey: r.nameAddKey ?? undefined,
-              effects: effects.map(e => ({
-                effectType: e.effectType,
-                numericValue: e.numericValue,
-                qualityName: e.qualityName,
-                qualityValue: e.qualityValue,
-                ammoType: e.ammoType,
-                descriptionKey: e.descriptionKey,
-              })),
-            };
-          })
-        );
-        installedModsMap[invId] = modsWithEffects;
+    if (allModRows.length > 0) {
+      // Batch fetch all mod effects in a single query
+      const allModTableIds = [...new Set(allModRows.map(r => r.modTableId))];
+      const allEffectRows = await db.select().from(modEffects).where(inArray(modEffects.modId, allModTableIds));
+      const effectsByModId: Record<number, typeof allEffectRows> = {};
+      for (const e of allEffectRows) {
+        (effectsByModId[e.modId] ??= []).push(e);
+      }
+
+      // Group mods by target inventory ID
+      for (const r of allModRows) {
+        const effects = (effectsByModId[r.modTableId] ?? []).map(e => ({
+          effectType: e.effectType,
+          numericValue: e.numericValue,
+          qualityName: e.qualityName,
+          qualityValue: e.qualityValue,
+          ammoType: e.ammoType,
+          descriptionKey: e.descriptionKey,
+        }));
+        (installedModsMap[r.targetInventoryId] ??= []).push({
+          modInventoryId: r.modInventoryId,
+          modItemId: r.modItemId,
+          modName: r.modName,
+          slot: r.slot,
+          nameAddKey: r.nameAddKey ?? undefined,
+          effects,
+        });
       }
     }
   }
 
-  // Fetch compatible mod item IDs for each unique item
+  // Batch fetch compatible mod item IDs (1 query instead of N)
   const moddableTypes = ['weapon', 'armor', 'powerArmor', 'clothing'];
   const moddableItemIds = [...new Set(inventoryRows.filter(r => moddableTypes.includes(r.itemType)).map(r => r.itemId))];
   const compatibleModsMap: Record<number, number[]> = {};
 
-  for (const itemId of moddableItemIds) {
+  if (moddableItemIds.length > 0) {
     const compatRows = await db
-      .select({ modItemId: itemCompatibleMods.modItemId })
+      .select({ targetItemId: itemCompatibleMods.targetItemId, modItemId: itemCompatibleMods.modItemId })
       .from(itemCompatibleMods)
-      .where(eq(itemCompatibleMods.targetItemId, itemId));
-    compatibleModsMap[itemId] = compatRows.map(r => r.modItemId);
+      .where(inArray(itemCompatibleMods.targetItemId, moddableItemIds));
+    for (const row of compatRows) {
+      (compatibleModsMap[row.targetItemId] ??= []).push(row.modItemId);
+    }
   }
 
   return inventoryRows.map((row) => {
@@ -274,6 +281,69 @@ async function getFullCharacter(characterId: number) {
   };
 }
 
+function buildExportData(character: NonNullable<Awaited<ReturnType<typeof getFullCharacter>>>) {
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    appVersion: 'fallout2d20-helper',
+    character: {
+      name: character.name,
+      type: character.type,
+      statBlockType: character.statBlockType,
+      level: character.level,
+      xp: character.xp,
+      maxHp: character.maxHp,
+      currentHp: character.currentHp,
+      defense: character.defense,
+      initiative: character.initiative,
+      meleeDamageBonus: character.meleeDamageBonus,
+      carryCapacity: character.carryCapacity,
+      maxLuckPoints: character.maxLuckPoints,
+      currentLuckPoints: character.currentLuckPoints,
+      caps: character.caps,
+      radiationDamage: character.radiationDamage,
+      special: character.special,
+      skills: character.skills,
+      tagSkills: character.tagSkills,
+      survivorTraits: character.survivorTraits,
+      perks: character.perks,
+      giftedBonusAttributes: character.giftedBonusAttributes,
+      exerciseBonuses: character.exerciseBonuses,
+      conditions: character.conditions,
+      dr: character.dr,
+      traits: character.traits.map((t) => ({
+        name: t.name,
+        description: t.description,
+        ...(t.nameKey && { nameKey: t.nameKey }),
+        ...(t.descriptionKey && { descriptionKey: t.descriptionKey }),
+      })),
+      inventory: character.inventory.map((inv) => ({
+        quantity: inv.quantity,
+        equipped: inv.equipped,
+        equippedLocation: inv.equippedLocation ?? null,
+        item: {
+          name: inv.item.name,
+          itemType: inv.item.itemType,
+          value: inv.item.value,
+          rarity: inv.item.rarity,
+          weight: inv.item.weight,
+        },
+        ...(inv.armorDetails && { armorDetails: inv.armorDetails }),
+        ...(inv.powerArmorDetails && { powerArmorDetails: inv.powerArmorDetails }),
+        ...(inv.clothingDetails && { clothingDetails: inv.clothingDetails }),
+        installedMods: inv.installedMods.map((mod) => ({
+          modName: mod.modName,
+          slot: mod.slot,
+          ...(mod.nameAddKey && { nameAddKey: mod.nameAddKey }),
+        })),
+      })),
+      ...(character.creatureAttributes && { creatureAttributes: character.creatureAttributes }),
+      ...(character.creatureSkills && { creatureSkills: character.creatureSkills }),
+      ...(character.creatureAttacks && { creatureAttacks: character.creatureAttacks }),
+    },
+  };
+}
+
 // GET all characters
 router.get('/', async (req, res) => {
   try {
@@ -298,6 +368,25 @@ router.get('/', async (req, res) => {
   } catch (error) {
     console.error('Error fetching characters:', error);
     res.status(500).json({ error: 'Failed to fetch characters' });
+  }
+});
+
+// Export a character as a portable JSON file
+router.get('/:id/export', async (req, res) => {
+  try {
+    const id = Number(req.params.id);
+    const character = await getFullCharacter(id);
+    if (!character) return res.status(404).json({ error: 'Character not found' });
+
+    const exportData = buildExportData(character);
+    const filename = `${character.name.replace(/[^a-z0-9]/gi, '_')}.json`;
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.json(exportData);
+  } catch (error) {
+    console.error('Error exporting character:', error);
+    res.status(500).json({ error: 'Failed to export character' });
   }
 });
 
@@ -725,6 +814,217 @@ router.delete('/:id', async (req, res) => {
   } catch (error) {
     console.error('Error deleting character:', error);
     res.status(500).json({ error: 'Failed to delete character' });
+  }
+});
+
+// Import a character from an exported JSON file
+router.post('/import', async (req, res) => {
+  try {
+    const data = req.body;
+
+    if (!data.version || !data.character?.name || !data.character?.type) {
+      return res.status(400).json({ error: 'Invalid export file: missing version, character.name, or character.type' });
+    }
+
+    const char = data.character;
+
+    const { newCharId, warnings } = await db.transaction(async (tx) => {
+      const warnings: { itemName: string; reason: string }[] = [];
+
+      // 1. Insert character base record
+      const [newChar] = await tx.insert(characters).values({
+        name: char.name,
+        type: char.type,
+        statBlockType: char.statBlockType ?? 'normal',
+        level: char.level ?? 1,
+        xp: char.xp ?? 0,
+        maxHp: char.maxHp ?? 10,
+        currentHp: char.currentHp ?? char.maxHp ?? 10,
+        defense: char.defense ?? 1,
+        initiative: char.initiative ?? 10,
+        meleeDamageBonus: char.meleeDamageBonus ?? 0,
+        carryCapacity: char.carryCapacity ?? 150,
+        maxLuckPoints: char.maxLuckPoints ?? 0,
+        currentLuckPoints: char.currentLuckPoints ?? 0,
+        caps: char.caps ?? 0,
+        radiationDamage: char.radiationDamage ?? 0,
+        creatureAttributes: char.creatureAttributes ?? null,
+        creatureSkills: char.creatureSkills ?? null,
+        creatureAttacks: char.creatureAttacks ?? null,
+      }).returning();
+
+      if (!newChar) throw new Error('Character insert returned no rows');
+      const newCharId = newChar.id;
+
+      // 2. SPECIAL
+      if (char.special) {
+        const specialEntries = Object.entries(char.special);
+        if (specialEntries.length > 0) {
+          await tx.insert(characterSpecial).values(
+            specialEntries.map(([attribute, value]) => ({
+              characterId: newCharId,
+              attribute: attribute as any,
+              value: value as number,
+            }))
+          );
+        }
+      }
+
+      // 3. Skills
+      if (char.skills) {
+        const skillEntries = Object.entries(char.skills).filter(([, rank]) => (rank as number) > 0);
+        if (skillEntries.length > 0) {
+          await tx.insert(characterSkills).values(
+            skillEntries.map(([skill, rank]) => ({
+              characterId: newCharId,
+              skill: skill as any,
+              rank: rank as number,
+            }))
+          );
+        }
+      }
+
+      // 4. Tag skills
+      if (char.tagSkills?.length > 0) {
+        await tx.insert(characterTagSkills).values(
+          char.tagSkills.map((skill: string) => ({
+            characterId: newCharId,
+            skill: skill as any,
+          }))
+        );
+      }
+
+      // 5. Survivor traits
+      if (char.survivorTraits?.length > 0) {
+        await tx.insert(characterSurvivorTraits).values(
+          char.survivorTraits.map((traitId: string) => ({
+            characterId: newCharId,
+            traitId: traitId as any,
+          }))
+        );
+      }
+
+      // 6. Perks
+      if (char.perks?.length > 0) {
+        await tx.insert(characterPerks).values(
+          char.perks.map((perk: { perkId: string; rank: number }) => ({
+            characterId: newCharId,
+            perkId: perk.perkId,
+            rank: perk.rank,
+          }))
+        );
+      }
+
+      // 7. Gifted bonuses
+      if (char.giftedBonusAttributes?.length > 0) {
+        await tx.insert(characterGiftedBonuses).values(
+          char.giftedBonusAttributes.map((attribute: string) => ({
+            characterId: newCharId,
+            attribute: attribute as any,
+          }))
+        );
+      }
+
+      // 8. Exercise bonuses
+      if (char.exerciseBonuses?.length > 0) {
+        await tx.insert(characterExerciseBonuses).values(
+          char.exerciseBonuses.map((attribute: string) => ({
+            characterId: newCharId,
+            attribute: attribute as any,
+          }))
+        );
+      }
+
+      // 9. Conditions
+      if (char.conditions?.length > 0) {
+        await tx.insert(characterConditions).values(
+          char.conditions.map((condition: string) => ({
+            characterId: newCharId,
+            condition: condition as any,
+          }))
+        );
+      }
+
+      // 10. DR
+      if (char.dr?.length > 0) {
+        await tx.insert(characterDr).values(
+          char.dr.map((d: any) => ({
+            characterId: newCharId,
+            location: d.location,
+            drPhysical: d.drPhysical,
+            drEnergy: d.drEnergy,
+            drRadiation: d.drRadiation,
+            drPoison: d.drPoison,
+          }))
+        );
+      }
+
+      // 11. Custom traits
+      if (char.traits?.length > 0) {
+        await tx.insert(characterTraits).values(
+          char.traits.map((t: any) => ({
+            characterId: newCharId,
+            name: t.name,
+            description: t.description,
+            nameKey: t.nameKey ?? null,
+            descriptionKey: t.descriptionKey ?? null,
+          }))
+        );
+      }
+
+      // 12. Inventory — resolve items by name, skip + warn if not found
+      for (const inv of char.inventory ?? []) {
+        if (!inv.item?.name) {
+          warnings.push({ itemName: '(unknown)', reason: 'missing item data' });
+          continue;
+        }
+        const [foundItem] = await tx.select({ id: items.id }).from(items).where(eq(items.name, inv.item.name));
+        if (!foundItem) {
+          warnings.push({ itemName: inv.item.name, reason: 'item not found' });
+          continue;
+        }
+
+        const [newInv] = await tx.insert(characterInventory).values({
+          characterId: newCharId,
+          itemId: foundItem.id,
+          quantity: inv.quantity ?? 1,
+          equipped: inv.equipped ?? false,
+          equippedLocation: inv.equippedLocation ?? null,
+        }).returning();
+        if (!newInv) throw new Error('Inventory insert returned no rows');
+
+        // Resolve and install mods
+        for (const mod of inv.installedMods ?? []) {
+          const [foundMod] = await tx.select({ id: items.id }).from(items).where(eq(items.name, mod.modName));
+          if (!foundMod) {
+            warnings.push({ itemName: mod.modName, reason: 'mod item not found' });
+            continue;
+          }
+
+          const [modInv] = await tx.insert(characterInventory).values({
+            characterId: newCharId,
+            itemId: foundMod.id,
+            quantity: 1,
+            equipped: false,
+            equippedLocation: null,
+          }).returning();
+          if (!modInv) throw new Error('Mod inventory insert returned no rows');
+
+          await tx.insert(inventoryItemMods).values({
+            targetInventoryId: newInv.id,
+            modInventoryId: modInv.id,
+          });
+        }
+      }
+
+      return { newCharId, warnings };
+    });
+
+    const fullCharacter = await getFullCharacter(newCharId);
+    res.status(201).json({ character: fullCharacter, warnings });
+  } catch (error) {
+    console.error('Error importing character:', error);
+    res.status(500).json({ error: 'Failed to import character' });
   }
 });
 

@@ -1,6 +1,7 @@
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { charactersApi, type CharacterApi, type CreateCharacterData, type InventoryItemApi, type AddInventoryData, type UpdateInventoryData } from '../services/api';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { charactersApi, type CharacterApi, type CreateCharacterData, type InventoryItemApi, type AddInventoryData, type UpdateInventoryData, type ImportWarning } from '../services/api';
 import type { Character, SkillName, SpecialAttribute } from '../data/characters';
 import {
   createDefaultCharacter,
@@ -107,6 +108,8 @@ function frontendToApi(char: Omit<Character, 'id' | 'createdAt' | 'updatedAt'>):
   };
 }
 
+export const CHARACTERS_QUERY_KEY = ['characters'] as const;
+
 export interface UseCharactersApiReturn {
   characters: Character[];
   pcs: Character[];
@@ -121,6 +124,8 @@ export interface UseCharactersApiReturn {
   deleteCharacter: (id: string) => Promise<void>;
   getCharacter: (id: string) => Character | undefined;
   duplicateCharacter: (id: string) => Promise<Character | undefined>;
+  exportCharacter: (character: Character) => Promise<void>;
+  importCharacter: (file: File) => Promise<{ character: Character; warnings: ImportWarning[] }>;
   recalculateStats: (id: string) => Promise<void>;
   refetch: () => Promise<void>;
   // Inventory management
@@ -133,42 +138,33 @@ export interface UseCharactersApiReturn {
 }
 
 /**
- * Hook for managing characters with API persistence
+ * Hook for managing characters with API persistence (powered by React Query)
  */
 export function useCharactersApi(): UseCharactersApiReturn {
   const { t } = useTranslation();
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
 
-  // Fetch all characters
-  const fetchCharacters = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  // Main query: fetch all characters
+  const { data: characters = [], isLoading: loading, error: queryError } = useQuery({
+    queryKey: CHARACTERS_QUERY_KEY,
+    queryFn: async () => {
       const data = await charactersApi.list({ full: true });
-      setCharacters(data.map(apiToFrontend));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch characters');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      return data.map(apiToFrontend);
+    },
+  });
 
-  useEffect(() => {
-    fetchCharacters();
-  }, [fetchCharacters]);
+  const error = queryError ? (queryError instanceof Error ? queryError.message : 'Failed to fetch characters') : null;
 
   // Filtered lists
-  const pcs = useMemo(
-    () => characters.filter((c) => c.type === 'PC'),
-    [characters]
-  );
+  const pcs = useMemo(() => characters.filter((c) => c.type === 'PC'), [characters]);
+  const npcs = useMemo(() => characters.filter((c) => c.type === 'NPC'), [characters]);
 
-  const npcs = useMemo(
-    () => characters.filter((c) => c.type === 'NPC'),
-    [characters]
-  );
+  // Helper to update a character in the query cache
+  const updateCharacterInCache = useCallback((id: string, updater: (char: Character) => Character) => {
+    queryClient.setQueryData<Character[]>(CHARACTERS_QUERY_KEY, (old) =>
+      old?.map(char => char.id === id ? updater(char) : char)
+    );
+  }, [queryClient]);
 
   // Add a new character
   const addCharacter = useCallback(
@@ -176,10 +172,10 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const apiData = frontendToApi(characterData);
       const created = await charactersApi.create(apiData);
       const newCharacter = apiToFrontend(created);
-      setCharacters((prev) => [...prev, newCharacter]);
+      queryClient.setQueryData<Character[]>(CHARACTERS_QUERY_KEY, (old) => [...(old ?? []), newCharacter]);
       return newCharacter;
     },
-    []
+    [queryClient]
   );
 
   // Create a new PC with default values
@@ -223,15 +219,9 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const apiData = frontendToApi(updatedChar as any);
 
       await charactersApi.update(numericId, apiData);
-      setCharacters((prev) =>
-        prev.map((char) =>
-          char.id === id
-            ? { ...char, ...updates, updatedAt: Date.now() }
-            : char
-        )
-      );
+      updateCharacterInCache(id, (char) => ({ ...char, ...updates, updatedAt: Date.now() }));
     },
-    [characters]
+    [characters, updateCharacterInCache]
   );
 
   // Delete a character
@@ -239,9 +229,11 @@ export function useCharactersApi(): UseCharactersApiReturn {
     async (id: string): Promise<void> => {
       const numericId = Number(id);
       await charactersApi.delete(numericId);
-      setCharacters((prev) => prev.filter((char) => char.id !== id));
+      queryClient.setQueryData<Character[]>(CHARACTERS_QUERY_KEY, (old) =>
+        old?.filter((char) => char.id !== id)
+      );
     },
-    []
+    [queryClient]
   );
 
   // Get a character by ID
@@ -265,10 +257,38 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const resolvedName = String(t(original.name, original.name));
       const duplicated = await charactersApi.duplicate(numericId, `${resolvedName} (copie)`);
       const newChar = apiToFrontend(duplicated);
-      setCharacters((prev) => [...prev, newChar]);
+      queryClient.setQueryData<Character[]>(CHARACTERS_QUERY_KEY, (old) => [...(old ?? []), newChar]);
       return newChar;
     },
-    [characters, t]
+    [characters, queryClient, t]
+  );
+
+  const exportCharacter = useCallback(
+    async (character: Character): Promise<void> => {
+      const data = await charactersApi.export(Number(character.id));
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${character.name.replace(/[^a-z0-9]/gi, '_')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },
+    []
+  );
+
+  const importCharacter = useCallback(
+    async (file: File): Promise<{ character: Character; warnings: ImportWarning[] }> => {
+      const text = await file.text();
+      const json = JSON.parse(text);
+      const result = await charactersApi.import(json);
+      const newCharacter = apiToFrontend(result.character);
+      queryClient.setQueryData<Character[]>(CHARACTERS_QUERY_KEY, (old) => [...(old ?? []), newCharacter]);
+      return { character: newCharacter, warnings: result.warnings };
+    },
+    [queryClient]
   );
 
   // Recalculate derived stats using the official rules
@@ -300,23 +320,15 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const numericId = Number(characterId);
       const result = await charactersApi.addToInventory(numericId, data);
 
-      // Update local state
-      setCharacters((prev) =>
-        prev.map((char) => {
-          if (char.id === characterId) {
-            return {
-              ...char,
-              inventory: [...(char.inventory ?? []), result],
-              updatedAt: Date.now(),
-            };
-          }
-          return char;
-        })
-      );
+      updateCharacterInCache(characterId, (char) => ({
+        ...char,
+        inventory: [...(char.inventory ?? []), result],
+        updatedAt: Date.now(),
+      }));
 
       return result;
     },
-    []
+    [updateCharacterInCache]
   );
 
   // Update inventory item
@@ -325,25 +337,17 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const numericId = Number(characterId);
       const result = await charactersApi.updateInventoryItem(numericId, inventoryId, data);
 
-      // Update local state
-      setCharacters((prev) =>
-        prev.map((char) => {
-          if (char.id === characterId) {
-            return {
-              ...char,
-              inventory: (char.inventory ?? []).map((inv: InventoryItemApi) =>
-                inv.id === inventoryId ? result : inv
-              ),
-              updatedAt: Date.now(),
-            };
-          }
-          return char;
-        })
-      );
+      updateCharacterInCache(characterId, (char) => ({
+        ...char,
+        inventory: (char.inventory ?? []).map((inv: InventoryItemApi) =>
+          inv.id === inventoryId ? result : inv
+        ),
+        updatedAt: Date.now(),
+      }));
 
       return result;
     },
-    []
+    [updateCharacterInCache]
   );
 
   // Remove item from inventory
@@ -352,21 +356,13 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const numericId = Number(characterId);
       await charactersApi.removeFromInventory(numericId, inventoryId);
 
-      // Update local state
-      setCharacters((prev) =>
-        prev.map((char) => {
-          if (char.id === characterId) {
-            return {
-              ...char,
-              inventory: (char.inventory ?? []).filter((inv: InventoryItemApi) => inv.id !== inventoryId),
-              updatedAt: Date.now(),
-            };
-          }
-          return char;
-        })
-      );
+      updateCharacterInCache(characterId, (char) => ({
+        ...char,
+        inventory: (char.inventory ?? []).filter((inv: InventoryItemApi) => inv.id !== inventoryId),
+        updatedAt: Date.now(),
+      }));
     },
-    []
+    [updateCharacterInCache]
   );
 
   // Install a mod on an inventory item
@@ -375,25 +371,17 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const numericId = Number(characterId);
       const result = await charactersApi.installMod(numericId, inventoryId, modInventoryId);
 
-      // Update local state
-      setCharacters((prev) =>
-        prev.map((char) => {
-          if (char.id === characterId) {
-            return {
-              ...char,
-              inventory: (char.inventory ?? []).map((inv: InventoryItemApi) =>
-                inv.id === inventoryId ? result : inv
-              ),
-              updatedAt: Date.now(),
-            };
-          }
-          return char;
-        })
-      );
+      updateCharacterInCache(characterId, (char) => ({
+        ...char,
+        inventory: (char.inventory ?? []).map((inv: InventoryItemApi) =>
+          inv.id === inventoryId ? result : inv
+        ),
+        updatedAt: Date.now(),
+      }));
 
       return result;
     },
-    []
+    [updateCharacterInCache]
   );
 
   // Uninstall a mod from an inventory item
@@ -402,26 +390,23 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const numericId = Number(characterId);
       const result = await charactersApi.uninstallMod(numericId, inventoryId, modInventoryId);
 
-      // Update local state
-      setCharacters((prev) =>
-        prev.map((char) => {
-          if (char.id === characterId) {
-            return {
-              ...char,
-              inventory: (char.inventory ?? []).map((inv: InventoryItemApi) =>
-                inv.id === inventoryId ? result : inv
-              ),
-              updatedAt: Date.now(),
-            };
-          }
-          return char;
-        })
-      );
+      updateCharacterInCache(characterId, (char) => ({
+        ...char,
+        inventory: (char.inventory ?? []).map((inv: InventoryItemApi) =>
+          inv.id === inventoryId ? result : inv
+        ),
+        updatedAt: Date.now(),
+      }));
 
       return result;
     },
-    []
+    [updateCharacterInCache]
   );
+
+  // Refetch
+  const refetch = useCallback(async () => {
+    await queryClient.invalidateQueries({ queryKey: CHARACTERS_QUERY_KEY });
+  }, [queryClient]);
 
   return {
     characters,
@@ -437,8 +422,10 @@ export function useCharactersApi(): UseCharactersApiReturn {
     deleteCharacter,
     getCharacter,
     duplicateCharacter,
+    exportCharacter,
+    importCharacter,
     recalculateStats,
-    refetch: fetchCharacters,
+    refetch,
     // Inventory
     getInventory,
     addToInventory,

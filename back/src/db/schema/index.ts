@@ -8,3 +8,4 @@ export * from './sessions';
 export * from './mods';
 export * from './bestiary';
 export * from './injuries';
+export * from './crafting';
