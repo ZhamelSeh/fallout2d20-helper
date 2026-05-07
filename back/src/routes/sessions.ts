@@ -13,6 +13,7 @@ import {
   characterInjuries,
   items,
   weapons,
+  weaponQualities,
   inventoryItemMods,
   mods,
   modEffects,
@@ -132,7 +133,7 @@ async function getParticipantWithCharacter(participantId: number) {
     .innerJoin(weapons, eq(items.id, weapons.itemId))
     .where(eq(characterInventory.characterId, participant.characterId));
 
-  // Enrich weapons with installed mods
+  // Enrich weapons with installed mods + base qualities
   const equippedWeaponsWithMods = await Promise.all(
     equippedWeaponRows.map(async (weapon) => {
       const modRows = await db
@@ -174,8 +175,15 @@ async function getParticipantWithCharacter(participantId: number) {
         );
       }
 
+      // Fetch base qualities for this weapon's item
+      const qualityRows = await db
+        .select({ quality: weaponQualities.quality, value: weaponQualities.value })
+        .from(weaponQualities)
+        .where(eq(weaponQualities.itemId, weapon.itemId));
+      const qualities = qualityRows.map(q => ({ quality: q.quality, value: q.value ?? undefined }));
+
       const { inventoryId, ...rest } = weapon;
-      return { ...rest, installedMods };
+      return { ...rest, installedMods, qualities };
     })
   );
 
@@ -343,7 +351,7 @@ async function getFullSession(sessionId: number) {
       .innerJoin(weapons, eq(items.id, weapons.itemId))
       .where(eq(characterInventory.characterId, charId));
 
-    // Enrich with installed mods
+    // Enrich with installed mods + base qualities
     equippedWeaponsByCharacter[charId] = await Promise.all(
       weaponRows.map(async (weapon) => {
         const modRows = await db
@@ -385,8 +393,15 @@ async function getFullSession(sessionId: number) {
           );
         }
 
+        // Base qualities for this weapon's item
+        const qualityRows = await db
+          .select({ quality: weaponQualities.quality, value: weaponQualities.value })
+          .from(weaponQualities)
+          .where(eq(weaponQualities.itemId, weapon.itemId));
+        const qualities = qualityRows.map(q => ({ quality: q.quality, value: q.value ?? undefined }));
+
         const { inventoryId, ...rest } = weapon;
-        return { ...rest, installedMods };
+        return { ...rest, installedMods, qualities };
       })
     );
   }
