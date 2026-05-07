@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { SessionParticipantApi } from '../../../services/api';
 import {
@@ -128,11 +128,27 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
   }, [weapon]);
 
   const isMeleeOrThrown = weapon?.skill ? MELEE_OR_THROWN_SKILLS.has(weapon.skill) : false;
-  const burstMax = weapon?.fireRate ?? 0;
+  const hasBurstQuality = effectiveQualities.some(q => q.quality === 'burst');
+  const burstMax = hasBurstQuality ? (weapon?.fireRate ?? 0) : 0;
   const damageAPMax = isMeleeOrThrown ? 3 : 0;
 
+  // Passive derived stat: meleeDamageBonus auto-adds CDs for melee/unarmed/throwing
+  const meleeDamageBonus = (attacker.character as any).meleeDamageBonus ?? 0;
+  const meleeBonusApplied = isMeleeOrThrown ? meleeDamageBonus : 0;
+
   const baseCDCount = stats?.damage ?? 0;
-  const totalCDCount = baseCDCount + extraBurstAmmo + (isMeleeOrThrown ? extraDamageAP : 0);
+  const totalCDCount = baseCDCount
+    + meleeBonusApplied
+    + extraBurstAmmo
+    + (isMeleeOrThrown ? extraDamageAP : 0);
+
+  // Reset inputs when the weapon changes (so burst from a previous gun doesn't
+  // leak into a melee weapon, etc.)
+  useEffect(() => {
+    setExtraBurstAmmo(0);
+    setExtraDamageAP(0);
+    setPreviewResult(null);
+  }, [weaponId]);
 
   const viciousQuality = effectiveQualities.find(q => q.quality === 'vicious');
   const viciousBonus = viciousQuality?.value ?? 0;
@@ -289,7 +305,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
       <div className="grid grid-cols-2 gap-3 border border-vault-yellow-dark rounded p-2 bg-vault-blue-dark">
         <div>
           <label className="text-xs text-vault-yellow-dark">
-            ⚡ Cadence de tir (munitions extra) — max {burstMax}
+            ⚡ Cadence de tir (munitions extra) {hasBurstQuality ? `— max ${burstMax}` : '— indispo (pas de Burst)'}
           </label>
           <input
             type="number"
@@ -297,7 +313,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
             max={burstMax}
             value={extraBurstAmmo}
             onChange={e => setExtraBurstAmmo(Math.max(0, Math.min(burstMax, +e.target.value || 0)))}
-            disabled={burstMax === 0}
+            disabled={!hasBurstQuality}
             className="w-full bg-vault-gray text-vault-yellow-light rounded px-2 py-1 text-sm disabled:opacity-50"
           />
         </div>
@@ -324,6 +340,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
         </div>
         <div className="text-xs text-vault-yellow-light space-y-0.5 font-mono">
           <div>Base (arme + mods) : <b>{baseCDCount}</b>{stats?.damageModified ? ' (modifié)' : ''}</div>
+          {meleeBonusApplied > 0 && <div>+ Bonus dégâts CaC (passif) : <b>+{meleeBonusApplied}</b></div>}
           {extraBurstAmmo > 0 && <div>+ Cadence de tir : <b>+{extraBurstAmmo}</b></div>}
           {isMeleeOrThrown && extraDamageAP > 0 && <div>+ Dégâts supp. (PA) : <b>+{extraDamageAP}</b></div>}
         </div>
