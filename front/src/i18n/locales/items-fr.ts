@@ -77,6 +77,23 @@ export default {
       'Pulse Mine': 'Mine à impulsion',
       'Plasma Mine': 'Mine à plasma',
       'Nuka Mine': 'Mine Nuka',
+      // ===== Guide des Colonies =====
+      'M79 Grenade Launcher': 'Lance-grenades M79',
+      'Smoke Pincer': 'Pince fumigène',
+      'Cryojet': 'Cryojet',
+      'Tesla Rifle': 'Fusil Tesla',
+      'Alien Blaster': 'Laser alien',
+      'Laserotron Head Laser': 'Laser céphalique de Laserotron',
+      'Medusatron': 'Médusatron',
+      'Acid Pistol': 'Pistolet à acide',
+      'Broadside Cannon': 'Canon de bordée',
+      'Cryolator': 'Cryolator',
+      'Harpoon Rifle': 'Fusil harpon',
+      'Drill': 'Foreuse',
+      'Pincer': 'Pince',
+      'Construction Pincer': 'Pince de construction',
+      'Vice Pincer': 'Pince étau',
+      'Circular Saw': 'Scie circulaire',
     },
     ammunition: {
       '.38 Rounds': 'Cartouches .38',
@@ -99,6 +116,14 @@ export default {
       'Plasma Cartridges': 'Cartouches au plasma',
       '2mm EC Rounds': 'Cartouches CE 2 mm',
       'Mini Nuke': 'Mini-bombe nucléaire',
+      // ===== Guide des Colonies =====
+      'Concentrated Acid': 'Acide concentré',
+      'Gas Grenade': 'Grenade à gaz',
+      '40mm Grenade': 'Grenade de 40 mm',
+      'Harpoon': 'Harpon',
+      'Cryo Cell': 'Cellule cryogénique',
+      'Cannonball': 'Boulet de canon',
+      'Alien Laser Round': 'Munition de laser alien',
     },
     armor: {
       // Raider Armor (simplified names used in equipment packs)

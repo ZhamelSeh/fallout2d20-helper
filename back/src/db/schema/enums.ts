@@ -13,13 +13,17 @@ export const weaponQualityEnum = pgEnum('weapon_quality', [
   'accurate', 'blast', 'breaking', 'burst', 'closeQuarters', 'concealed', 'debilitating',
   'gatling', 'inaccurate', 'mine', 'nightVision', 'parry', 'persistent',
   'piercing', 'radioactive', 'reliable', 'recon', 'spread', 'stun',
-  'thrown', 'twoHanded', 'unreliable', 'vicious', 'silent'
+  'thrown', 'twoHanded', 'unreliable', 'vicious', 'silent',
+  // Guide des Colonies
+  'arcing', 'glacial', 'slowReload'
 ]);
 
 export const ammoTypeEnum = pgEnum('ammo_type', [
   '10mm', '.308', '.38', '.44', '.45', '.50', '5mm', '5.56mm', '2mmEC',
   'shotgunShell', 'fusionCell', 'plasmaCartridge', 'flamerFuel', 'fusionCore',
-  'gammaRound', 'missile', 'miniNuke', 'railwaySpike', 'syringerAmmo', 'flare', 'cannonball', 'none'
+  'gammaRound', 'missile', 'miniNuke', 'railwaySpike', 'syringerAmmo', 'flare', 'cannonball', 'none',
+  // Guide des Colonies
+  'concentratedAcid', 'cryoCell', 'gasGrenade', 'grenade40mm', 'harpoon', 'alienLaser'
 ]);
 
 // ===== BODY & EQUIPMENT =====

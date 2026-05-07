@@ -257,6 +257,10 @@ export const WEAPON_QUALITY_EFFECTS: Record<string, WeaponQualityEffect> = {
   unreliable: { id: 'unreliable', effects: { isUnreliable: true }, specialRuleKeys: ['effects.weaponQualities.unreliable.rules.0'] },
   vicious: { id: 'vicious', usesValue: true, damage: { bonusCDOnCrit: 1 }, specialRuleKeys: ['effects.weaponQualities.vicious.rules.0'] },
   silent: { id: 'silent', specialRuleKeys: ['effects.weaponQualities.silent.rules.0'] },
+  // ===== Guide des Colonies =====
+  arcing: { id: 'arcing', specialRuleKeys: ['effects.weaponQualities.arcing.rules.0'] },
+  glacial: { id: 'glacial', specialRuleKeys: ['effects.weaponQualities.glacial.rules.0'] },
+  slowReload: { id: 'slowReload', specialRuleKeys: ['effects.weaponQualities.slowReload.rules.0'] },
 };
 
 // ===== ORIGIN EFFECTS =====

@@ -626,6 +626,22 @@ export const effectsEn = {
           0: 'When you attack with an Unreliable weapon, increase the Complication range of the attack by 1. A weapon cannot be both Reliable and Unreliable.',
         },
       },
+      // === GUIDE DES COLONIES ===
+      arcing: {
+        rules: {
+          0: 'For each Effect rolled on the damage roll, the attack hits an additional target at Close range or less from the initial target. Unlike Burst, this effect does not cost extra ammo.',
+        },
+      },
+      glacial: {
+        rules: {
+          0: 'If the number of Effects rolled on the damage roll exceeds half the target\'s END (or half its BODY for a creature), the target is Frozen and cannot act on its next turn.',
+        },
+      },
+      slowReload: {
+        rules: {
+          0: 'Reloading this weapon takes time. After firing, you must spend a minor action reloading it before you can fire again.',
+        },
+      },
     },
     origins: {
       brotherhood: {

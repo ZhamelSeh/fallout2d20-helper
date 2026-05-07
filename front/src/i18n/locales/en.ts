@@ -1049,6 +1049,19 @@ export default {
       name: 'Unreliable',
       description: 'Increases Complication range by 1. Incompatible with Reliable.',
     },
+    // === GUIDE DES COLONIES ===
+    arcing: {
+      name: 'Arcing',
+      description: 'Each Effect hits an additional target at Close range. Does not cost extra ammo.',
+    },
+    glacial: {
+      name: 'Glacial',
+      description: 'If Effects > END/2 (or BODY/2), target is Frozen and cannot act on its next turn.',
+    },
+    slowReload: {
+      name: 'Slow Reload',
+      description: 'After firing, must spend a minor action reloading before firing again.',
+    },
   },
 
   'clothing.effects': {

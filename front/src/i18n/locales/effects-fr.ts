@@ -626,6 +626,22 @@ export const effectsFr = {
           0: 'Quand vous portez une attaque avec une arme Imprévisible, augmentez la marge de Complication de l\'attaque de 1. Une arme ne peut pas être à la fois Fiable et Imprévisible.',
         },
       },
+      // === GUIDE DES COLONIES ===
+      arcing: {
+        rules: {
+          0: 'Pour chaque Effet obtenu sur le jet de dégâts, l\'attaque touche une cible supplémentaire située à portée courte ou inférieure de la cible initiale. Contrairement à la qualité En rafale, cet effet ne coûte pas de munitions supplémentaires.',
+        },
+      },
+      glacial: {
+        rules: {
+          0: 'Si le nombre d\'Effets obtenus sur le jet de dégâts dépasse la moitié de l\'END de la cible (ou la moitié de son CORPS pour une créature), la cible est Gelée et ne peut pas agir lors de son prochain tour.',
+        },
+      },
+      slowReload: {
+        rules: {
+          0: 'Recharger cette arme prend du temps. Après avoir tiré, vous devez consacrer une action mineure à son rechargement avant de pouvoir tirer à nouveau.',
+        },
+      },
     },
     origins: {
       brotherhood: {

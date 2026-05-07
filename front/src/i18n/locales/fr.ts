@@ -1049,6 +1049,19 @@ export default {
       name: 'Imprévisible',
       description: 'Augmente la marge de Complication de 1. Incompatible avec Fiable.',
     },
+    // === GUIDE DES COLONIES ===
+    arcing: {
+      name: 'En arc',
+      description: 'Chaque Effet touche une cible supplémentaire à portée courte. Ne coûte pas de munitions supplémentaires.',
+    },
+    glacial: {
+      name: 'Glacial',
+      description: 'Si Effets > END/2 (ou CORPS/2), la cible est Gelée et ne peut pas agir au prochain tour.',
+    },
+    slowReload: {
+      name: 'Rechargement lent',
+      description: 'Après avoir tiré, action mineure de rechargement avant de pouvoir tirer à nouveau.',
+    },
   },
 
   'clothing.effects': {
