@@ -214,7 +214,7 @@ export function AddParticipantsModal({
                           <OriginIcon originId={character.origin} emoji={character.emoji} type={character.type} size="sm" />
                           <div className="flex-1 min-w-0">
                             <div className="text-vault-yellow font-medium truncate text-base">
-                              {character.name}
+                              {String(t(character.name, character.name))}
                             </div>
                             <div className="text-sm text-gray-400">
                               Nv. {character.level} - {character.currentHp}/{character.maxHp} PV

@@ -55,6 +55,39 @@ export function useSession(id: number | null) {
     await fetchSession();
   }, [sessions, id, fetchSession]);
 
+  const setAlliance = useCallback(async (participantId: number, isAlly: boolean) => {
+    if (!id) return;
+    try {
+      await sessions.updateParticipant(id, participantId, { isAlly });
+      await fetchSession();
+    } catch (err) {
+      console.error('Error setting alliance:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  }, [sessions, id, fetchSession]);
+
+  const setTemporaryActive = useCallback(async (participantId: number, temporaryActive: boolean) => {
+    if (!id) return;
+    try {
+      await sessions.updateParticipant(id, participantId, { temporaryActive });
+      await fetchSession();
+    } catch (err) {
+      console.error('Error setting temporaryActive:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  }, [sessions, id, fetchSession]);
+
+  const setSkipNormalActions = useCallback(async (participantId: number, skipNormalActions: boolean) => {
+    if (!id) return;
+    try {
+      await sessions.updateParticipant(id, participantId, { skipNormalActions });
+      await fetchSession();
+    } catch (err) {
+      console.error('Error setting skipNormalActions:', err);
+      setError(err instanceof Error ? err.message : 'Unknown error');
+    }
+  }, [sessions, id, fetchSession]);
+
   const startCombat = useCallback(async () => {
     if (!id) throw new Error('No session ID');
     const updated = await sessions.startCombat(id);
@@ -95,6 +128,7 @@ export function useSession(id: number | null) {
     data, loading, error, refetch: fetchSession,
     addParticipant, addQuickNpc, removeParticipant,
     setCombatStatus, setInitiative,
+    setAlliance, setTemporaryActive, setSkipNormalActions,
     startCombat, endCombat, nextTurn, prevTurn,
     updateGroupAP, updateGmAP,
   };

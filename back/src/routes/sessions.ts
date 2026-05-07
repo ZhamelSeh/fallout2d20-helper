@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { db } from '../db/index';
-import { eq, and, inArray } from 'drizzle-orm';
+import { eq, and, isNull, inArray } from 'drizzle-orm';
 import {
   sessions,
   sessionParticipants,
@@ -9,13 +9,25 @@ import {
   characterSkills,
   characterTagSkills,
   characterConditions,
+  characterDr,
   characterInventory,
+  characterInjuries,
   items,
   weapons,
+  weaponQualities,
   inventoryItemMods,
   mods,
   modEffects,
 } from '../db/schema/index';
+import {
+  saveLastAttack,
+  getLastAttack,
+  clearLastAttack,
+  type LastAttackSnapshot,
+} from '../shared/lastAttackStore';
+import { INJURY_BY_ZONE } from '../shared/injuryMap';
+import { processEndOfTurn } from '../domain/endOfTurn';
+import { getCharacterInventory } from './characters';
 
 const router = Router();
 
@@ -28,6 +40,9 @@ async function getParticipantWithCharacter(participantId: number) {
       characterId: sessionParticipants.characterId,
       turnOrder: sessionParticipants.turnOrder,
       combatStatus: sessionParticipants.combatStatus,
+      isAlly: sessionParticipants.isAlly,
+      temporaryActive: sessionParticipants.temporaryActive,
+      skipNormalActions: sessionParticipants.skipNormalActions,
       // Character details
       characterName: characters.name,
       characterType: characters.type,
@@ -37,6 +52,7 @@ async function getParticipantWithCharacter(participantId: number) {
       currentHp: characters.currentHp,
       defense: characters.defense,
       initiative: characters.initiative,
+      meleeDamageBonus: characters.meleeDamageBonus,
       radiationDamage: characters.radiationDamage,
       maxLuckPoints: characters.maxLuckPoints,
       currentLuckPoints: characters.currentLuckPoints,
@@ -59,6 +75,26 @@ async function getParticipantWithCharacter(participantId: number) {
     .from(characterConditions)
     .where(eq(characterConditions.characterId, participant.characterId));
 
+  // Get active injuries (healedAt IS NULL)
+  const injuries = await db
+    .select({
+      id: characterInjuries.id,
+      characterId: characterInjuries.characterId,
+      sessionId: characterInjuries.sessionId,
+      zone: characterInjuries.zone,
+      injuryType: characterInjuries.injuryType,
+      appliedAtRound: characterInjuries.appliedAtRound,
+      healedAt: characterInjuries.healedAt,
+      createdAt: characterInjuries.createdAt,
+    })
+    .from(characterInjuries)
+    .where(
+      and(
+        eq(characterInjuries.characterId, participant.characterId),
+        isNull(characterInjuries.healedAt)
+      )
+    );
+
   // Get SPECIAL stats
   const specialRows = await db
     .select({ attribute: characterSpecial.attribute, value: characterSpecial.value })
@@ -75,6 +111,15 @@ async function getParticipantWithCharacter(participantId: number) {
     .select({ skill: characterSkills.skill, rank: characterSkills.rank })
     .from(characterSkills)
     .where(eq(characterSkills.characterId, participant.characterId));
+
+  // Get DR by zone
+  const drRows = await db
+    .select()
+    .from(characterDr)
+    .where(eq(characterDr.characterId, participant.characterId));
+
+  // Get full inventory (armor/clothing/PA + mods) — needed for PC body DR computation
+  const inventory = await getCharacterInventory(participant.characterId);
 
   const skills: Record<string, number> = {};
   for (const row of skillRows) {
@@ -149,9 +194,26 @@ async function getParticipantWithCharacter(participantId: number) {
     }
   }
 
+  // Batch fetch base qualities for all weapon items
+  const weaponItemIds = [...new Set(equippedWeaponRows.map(w => w.itemId))];
+  const qualitiesByItemId: Record<number, Array<{ quality: string; value: number | undefined }>> = {};
+  if (weaponItemIds.length > 0) {
+    const qualityRows = await db
+      .select({ itemId: weaponQualities.itemId, quality: weaponQualities.quality, value: weaponQualities.value })
+      .from(weaponQualities)
+      .where(inArray(weaponQualities.itemId, weaponItemIds));
+    for (const q of qualityRows) {
+      (qualitiesByItemId[q.itemId] ??= []).push({ quality: q.quality, value: q.value ?? undefined });
+    }
+  }
+
   const equippedWeaponsWithMods = equippedWeaponRows.map(weapon => {
     const { inventoryId, ...rest } = weapon;
-    return { ...rest, installedMods: modsByWeaponInvId[inventoryId] || [] };
+    return {
+      ...rest,
+      installedMods: modsByWeaponInvId[inventoryId] || [],
+      qualities: qualitiesByItemId[weapon.itemId] || [],
+    };
   });
 
   return {
@@ -160,6 +222,10 @@ async function getParticipantWithCharacter(participantId: number) {
     characterId: participant.characterId,
     turnOrder: participant.turnOrder,
     combatStatus: participant.combatStatus,
+    isAlly: participant.isAlly,
+    temporaryActive: participant.temporaryActive,
+    skipNormalActions: participant.skipNormalActions,
+    injuries,
     character: {
       id: participant.characterId,
       name: participant.characterName,
@@ -170,6 +236,7 @@ async function getParticipantWithCharacter(participantId: number) {
       currentHp: participant.currentHp,
       defense: participant.defense,
       initiative: participant.initiative,
+      meleeDamageBonus: participant.meleeDamageBonus,
       radiationDamage: participant.radiationDamage,
       maxLuckPoints: participant.maxLuckPoints,
       currentLuckPoints: participant.currentLuckPoints,
@@ -177,7 +244,16 @@ async function getParticipantWithCharacter(participantId: number) {
       special,
       skills,
       conditions: conditions.map(c => c.condition),
+      injuries,
+      dr: drRows.map(d => ({
+        location: d.location,
+        drPhysical: d.drPhysical,
+        drEnergy: d.drEnergy,
+        drRadiation: d.drRadiation,
+        drPoison: d.drPoison ?? 0,
+      })),
       equippedWeapons: equippedWeaponsWithMods,
+      inventory,
       creatureAttributes: participant.creatureAttributes ?? undefined,
       creatureAttacks: participant.creatureAttacks ?? undefined,
       creatureSkills: participant.creatureSkills ?? undefined,
@@ -198,6 +274,9 @@ async function getFullSession(sessionId: number) {
       characterId: sessionParticipants.characterId,
       turnOrder: sessionParticipants.turnOrder,
       combatStatus: sessionParticipants.combatStatus,
+      isAlly: sessionParticipants.isAlly,
+      temporaryActive: sessionParticipants.temporaryActive,
+      skipNormalActions: sessionParticipants.skipNormalActions,
       // Character details
       characterName: characters.name,
       characterType: characters.type,
@@ -207,6 +286,7 @@ async function getFullSession(sessionId: number) {
       currentHp: characters.currentHp,
       defense: characters.defense,
       initiative: characters.initiative,
+      meleeDamageBonus: characters.meleeDamageBonus,
       radiationDamage: characters.radiationDamage,
       maxLuckPoints: characters.maxLuckPoints,
       currentLuckPoints: characters.currentLuckPoints,
@@ -225,25 +305,60 @@ async function getFullSession(sessionId: number) {
   const characterIds = participantRows.map(p => p.characterId);
 
   const conditionsByCharacter: Record<number, string[]> = {};
+  const injuriesByCharacter: Record<number, Array<{
+    id: number;
+    characterId: number;
+    sessionId: number | null;
+    zone: string;
+    injuryType: string;
+    appliedAtRound: number | null;
+    healedAt: Date | null;
+    createdAt: Date;
+  }>> = {};
   const specialByCharacter: Record<number, Record<string, number>> = {};
   const skillsByCharacter: Record<number, Record<string, number>> = {};
   const equippedWeaponsByCharacter: Record<number, Array<{
     itemId: number; name: string; nameKey: string | null; skill: string; damage: number; damageType: string; fireRate: number; range: string;
     installedMods: Array<{ modInventoryId: number; modItemId: number; modName: string; slot: string; nameAddKey?: string; effects: any[] }>;
+    qualities: Array<{ quality: string; value: number | undefined }>;
   }>> = {};
+  const drByCharacter: Record<number, Array<{
+    location: string; drPhysical: number; drEnergy: number; drRadiation: number; drPoison: number;
+  }>> = {};
+  const inventoryByCharacter: Record<number, Awaited<ReturnType<typeof getCharacterInventory>>> = {};
 
   if (characterIds.length > 0) {
-    // Batch: conditions, SPECIAL, skills, weapons — 4 queries instead of 4*N
-    const [allConditions, allSpecial, allSkills, allWeaponRows] = await Promise.all([
+    // Batch: conditions, injuries, SPECIAL, skills, DR, weapons
+    const [allConditions, allInjuries, allSpecial, allSkills, allDr, allWeaponRows] = await Promise.all([
       db.select({ characterId: characterConditions.characterId, condition: characterConditions.condition })
         .from(characterConditions)
         .where(inArray(characterConditions.characterId, characterIds)),
+      db.select({
+        id: characterInjuries.id,
+        characterId: characterInjuries.characterId,
+        sessionId: characterInjuries.sessionId,
+        zone: characterInjuries.zone,
+        injuryType: characterInjuries.injuryType,
+        appliedAtRound: characterInjuries.appliedAtRound,
+        healedAt: characterInjuries.healedAt,
+        createdAt: characterInjuries.createdAt,
+      })
+        .from(characterInjuries)
+        .where(
+          and(
+            inArray(characterInjuries.characterId, characterIds),
+            isNull(characterInjuries.healedAt)
+          )
+        ),
       db.select({ characterId: characterSpecial.characterId, attribute: characterSpecial.attribute, value: characterSpecial.value })
         .from(characterSpecial)
         .where(inArray(characterSpecial.characterId, characterIds)),
       db.select({ characterId: characterSkills.characterId, skill: characterSkills.skill, rank: characterSkills.rank })
         .from(characterSkills)
         .where(inArray(characterSkills.characterId, characterIds)),
+      db.select()
+        .from(characterDr)
+        .where(inArray(characterDr.characterId, characterIds)),
       db.select({
         characterId: characterInventory.characterId,
         inventoryId: characterInventory.id,
@@ -266,6 +381,29 @@ async function getFullSession(sessionId: number) {
     for (const c of allConditions) {
       (conditionsByCharacter[c.characterId] ??= []).push(c.condition);
     }
+
+    // Group active injuries by character
+    for (const inj of allInjuries) {
+      (injuriesByCharacter[inj.characterId] ??= []).push(inj);
+    }
+
+    // Group DR by character
+    for (const d of allDr) {
+      (drByCharacter[d.characterId] ??= []).push({
+        location: d.location,
+        drPhysical: d.drPhysical,
+        drEnergy: d.drEnergy,
+        drRadiation: d.drRadiation,
+        drPoison: d.drPoison ?? 0,
+      });
+    }
+
+    // Full inventory per character (needed for PC body DR computation)
+    await Promise.all(
+      characterIds.map(async (charId) => {
+        inventoryByCharacter[charId] = await getCharacterInventory(charId);
+      })
+    );
 
     // Group SPECIAL by character
     for (const s of allSpecial) {
@@ -327,12 +465,26 @@ async function getFullSession(sessionId: number) {
       }
     }
 
+    // Batch fetch base qualities for all weapon items
+    const allWeaponItemIds = [...new Set(allWeaponRows.map(w => w.itemId))];
+    const qualitiesByItemId: Record<number, Array<{ quality: string; value: number | undefined }>> = {};
+    if (allWeaponItemIds.length > 0) {
+      const qualityRows = await db
+        .select({ itemId: weaponQualities.itemId, quality: weaponQualities.quality, value: weaponQualities.value })
+        .from(weaponQualities)
+        .where(inArray(weaponQualities.itemId, allWeaponItemIds));
+      for (const q of qualityRows) {
+        (qualitiesByItemId[q.itemId] ??= []).push({ quality: q.quality, value: q.value ?? undefined });
+      }
+    }
+
     // Group weapons by character
     for (const w of allWeaponRows) {
       const { characterId, inventoryId, ...rest } = w;
       (equippedWeaponsByCharacter[characterId] ??= []).push({
         ...rest,
         installedMods: modsByWeaponInvId[inventoryId] || [],
+        qualities: qualitiesByItemId[w.itemId] || [],
       });
     }
   }
@@ -343,6 +495,10 @@ async function getFullSession(sessionId: number) {
     characterId: p.characterId,
     turnOrder: p.turnOrder,
     combatStatus: p.combatStatus,
+    isAlly: p.isAlly,
+    temporaryActive: p.temporaryActive,
+    skipNormalActions: p.skipNormalActions,
+    injuries: injuriesByCharacter[p.characterId] || [],
     character: {
       id: p.characterId,
       name: p.characterName,
@@ -353,6 +509,7 @@ async function getFullSession(sessionId: number) {
       currentHp: p.currentHp,
       defense: p.defense,
       initiative: p.initiative,
+      meleeDamageBonus: p.meleeDamageBonus,
       radiationDamage: p.radiationDamage,
       maxLuckPoints: p.maxLuckPoints,
       currentLuckPoints: p.currentLuckPoints,
@@ -360,7 +517,10 @@ async function getFullSession(sessionId: number) {
       special: specialByCharacter[p.characterId] || {},
       skills: skillsByCharacter[p.characterId] || {},
       conditions: conditionsByCharacter[p.characterId] || [],
+      injuries: injuriesByCharacter[p.characterId] || [],
+      dr: drByCharacter[p.characterId] || [],
       equippedWeapons: equippedWeaponsByCharacter[p.characterId] || [],
+      inventory: inventoryByCharacter[p.characterId] || [],
       creatureAttributes: p.creatureAttributes ?? undefined,
       creatureAttacks: p.creatureAttacks ?? undefined,
       creatureSkills: p.creatureSkills ?? undefined,
@@ -381,50 +541,87 @@ router.get('/', async (req, res) => {
   try {
     const { status } = req.query;
 
-    let results;
+    let sessionRows;
     if (status && ['active', 'paused', 'completed'].includes(status as string)) {
-      results = await db
+      sessionRows = await db
         .select()
         .from(sessions)
         .where(eq(sessions.status, status as any));
     } else {
-      results = await db.select().from(sessions);
+      sessionRows = await db.select().from(sessions);
     }
 
-    // Optionally fetch with full participant details (heavy)
+    // Heavy mode: full participant data (inventory, DR, weapons, mods, injuries...).
+    // Used by detail-like consumers; very expensive — avoid for list views.
     if (req.query.full === 'true') {
       const fullSessions = await Promise.all(
-        results.map(s => getFullSession(s.id))
+        sessionRows.map(s => getFullSession(s.id))
       );
       return res.json(fullSessions);
     }
 
-    // Default: include lightweight participant info (name, type, id only)
-    const sessionsWithParticipants = await Promise.all(
-      results.map(async (s) => {
-        const participants = await db
-          .select({
-            id: sessionParticipants.id,
-            characterId: sessionParticipants.characterId,
-            turnOrder: sessionParticipants.turnOrder,
-            combatStatus: sessionParticipants.combatStatus,
-            character: {
-              id: characters.id,
-              name: characters.name,
-              type: characters.type,
-              level: characters.level,
-              emoji: characters.emoji,
-              originId: characters.originId,
-            },
-          })
-          .from(sessionParticipants)
-          .innerJoin(characters, eq(sessionParticipants.characterId, characters.id))
-          .where(eq(sessionParticipants.sessionId, s.id));
-        return { ...s, participants };
-      })
-    );
+    // Light mode: only what the list view needs — minimal participant info to
+    // count PCs and show "in combat" badges. ONE batched query for participants.
+    const sessionIds = sessionRows.map(s => s.id);
+    const participantsLite: Array<{
+      id: number;
+      sessionId: number;
+      characterId: number;
+      turnOrder: number | null;
+      combatStatus: string;
+      character: {
+        id: number;
+        name: string;
+        type: 'pc' | 'npc';
+        level: number;
+        emoji: string | null;
+        originId: string | null;
+      };
+    }> = [];
 
-    res.json(sessionsWithParticipants);
+    if (sessionIds.length > 0) {
+      const rows = await db
+        .select({
+          id: sessionParticipants.id,
+          sessionId: sessionParticipants.sessionId,
+          characterId: sessionParticipants.characterId,
+          turnOrder: sessionParticipants.turnOrder,
+          combatStatus: sessionParticipants.combatStatus,
+          characterName: characters.name,
+          characterType: characters.type,
+          characterLevel: characters.level,
+          emoji: characters.emoji,
+          originId: characters.originId,
+        })
+        .from(sessionParticipants)
+        .innerJoin(characters, eq(sessionParticipants.characterId, characters.id))
+        .where(inArray(sessionParticipants.sessionId, sessionIds));
+
+      for (const r of rows) {
+        participantsLite.push({
+          id: r.id,
+          sessionId: r.sessionId,
+          characterId: r.characterId,
+          turnOrder: r.turnOrder,
+          combatStatus: r.combatStatus,
+          character: {
+            id: r.characterId,
+            name: r.characterName,
+            type: r.characterType,
+            level: r.characterLevel,
+            emoji: r.emoji,
+            originId: r.originId,
+          },
+        });
+      }
+    }
+
+    const result = sessionRows.map(s => ({
+      ...s,
+      participants: participantsLite.filter(p => p.sessionId === s.id),
+    }));
+
+    res.json(result);
   } catch (error) {
     console.error('Error fetching sessions:', error);
     res.status(500).json({ error: 'Failed to fetch sessions' });
@@ -558,6 +755,7 @@ router.post('/:id/participants', async (req, res) => {
       .values({
         sessionId,
         characterId,
+        isAlly: character.type === 'pc',
       })
       .returning();
 
@@ -618,6 +816,7 @@ router.post('/:id/participants/quick', async (req, res) => {
       .values({
         sessionId,
         characterId: newCharacter.id,
+        isAlly: false,
       })
       .returning();
 
@@ -722,6 +921,321 @@ router.put('/:id/participants/:pid/initiative', async (req, res) => {
   } catch (error) {
     console.error('Error setting initiative:', error);
     res.status(500).json({ error: 'Failed to set initiative' });
+  }
+});
+
+// PATCH update participant (generic - alliance/combat flags/turn order/status)
+router.patch('/:sessionId/participants/:participantId', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const participantId = Number(req.params.participantId);
+    const { combatStatus, turnOrder, isAlly, temporaryActive, skipNormalActions } = req.body ?? {};
+
+    const updateData: Record<string, unknown> = {};
+    if (combatStatus !== undefined) updateData.combatStatus = combatStatus;
+    if (turnOrder !== undefined) updateData.turnOrder = turnOrder;
+    if (isAlly !== undefined) updateData.isAlly = isAlly;
+    if (temporaryActive !== undefined) updateData.temporaryActive = temporaryActive;
+    if (skipNormalActions !== undefined) updateData.skipNormalActions = skipNormalActions;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({ error: 'No fields to update' });
+    }
+
+    const [updated] = await db
+      .update(sessionParticipants)
+      .set(updateData)
+      .where(
+        and(
+          eq(sessionParticipants.id, participantId),
+          eq(sessionParticipants.sessionId, sessionId)
+        )
+      )
+      .returning();
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Participant not found' });
+    }
+
+    const participant = await getParticipantWithCharacter(participantId);
+    res.json(participant);
+  } catch (error) {
+    console.error('Error updating participant:', error);
+    res.status(500).json({ error: 'Failed to update participant' });
+  }
+});
+
+// ===== ATTACK RESOLUTION / INJURIES / UNDO =====
+
+// POST resolve attack
+router.post('/:sessionId/participants/:participantId/attack', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const attackerId = Number(req.params.participantId);
+    const {
+      targetParticipantId,
+      zone,
+      finalDamage,
+      injuryTriggered,
+      injuryType,
+      appliedConditions,
+      persistentCondition,
+      apCost: _apCost,
+    } = req.body;
+
+    // Look up target participant + character (raw select to match codebase style)
+    const [targetParticipant] = await db
+      .select()
+      .from(sessionParticipants)
+      .where(eq(sessionParticipants.id, Number(targetParticipantId)))
+      .limit(1);
+
+    if (!targetParticipant) {
+      return res.status(404).json({ error: 'Target not found' });
+    }
+
+    const [targetCharacter] = await db
+      .select()
+      .from(characters)
+      .where(eq(characters.id, targetParticipant.characterId))
+      .limit(1);
+
+    if (!targetCharacter) {
+      return res.status(404).json({ error: 'Target not found' });
+    }
+
+    const snapshot: LastAttackSnapshot = {
+      sessionId,
+      attackerId,
+      targetCharacterId: targetCharacter.id,
+      targetHpBefore: targetCharacter.currentHp,
+      targetCombatStatusBefore: targetParticipant.combatStatus,
+      createdInjuryIds: [],
+      createdConditionIds: [],
+      timestamp: Date.now(),
+    };
+
+    // "Damage in dying" rule: if target was already dying when this attack lands and
+    // finalDamage > 0, add 1 extra injury immediately.
+    const wasAlreadyDying = targetParticipant.combatStatus === 'dying';
+    if (wasAlreadyDying && (finalDamage ?? 0) > 0 && zone) {
+      const def = INJURY_BY_ZONE[zone as keyof typeof INJURY_BY_ZONE];
+      if (def) {
+        const [extra] = await db
+          .insert(characterInjuries)
+          .values({
+            characterId: targetCharacter.id,
+            sessionId,
+            zone,
+            injuryType: def.type,
+          })
+          .returning();
+        snapshot.createdInjuryIds.push(extra.id);
+      }
+    }
+
+    // 1. Decrement HP
+    const newHp = Math.max(0, targetCharacter.currentHp - (finalDamage ?? 0));
+    await db
+      .update(characters)
+      .set({ currentHp: newHp })
+      .where(eq(characters.id, targetCharacter.id));
+
+    // 2. Insert injury if triggered
+    let createdInjury: typeof characterInjuries.$inferSelect | null = null;
+    if (injuryTriggered && injuryType) {
+      const [inj] = await db
+        .insert(characterInjuries)
+        .values({
+          characterId: targetCharacter.id,
+          sessionId,
+          zone,
+          injuryType,
+        })
+        .returning();
+      createdInjury = inj;
+      snapshot.createdInjuryIds.push(inj.id);
+
+      // Apply prone if leg injury
+      if (injuryType === 'leg_broken') {
+        const [proneCond] = await db
+          .insert(characterConditions)
+          .values({
+            characterId: targetCharacter.id,
+            condition: 'prone',
+          })
+          .onConflictDoNothing()
+          .returning();
+        if (proneCond) snapshot.createdConditionIds.push(proneCond.id);
+      }
+    }
+
+    // 3. Insert standard conditions
+    for (const cond of (appliedConditions ?? [])) {
+      const [created] = await db
+        .insert(characterConditions)
+        .values({
+          characterId: targetCharacter.id,
+          condition: cond,
+        })
+        .onConflictDoNothing()
+        .returning();
+      if (created) snapshot.createdConditionIds.push(created.id);
+    }
+
+    // 4. Insert persistent condition
+    if (persistentCondition) {
+      const [created] = await db
+        .insert(characterConditions)
+        .values({
+          characterId: targetCharacter.id,
+          condition: persistentCondition.type,
+          damagePerTurn: persistentCondition.damage,
+        })
+        .returning();
+      if (created) snapshot.createdConditionIds.push(created.id);
+    }
+
+    // 5. Transition to dying if HP=0
+    let transitionedToDying = false;
+    const fatal = newHp === 0 && targetParticipant.combatStatus !== 'dead' && !wasAlreadyDying;
+    if (fatal) {
+      await db
+        .update(sessionParticipants)
+        .set({ combatStatus: 'dying' })
+        .where(eq(sessionParticipants.id, targetParticipant.id));
+      transitionedToDying = true;
+
+      // Apply prone
+      const [prone] = await db
+        .insert(characterConditions)
+        .values({
+          characterId: targetCharacter.id,
+          condition: 'prone',
+        })
+        .onConflictDoNothing()
+        .returning();
+      if (prone) snapshot.createdConditionIds.push(prone.id);
+
+      // Fatal blow: 1 injury for hitting 0 HP, OR 2 if also critical (>=5 dmg).
+      // The injuryTriggered branch above already inserted 1 injury. We add ONE more here in any case at fatal-blow time:
+      // - if injuryTriggered: total = 2 (1 for >=5 + 1 for fatal blow) — matches "double if crit + 0HP"
+      // - if NOT injuryTriggered: total = 1 (the fatal blow injury only)
+      if (zone) {
+        const def = INJURY_BY_ZONE[zone as keyof typeof INJURY_BY_ZONE];
+        if (def) {
+          const [fatalInj] = await db
+            .insert(characterInjuries)
+            .values({
+              characterId: targetCharacter.id,
+              sessionId,
+              zone,
+              injuryType: def.type,
+            })
+            .returning();
+          snapshot.createdInjuryIds.push(fatalInj.id);
+        }
+      }
+    }
+
+    saveLastAttack(snapshot);
+
+    res.json({
+      targetHpAfter: newHp,
+      injuryApplied: createdInjury,
+      transitionedToDying,
+    });
+  } catch (error) {
+    console.error('Error resolving attack:', error);
+    res.status(500).json({ error: 'Failed to resolve attack' });
+  }
+});
+
+// POST create injury
+router.post('/:sessionId/participants/:participantId/injuries', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const participantId = Number(req.params.participantId);
+    const { zone, injuryType } = req.body;
+
+    const [participant] = await db
+      .select()
+      .from(sessionParticipants)
+      .where(eq(sessionParticipants.id, participantId))
+      .limit(1);
+
+    if (!participant) {
+      return res.status(404).json({ error: 'Participant not found' });
+    }
+
+    const [created] = await db
+      .insert(characterInjuries)
+      .values({
+        characterId: participant.characterId,
+        sessionId,
+        zone,
+        injuryType,
+      })
+      .returning();
+
+    res.status(201).json(created);
+  } catch (error) {
+    console.error('Error creating injury:', error);
+    res.status(500).json({ error: 'Failed to create injury' });
+  }
+});
+
+// DELETE (heal) injury
+router.delete('/:sessionId/participants/:participantId/injuries/:injuryId', async (req, res) => {
+  try {
+    const injuryId = Number(req.params.injuryId);
+    const [updated] = await db
+      .update(characterInjuries)
+      .set({ healedAt: new Date() })
+      .where(eq(characterInjuries.id, injuryId))
+      .returning();
+    if (!updated) {
+      return res.status(404).json({ error: 'Injury not found' });
+    }
+    res.json(updated);
+  } catch (error) {
+    console.error('Error healing injury:', error);
+    res.status(500).json({ error: 'Failed to heal injury' });
+  }
+});
+
+// POST undo last attack
+router.post('/:sessionId/undo-last-attack', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+    const snap = getLastAttack(sessionId);
+    if (!snap) {
+      return res.status(404).json({ error: 'No attack to undo' });
+    }
+
+    await db
+      .update(characters)
+      .set({ currentHp: snap.targetHpBefore })
+      .where(eq(characters.id, snap.targetCharacterId));
+
+    for (const id of snap.createdInjuryIds) {
+      await db.delete(characterInjuries).where(eq(characterInjuries.id, id));
+    }
+
+    for (const id of snap.createdConditionIds) {
+      await db.delete(characterConditions).where(eq(characterConditions.id, id));
+    }
+
+    await db
+      .update(sessionParticipants)
+      .set({ combatStatus: snap.targetCombatStatusBefore as 'active' | 'unconscious' | 'dead' | 'fled' | 'dying' })
+      .where(eq(sessionParticipants.characterId, snap.targetCharacterId));
+
+    clearLastAttack(sessionId);
+    res.json({ ok: true });
+  } catch (error) {
+    console.error('Error undoing attack:', error);
+    res.status(500).json({ error: 'Failed to undo attack' });
   }
 });
 
@@ -988,5 +1502,134 @@ router.put('/:id/gm-ap', async (req, res) => {
     res.status(500).json({ error: 'Failed to update GM AP' });
   }
 });
+
+// POST advance turn — runs end-of-turn processing for the current actor
+// (bleeding + persistent), advances index/round, consumes skip_normal_actions.
+router.post('/:sessionId/advance-turn', async (req, res) => {
+  try {
+    const sessionId = Number(req.params.sessionId);
+
+    // Fetch session
+    const [session] = await db
+      .select()
+      .from(sessions)
+      .where(eq(sessions.id, sessionId))
+      .limit(1);
+    if (!session) return res.status(404).json({ error: 'Session not found' });
+
+    // Fetch participants
+    const participants = await db
+      .select()
+      .from(sessionParticipants)
+      .where(eq(sessionParticipants.sessionId, sessionId));
+
+    const temp = participants.find((p) => p.temporaryActive);
+    const sortedParticipants = participants
+      .filter(
+        (p) => p.turnOrder != null && !['dead', 'fled'].includes(p.combatStatus),
+      )
+      .sort((a, b) => (b.turnOrder ?? 0) - (a.turnOrder ?? 0));
+    const current = temp ?? sortedParticipants[session.currentTurnIndex ?? 0];
+
+    type EndOfTurnReportWithSkip = Awaited<ReturnType<typeof processEndOfTurn>> & {
+      activeNowSkippedNormalActions?: boolean;
+    };
+    let report: EndOfTurnReportWithSkip | null = null;
+    if (current) {
+      report = await processEndOfTurn(current.id);
+    }
+
+    if (temp) {
+      // Out-of-order tour: clear flag, don't advance
+      await db
+        .update(sessionParticipants)
+        .set({ temporaryActive: false })
+        .where(eq(sessionParticipants.id, temp.id));
+    } else if (sortedParticipants.length > 0) {
+      const nextIndex =
+        ((session.currentTurnIndex ?? 0) + 1) % sortedParticipants.length;
+      const newRound =
+        nextIndex === 0
+          ? (session.currentRound ?? 1) + 1
+          : session.currentRound ?? 1;
+      await db
+        .update(sessions)
+        .set({ currentTurnIndex: nextIndex, currentRound: newRound })
+        .where(eq(sessions.id, sessionId));
+
+      // Consume skip_normal_actions on the newly active participant
+      const newActive = sortedParticipants[nextIndex];
+      if (newActive?.skipNormalActions) {
+        await db
+          .update(sessionParticipants)
+          .set({ skipNormalActions: false })
+          .where(eq(sessionParticipants.id, newActive.id));
+        if (report) report.activeNowSkippedNormalActions = true;
+      }
+    }
+
+    res.json({ endOfTurnReport: report });
+  } catch (error) {
+    console.error('Error advancing turn:', error);
+    res.status(500).json({ error: 'Failed to advance turn' });
+  }
+});
+
+// POST resolve survival test for a dying participant
+router.post(
+  '/:sessionId/participants/:participantId/survival-test',
+  async (req, res) => {
+    try {
+      const participantId = Number(req.params.participantId);
+      const { died } = req.body ?? {};
+      const [participant] = await db
+        .select()
+        .from(sessionParticipants)
+        .where(eq(sessionParticipants.id, participantId))
+        .limit(1);
+      if (!participant)
+        return res.status(404).json({ error: 'Participant not found' });
+      if (participant.combatStatus !== 'dying')
+        return res.status(400).json({ error: 'Participant is not dying' });
+      if (died) {
+        await db
+          .update(sessionParticipants)
+          .set({ combatStatus: 'dead' })
+          .where(eq(sessionParticipants.id, participantId));
+      }
+      res.json({ ...(req.body ?? {}) });
+    } catch (error) {
+      console.error('Error resolving survival test:', error);
+      res.status(500).json({ error: 'Failed to resolve survival test' });
+    }
+  },
+);
+
+// POST stabilize a dying participant (moves to unconscious)
+router.post(
+  '/:sessionId/participants/:participantId/stabilize',
+  async (req, res) => {
+    try {
+      const participantId = Number(req.params.participantId);
+      const [participant] = await db
+        .select()
+        .from(sessionParticipants)
+        .where(eq(sessionParticipants.id, participantId))
+        .limit(1);
+      if (!participant)
+        return res.status(404).json({ error: 'Participant not found' });
+      if (participant.combatStatus !== 'dying')
+        return res.status(400).json({ error: 'Participant is not dying' });
+      await db
+        .update(sessionParticipants)
+        .set({ combatStatus: 'unconscious' })
+        .where(eq(sessionParticipants.id, participantId));
+      res.json({ ok: true });
+    } catch (error) {
+      console.error('Error stabilizing:', error);
+      res.status(500).json({ error: 'Failed to stabilize' });
+    }
+  },
+);
 
 export default router;

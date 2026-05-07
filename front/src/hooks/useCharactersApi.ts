@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { charactersApi, type CharacterApi, type CreateCharacterData, type InventoryItemApi, type AddInventoryData, type UpdateInventoryData, type ImportWarning } from '../services/api';
 import type { Character, SkillName, SpecialAttribute } from '../data/characters';
 import {
@@ -140,6 +141,7 @@ export interface UseCharactersApiReturn {
  * Hook for managing characters with API persistence (powered by React Query)
  */
 export function useCharactersApi(): UseCharactersApiReturn {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
 
   // Main query: fetch all characters
@@ -249,12 +251,16 @@ export function useCharactersApi(): UseCharactersApiReturn {
       const original = characters.find((char) => char.id === id);
       if (!original) return undefined;
 
-      const duplicated = await charactersApi.duplicate(numericId, `${original.name} (copie)`);
+      // Translate the name first if it's an i18n key (e.g. bestiary.creatures.X.name)
+      // so the duplicate gets a readable literal (e.g. "Enfant d'Atome (copie)")
+      // instead of "bestiary.creatures.childOfAtom.name (copie)".
+      const resolvedName = String(t(original.name, original.name));
+      const duplicated = await charactersApi.duplicate(numericId, `${resolvedName} (copie)`);
       const newChar = apiToFrontend(duplicated);
       queryClient.setQueryData<Character[]>(CHARACTERS_QUERY_KEY, (old) => [...(old ?? []), newChar]);
       return newChar;
     },
-    [characters, queryClient]
+    [characters, queryClient, t]
   );
 
   const exportCharacter = useCallback(

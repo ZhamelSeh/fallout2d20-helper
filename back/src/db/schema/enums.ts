@@ -115,11 +115,12 @@ export const survivorTraitIdEnum = pgEnum('survivor_trait_id', [
 
 export const characterTypeEnum = pgEnum('character_type', ['pc', 'npc']);
 
-export const combatantStatusEnum = pgEnum('combatant_status', ['active', 'unconscious', 'dead', 'fled']);
+export const combatantStatusEnum = pgEnum('combatant_status', ['active', 'unconscious', 'dead', 'fled', 'dying']);
 
 export const conditionEnum = pgEnum('condition_type', [
   'stunned', 'prone', 'blinded', 'deafened', 'poisoned', 'irradiated',
-  'fatigued', 'crippled', 'addicted', 'unconscious'
+  'fatigued', 'crippled', 'addicted', 'unconscious',
+  'persistent_physical', 'persistent_radiation'
 ]);
 
 // ===== EQUIPMENT =====
@@ -140,6 +141,15 @@ export const bodyTypeEnum = pgEnum('body_type', ['humanoid', 'quadruped', 'insec
 
 // ===== SESSIONS =====
 export const sessionStatusEnum = pgEnum('session_status', ['active', 'paused', 'completed']);
+
+// ===== INJURIES =====
+export const injuryTypeEnum = pgEnum('injury_type', [
+  'arm_broken_left',
+  'arm_broken_right',
+  'leg_broken',
+  'torso_bleeding',
+  'head_dazed',
+]);
 
 // ===== CRAFTING =====
 export const workbenchTypeEnum = pgEnum('workbench_type', [

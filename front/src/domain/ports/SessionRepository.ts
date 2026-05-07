@@ -1,6 +1,14 @@
 import type { Session, CreateSessionData, UpdateSessionData, Participant, AddQuickNpcData } from '../models/session';
 import type { CombatantStatus } from '../models/character';
 
+export interface ParticipantUpdateData {
+  combatStatus?: CombatantStatus;
+  turnOrder?: number;
+  isAlly?: boolean;
+  temporaryActive?: boolean;
+  skipNormalActions?: boolean;
+}
+
 export interface SessionRepository {
   list(filters?: { status?: string; full?: boolean }): Promise<Session[]>;
   get(id: number): Promise<Session>;
@@ -12,6 +20,7 @@ export interface SessionRepository {
   removeParticipant(sessionId: number, participantId: number): Promise<void>;
   setCombatStatus(sessionId: number, participantId: number, status: CombatantStatus): Promise<Participant>;
   setInitiative(sessionId: number, participantId: number, turnOrder: number): Promise<Participant>;
+  updateParticipant(sessionId: number, participantId: number, data: ParticipantUpdateData): Promise<Participant>;
   startCombat(sessionId: number): Promise<Session>;
   endCombat(sessionId: number): Promise<Session>;
   nextTurn(sessionId: number): Promise<Session>;

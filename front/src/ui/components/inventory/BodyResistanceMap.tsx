@@ -2,21 +2,8 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Minus, Plus, AlertTriangle } from 'lucide-react';
 import type { InventoryItemApi, CharacterDrApi } from '../../../services/api';
-
-type BodyLocation = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
-
-interface LocationDR {
-  physical: number;
-  energy: number;
-  radiation: number;
-  poison: number;
-  // Power Armor piece info
-  paCurrentHp?: number;
-  paMaxHp?: number;
-  paDamaged?: boolean;
-  paInventoryId?: number; // To update HP
-  paPieceName?: string;
-}
+import { damageTypeColor, damageTypeIcon } from '../../../domain/rules/damageTypes';
+import { computeBodyDR, type BodyLocation } from '../../../domain/rules/bodyResistance';
 
 interface BodyResistanceMapProps {
   inventory: InventoryItemApi[];
@@ -44,109 +31,7 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
 
   // Calculate DR for each body location based on equipped items (or use fixedDr for NPCs)
   const locationDR = useMemo(() => {
-    const dr: Record<BodyLocation, LocationDR> = {
-      head: { physical: 0, energy: 0, radiation: 0, poison: 0 },
-      torso: { physical: 0, energy: 0, radiation: 0, poison: 0 },
-      armLeft: { physical: 0, energy: 0, radiation: 0, poison: 0 },
-      armRight: { physical: 0, energy: 0, radiation: 0, poison: 0 },
-      legLeft: { physical: 0, energy: 0, radiation: 0, poison: 0 },
-      legRight: { physical: 0, energy: 0, radiation: 0, poison: 0 },
-    };
-
-    // If fixedDr is provided (NPC), use those values directly
-    if (fixedDr && fixedDr.length > 0) {
-      for (const fd of fixedDr) {
-        if (fd.location in dr) {
-          const loc = fd.location as BodyLocation;
-          dr[loc].physical = fd.drPhysical;
-          dr[loc].energy = fd.drEnergy;
-          dr[loc].radiation = fd.drRadiation;
-          dr[loc].poison = fd.drPoison;
-        }
-      }
-      return dr;
-    }
-
-    // Process equipped items
-    for (const inv of inventory) {
-      if (!inv.equipped) continue;
-
-      // Power Armor piece - separate type with powerArmorDetails
-      if (inv.item.itemType === 'powerArmor' && inv.powerArmorDetails) {
-        const location = inv.equippedLocation || inv.powerArmorDetails.location;
-        if (location && location in dr) {
-          const loc = location as BodyLocation;
-          const maxHp = inv.maxHp ?? inv.powerArmorDetails.hp;
-          const currentHp = inv.currentHp ?? maxHp; // If null, piece is at full HP
-          const isDamaged = currentHp <= 0;
-
-          dr[loc].paMaxHp = maxHp;
-          dr[loc].paCurrentHp = currentHp;
-          dr[loc].paDamaged = isDamaged;
-          dr[loc].paInventoryId = inv.id;
-          dr[loc].paPieceName = inv.item.name;
-
-          // Only add DR if piece is not damaged
-          if (!isDamaged) {
-            dr[loc].physical += inv.powerArmorDetails.drPhysical;
-            dr[loc].energy += inv.powerArmorDetails.drEnergy;
-            dr[loc].radiation += inv.powerArmorDetails.drRadiation;
-          }
-        }
-      }
-
-      // Armor piece - applies to specific location
-      if (inv.item.itemType === 'armor' && inv.armorDetails) {
-        const location = inv.equippedLocation || inv.armorDetails.location;
-        if (location && location in dr) {
-          const loc = location as BodyLocation;
-
-          // Check if this is a Power Armor piece (has HP) - legacy support
-          const maxHp = inv.maxHp ?? inv.armorDetails.hp;
-          if (maxHp) {
-            // Power Armor piece stored in armor table
-            const currentHp = inv.currentHp ?? maxHp; // If null, piece is at full HP
-            const isDamaged = currentHp <= 0;
-
-            dr[loc].paMaxHp = maxHp;
-            dr[loc].paCurrentHp = currentHp;
-            dr[loc].paDamaged = isDamaged;
-            dr[loc].paInventoryId = inv.id;
-            dr[loc].paPieceName = inv.item.name;
-
-            // Only add DR if piece is not damaged
-            if (!isDamaged) {
-              dr[loc].physical += inv.armorDetails.drPhysical;
-              dr[loc].energy += inv.armorDetails.drEnergy;
-              dr[loc].radiation += inv.armorDetails.drRadiation;
-              dr[loc].poison += inv.armorDetails.drPoison ?? 0;
-            }
-          } else {
-            // Regular armor piece
-            dr[loc].physical += inv.armorDetails.drPhysical;
-            dr[loc].energy += inv.armorDetails.drEnergy;
-            dr[loc].radiation += inv.armorDetails.drRadiation;
-            dr[loc].poison += inv.armorDetails.drPoison ?? 0;
-          }
-        }
-      }
-
-      // Clothing - can cover multiple locations
-      if (inv.item.itemType === 'clothing' && inv.clothingDetails) {
-        const locations = inv.clothingDetails.locations;
-        for (const location of locations) {
-          if (location in dr) {
-            const loc = location as BodyLocation;
-            dr[loc].physical += inv.clothingDetails.drPhysical;
-            dr[loc].energy += inv.clothingDetails.drEnergy;
-            dr[loc].radiation += inv.clothingDetails.drRadiation;
-            dr[loc].poison += inv.clothingDetails.drPoison ?? 0;
-          }
-        }
-      }
-    }
-
-    return dr;
+    return computeBodyDR({ inventory, fixedDr });
   }, [inventory, fixedDr]);
 
   // Handle HP change for power armor pieces
@@ -201,25 +86,34 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
         {/* DR Grid */}
         <div className="p-2 grid grid-cols-2 gap-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-gray-400">{t('bodyResistance.drPhysical')}</span>
+            <span className={`flex items-center gap-1 ${damageTypeColor('physical')}`}>
+              {(() => { const I = damageTypeIcon('physical'); return I ? <I size={12} /> : null; })()}
+              <span className="text-gray-400">{t('bodyResistance.drPhysical')}</span>
+            </span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.physical, 'text-vault-yellow')
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.physical, damageTypeColor('physical'))
             }`}>
               {formatDrValue(data.physical)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400">{t('bodyResistance.drRadiation')}</span>
+            <span className={`flex items-center gap-1 ${damageTypeColor('radiation')}`}>
+              {(() => { const I = damageTypeIcon('radiation'); return I ? <I size={12} /> : null; })()}
+              <span className="text-gray-400">{t('bodyResistance.drRadiation')}</span>
+            </span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.radiation, 'text-yellow-400')
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.radiation, damageTypeColor('radiation'))
             }`}>
               {formatDrValue(data.radiation)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400">{t('bodyResistance.drEnergy')}</span>
+            <span className={`flex items-center gap-1 ${damageTypeColor('energy')}`}>
+              {(() => { const I = damageTypeIcon('energy'); return I ? <I size={12} /> : null; })()}
+              <span className="text-gray-400">{t('bodyResistance.drEnergy')}</span>
+            </span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.energy, 'text-blue-400')
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.energy, damageTypeColor('energy'))
             }`}>
               {formatDrValue(data.energy)}
             </span>
@@ -238,8 +132,11 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
             </div>
           ) : showPoisonCell ? (
             <div className="flex justify-between">
-              <span className="text-gray-400">{t('bodyResistance.drPoison')}</span>
-              <span className={`font-mono font-bold ${getDrColor(data.poison, 'text-green-400')}`}>
+              <span className={`flex items-center gap-1 ${damageTypeColor('poison')}`}>
+                {(() => { const I = damageTypeIcon('poison'); return I ? <I size={12} /> : null; })()}
+                <span className="text-gray-400">{t('bodyResistance.drPoison')}</span>
+              </span>
+              <span className={`font-mono font-bold ${getDrColor(data.poison, damageTypeColor('poison'))}`}>
                 {formatDrValue(data.poison)}
               </span>
             </div>

@@ -25,7 +25,7 @@ export function useSessionsApi() {
 
   const error = queryError?.message ?? null;
 
-  const loadSessions = useCallback(async (filters?: { status?: SessionStatus }) => {
+  const loadSessions = useCallback(async (_filters?: { status?: SessionStatus }) => {
     await queryClient.invalidateQueries({ queryKey: SESSIONS_KEY });
   }, [queryClient]);
 
@@ -149,6 +149,58 @@ export function useSession(sessionId: number | null) {
     await refreshAndSet();
   }, [sessionId, refreshAndSet]);
 
+  const setAlliance = useCallback(async (participantId: number, isAlly: boolean): Promise<void> => {
+    if (!sessionId) return;
+    // Optimistic update: flip the flag immediately
+    setSession(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        participants: prev.participants.map(p =>
+          p.id === participantId ? { ...p, isAlly } : p
+        ),
+      };
+    });
+    try {
+      await sessionsApi.updateParticipant(sessionId, participantId, { isAlly });
+    } catch (err) {
+      console.error('Failed to set alliance:', err);
+      try {
+        const fresh = await sessionsApi.get(sessionId);
+        setSession(() => fresh);
+      } catch {
+        // swallow — error already surfaced
+      }
+      throw err;
+    }
+  }, [sessionId, setSession]);
+
+  const setTemporaryActive = useCallback(async (participantId: number, temporaryActive: boolean): Promise<void> => {
+    if (!sessionId) return;
+    // Optimistic update: flip the flag immediately
+    setSession(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        participants: prev.participants.map(p =>
+          p.id === participantId ? { ...p, temporaryActive } : p
+        ),
+      };
+    });
+    try {
+      await sessionsApi.updateParticipant(sessionId, participantId, { temporaryActive });
+    } catch (err) {
+      console.error('Failed to set temporary active:', err);
+      try {
+        const fresh = await sessionsApi.get(sessionId);
+        setSession(() => fresh);
+      } catch {
+        // swallow — error already surfaced
+      }
+      throw err;
+    }
+  }, [sessionId, setSession]);
+
   // ===== COMBAT =====
 
   const startCombat = useCallback(async (participantIds?: number[]): Promise<SessionApi | null> => {
@@ -264,6 +316,8 @@ export function useSession(sessionId: number | null) {
     removeParticipant,
     setCombatStatus,
     setInitiative,
+    setAlliance,
+    setTemporaryActive,
     updateParticipantCharacter,
     // Combat
     startCombat,

@@ -16,4 +16,6 @@ pgdata/
 
 # Claude Code
 .claude/
+.superpowers/
+.worktrees/
 Fallout_le_jeu_de_r.pdf

@@ -11,6 +11,7 @@ import {
   statBlockTypeEnum,
 } from './enums';
 import { items } from './items';
+import { characterInjuries } from './injuries';
 
 // ===== ORIGINS =====
 export const origins = pgTable('origins', {
@@ -184,6 +185,7 @@ export const characterConditions = pgTable('character_conditions', {
   id: serial('id').primaryKey(),
   characterId: integer('character_id').references(() => characters.id, { onDelete: 'cascade' }).notNull(),
   condition: conditionEnum('condition').notNull(),
+  damagePerTurn: integer('damage_per_turn').notNull().default(0),
 });
 
 // ===== CHARACTER INVENTORY =====
@@ -195,6 +197,7 @@ export const characterInventory = pgTable('character_inventory', {
   quantity: integer('quantity').notNull().default(1),
   equipped: boolean('equipped').notNull().default(false),
   equippedLocation: bodyLocationEnum('equipped_location'),
+  equippedHand: varchar('equipped_hand', { length: 10 }),  // NEW - 'left'|'right'|'both'|null
   // For Power Armor pieces: tracks current HP (null = use max HP from armor definition)
   currentHp: integer('current_hp'),
 });
@@ -238,6 +241,7 @@ export const charactersRelations = relations(characters, ({ one, many }) => ({
   inventory: many(characterInventory),
   dr: many(characterDr),
   traits: many(characterTraits),
+  injuries: many(characterInjuries),
 }));
 
 export const characterSpecialRelations = relations(characterSpecial, ({ one }) => ({

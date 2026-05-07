@@ -1,12 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Book, Filter, Search, Loader2, AlertCircle, ChevronUp, ChevronDown, ChevronsUpDown } from 'lucide-react';
+import { Book, Filter, Search, Loader2, AlertCircle, ChevronUp, ChevronDown, ChevronRight, ChevronsUpDown, UserPlus, X } from 'lucide-react';
 import { Card, ItemDetailModal, Select } from '../../components';
 import { useItems } from '../../hooks/useItems';
 import { formatCaps, formatWeight, getRarityColor } from '../../generators/utils';
 import type { ItemType, DiseaseApi, PerkApi } from '../../services/api';
 import { diseasesApi, perksApi } from '../../services/api';
 import type { EncyclopediaEntry } from '../../components/ItemDetailModal';
+import { useCharactersApi } from '../../hooks/useCharactersApi';
+import { CharacterPickerModal } from '../components/shared/CharacterPickerModal';
 
 // Helper to get translation key from item name
 function getItemNameKey(categoryKey: string, name: string): string {
@@ -49,7 +51,19 @@ interface DisplayItem {
   perkData?: PerkApi;
 }
 
-// Sortable column header component
+interface CategoryFilters {
+  name: string;
+  subTypes: Set<string>;
+  rarities: Set<number>;
+}
+
+const emptyFilters = (): CategoryFilters => ({
+  name: '',
+  subTypes: new Set<string>(),
+  rarities: new Set<number>(),
+});
+
+// Sortable column header component (used for numeric columns: value/weight)
 function SortableHeader({
   label,
   field,
@@ -82,6 +96,151 @@ function SortableHeader({
   );
 }
 
+// Compact sort icon button (used next to filter inputs/selects)
+function SortIconButton({
+  field,
+  currentField,
+  currentDirection,
+  onClick,
+}: {
+  field: SortField;
+  currentField: SortField | null;
+  currentDirection: SortDirection;
+  onClick: () => void;
+}) {
+  const isActive = currentField === field;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Sort"
+      className="flex-shrink-0 p-1 text-vault-yellow-dark hover:text-vault-yellow transition-colors cursor-pointer"
+    >
+      {isActive && currentDirection === 'asc' && <ChevronUp size={14} />}
+      {isActive && currentDirection === 'desc' && <ChevronDown size={14} />}
+      {!isActive && <ChevronsUpDown size={12} className="opacity-60" />}
+    </button>
+  );
+}
+
+// Inline sortable header label (no <th> wrapper — used inside a custom <th>)
+function SortableHeaderInline({
+  label,
+  field,
+  currentField,
+  currentDirection,
+  onClick,
+  align = 'left',
+}: {
+  label: string;
+  field: SortField;
+  currentField: SortField | null;
+  currentDirection: SortDirection;
+  onClick: (field: SortField) => void;
+  align?: 'left' | 'right';
+}) {
+  const isActive = currentField === field;
+  return (
+    <button
+      type="button"
+      onClick={() => onClick(field)}
+      className={`font-medium cursor-pointer select-none hover:text-vault-yellow transition-colors inline-flex items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`}
+    >
+      <span>{label}</span>
+      {isActive && currentDirection === 'asc' && <ChevronUp size={14} />}
+      {isActive && currentDirection === 'desc' && <ChevronDown size={14} />}
+      {!isActive && <ChevronsUpDown size={12} className="opacity-40" />}
+    </button>
+  );
+}
+
+// Multi-select dropdown component (used for type and rarity filters)
+function MultiSelectDropdown<T extends string | number>({
+  values,
+  selected,
+  onChange,
+  renderLabel,
+  placeholder,
+}: {
+  values: T[];
+  selected: Set<T>;
+  onChange: (next: Set<T>) => void;
+  renderLabel: (value: T) => string;
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [open]);
+
+  const toggle = (value: T) => {
+    const next = new Set(selected);
+    if (next.has(value)) next.delete(value);
+    else next.add(value);
+    onChange(next);
+  };
+
+  const summary = selected.size === 0
+    ? placeholder
+    : selected.size === 1
+      ? renderLabel(Array.from(selected)[0]!)
+      : `${selected.size} sel.`;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={(e) => { e.stopPropagation(); setOpen(o => !o); }}
+        className="bg-vault-gray text-vault-yellow-light text-xs px-2 py-1 rounded w-full text-left flex items-center justify-between gap-1 border border-vault-gray-light hover:border-vault-yellow-dark"
+        title={summary}
+      >
+        <span className="truncate">{summary}</span>
+        <ChevronDown size={12} className="opacity-60 shrink-0" />
+      </button>
+      {selected.size > 0 && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onChange(new Set()); }}
+          className="absolute right-5 top-1/2 -translate-y-1/2 text-vault-yellow-dark hover:text-vault-yellow"
+          title="Clear"
+        >
+          <X size={10} />
+        </button>
+      )}
+      {open && values.length > 0 && (
+        <div
+          className="absolute z-30 mt-1 left-0 min-w-full max-h-60 overflow-y-auto bg-vault-gray border border-vault-yellow-dark rounded shadow-lg p-1"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {values.map((v) => {
+            const isOn = selected.has(v);
+            return (
+              <button
+                key={String(v)}
+                type="button"
+                onClick={() => toggle(v)}
+                className={`w-full text-left px-2 py-1 text-xs rounded flex items-center gap-2 hover:bg-vault-gray-light ${isOn ? 'text-vault-yellow' : 'text-vault-yellow-dark'}`}
+              >
+                <span className={`inline-block w-3 h-3 border ${isOn ? 'bg-vault-yellow border-vault-yellow' : 'border-vault-yellow-dark'} rounded-sm`} />
+                <span className="truncate">{renderLabel(v)}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function EncyclopediaPage() {
   const { t } = useTranslation();
   const [search, setSearch] = useState('');
@@ -92,6 +251,16 @@ export function EncyclopediaPage() {
 
   // Per-group sort state: { [categoryKey]: { field, direction } }
   const [groupSorts, setGroupSorts] = useState<Record<string, { field: SortField; direction: SortDirection }>>({});
+
+  // Per-group collapse state: { [categoryKey]: true if collapsed }
+  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+
+  // Per-group filters
+  const [groupFilters, setGroupFilters] = useState<Record<string, CategoryFilters>>({});
+
+  // Inject-to-inventory state
+  const [injectItem, setInjectItem] = useState<{ itemId: number } | null>(null);
+  const { addToInventory } = useCharactersApi();
 
   // Fetch items from API
   const { items, loading, error } = useItems();
@@ -311,7 +480,7 @@ export function EncyclopediaPage() {
     return t(key, { defaultValue: item.name });
   }, [t]);
 
-  // Filter items (no sorting at this level - sorting is per-group)
+  // Filter items at the global level (search/category/rarity)
   const filteredItems = useMemo(() => {
     let result = [...allItems];
 
@@ -348,18 +517,34 @@ export function EncyclopediaPage() {
     return groups;
   }, [filteredItems]);
 
-  // Sort a group of items
-  const sortGroup = useCallback((items: DisplayItem[], categoryKey: string): DisplayItem[] => {
+  // Filter then sort a group of items
+  const filterAndSortGroup = useCallback((items: DisplayItem[], categoryKey: string): DisplayItem[] => {
+    const filters = groupFilters[categoryKey];
+    let result = items;
+
+    if (filters) {
+      if (filters.name) {
+        const lower = filters.name.toLowerCase();
+        result = result.filter(item => getItemName(item).toLowerCase().includes(lower));
+      }
+      if (filters.subTypes.size > 0) {
+        result = result.filter(item => item.subType !== undefined && filters.subTypes.has(item.subType));
+      }
+      if (filters.rarities.size > 0) {
+        result = result.filter(item => item.rarity !== undefined && filters.rarities.has(item.rarity));
+      }
+    }
+
     const sortState = groupSorts[categoryKey];
     if (!sortState || !sortState.direction) {
       // Default sort: name asc
-      return [...items].sort((a, b) => getItemName(a).localeCompare(getItemName(b)));
+      return [...result].sort((a, b) => getItemName(a).localeCompare(getItemName(b)));
     }
 
     const { field, direction } = sortState;
     const mult = direction === 'asc' ? 1 : -1;
 
-    return [...items].sort((a, b) => {
+    return [...result].sort((a, b) => {
       switch (field) {
         case 'name':
           return mult * getItemName(a).localeCompare(getItemName(b));
@@ -378,9 +563,9 @@ export function EncyclopediaPage() {
           return 0;
       }
     });
-  }, [groupSorts, getItemName, t]);
+  }, [groupSorts, groupFilters, getItemName, t]);
 
-  // Handle column header click for a specific group
+  // Handle column header click for a specific group (numeric columns)
   const handleColumnSort = useCallback((categoryKey: string, field: SortField) => {
     setGroupSorts(prev => {
       const current = prev[categoryKey];
@@ -395,6 +580,26 @@ export function EncyclopediaPage() {
       return {
         ...prev,
         [categoryKey]: { field, direction: newDirection },
+      };
+    });
+  }, []);
+
+  // Toggle collapse for a category
+  const toggleCollapsed = useCallback((categoryKey: string) => {
+    setCollapsed(prev => ({ ...prev, [categoryKey]: !prev[categoryKey] }));
+  }, []);
+
+  // Update filters for a category (partial update)
+  const updateFilter = useCallback((categoryKey: string, patch: Partial<CategoryFilters>) => {
+    setGroupFilters(prev => {
+      const current = prev[categoryKey] ?? emptyFilters();
+      return {
+        ...prev,
+        [categoryKey]: {
+          name: patch.name !== undefined ? patch.name : current.name,
+          subTypes: patch.subTypes !== undefined ? patch.subTypes : current.subTypes,
+          rarities: patch.rarities !== undefined ? patch.rarities : current.rarities,
+        },
       };
     });
   }, []);
@@ -456,6 +661,23 @@ export function EncyclopediaPage() {
 
   const isItemCategory = (categoryKey: string): boolean => {
     return categoryKey !== 'diseases' && categoryKey !== 'perks' && categoryKey !== 'weapon-qualities';
+  };
+
+  const handleInjectClick = (e: React.MouseEvent, item: DisplayItem) => {
+    e.stopPropagation();
+    if (typeof item.id === 'number') {
+      setInjectItem({ itemId: item.id });
+    }
+  };
+
+  const handleCharacterSelected = async (characterId: string) => {
+    if (!injectItem) return;
+    try {
+      await addToInventory(characterId, { itemId: injectItem.itemId, quantity: 1, equipped: false });
+    } catch (err) {
+      console.error('Failed to inject item:', err);
+    }
+    setInjectItem(null);
   };
 
   // Loading state
@@ -541,101 +763,194 @@ export function EncyclopediaPage() {
       {/* Results */}
       {Object.entries(groupedItems).map(([categoryKey, groupItems]) => {
         const sortState = groupSorts[categoryKey];
-        const sortedItems = sortGroup(groupItems, categoryKey);
+        const sortedItems = filterAndSortGroup(groupItems, categoryKey);
         const hasItemColumns = isItemCategory(categoryKey);
+        const isCollapsed = !!collapsed[categoryKey];
+        const filters = groupFilters[categoryKey] ?? emptyFilters();
+
+        // Compute available subTypes (unique within this category, before per-column filter)
+        const availableSubTypes = Array.from(
+          new Set(groupItems.map(i => i.subType).filter((s): s is string => !!s))
+        ).sort((a, b) => a.localeCompare(b));
+
+        // Compute available rarities (unique within this category)
+        const availableRarities = Array.from(
+          new Set(groupItems.map(i => i.rarity).filter((r): r is number => r !== undefined))
+        ).sort((a, b) => a - b);
 
         return (
-          <Card key={categoryKey} title={`${t(`encyclopedia.categories.${categoryKey}`)} (${groupItems.length})`}>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-vault-yellow-dark text-left border-b border-vault-yellow-dark">
-                    <SortableHeader
-                      label={t('common.labels.name')}
-                      field="name"
-                      currentField={sortState?.direction ? sortState.field : null}
-                      currentDirection={sortState?.direction ?? null}
-                      onClick={(f) => handleColumnSort(categoryKey, f)}
-                    />
-                    <SortableHeader
-                      label={t('common.labels.type')}
-                      field="subType"
-                      currentField={sortState?.direction ? sortState.field : null}
-                      currentDirection={sortState?.direction ?? null}
-                      onClick={(f) => handleColumnSort(categoryKey, f)}
-                      className="hidden sm:table-cell"
-                    />
-                    {hasItemColumns && (
-                      <>
-                        <SortableHeader
-                          label={t('common.labels.value')}
-                          field="value"
-                          currentField={sortState?.direction ? sortState.field : null}
-                          currentDirection={sortState?.direction ?? null}
-                          onClick={(f) => handleColumnSort(categoryKey, f)}
-                          className="text-right"
-                        />
-                        <SortableHeader
-                          label={t('common.labels.weight')}
-                          field="weight"
-                          currentField={sortState?.direction ? sortState.field : null}
-                          currentDirection={sortState?.direction ?? null}
-                          onClick={(f) => handleColumnSort(categoryKey, f)}
-                          className="text-right hidden md:table-cell"
-                        />
-                        <SortableHeader
-                          label={t('common.labels.rarity')}
-                          field="rarity"
-                          currentField={sortState?.direction ? sortState.field : null}
-                          currentDirection={sortState?.direction ?? null}
-                          onClick={(f) => handleColumnSort(categoryKey, f)}
-                          className="text-right"
-                        />
-                      </>
-                    )}
-                    <th className="pb-2 font-medium text-right hidden lg:table-cell">{t('common.labels.info')}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {sortedItems.map((item, index) => (
-                    <tr
-                      key={`${item.id}-${index}`}
-                      className="border-b border-vault-gray-light hover:bg-vault-gray-light/50 cursor-pointer transition-colors"
-                      onClick={() => handleItemClick(item)}
-                    >
-                      <td className={`py-2 ${item.rarity !== undefined ? getRarityColor(item.rarity) : 'text-vault-yellow'}`}>
-                        {getItemName(item)}
-                      </td>
-                      <td className="py-2 text-vault-yellow-dark hidden sm:table-cell">
-                        {item.subType ? t(`skills.${item.subType}`, item.subType) : '-'}
-                      </td>
-                      {hasItemColumns && (
-                        <>
-                          <td className="py-2 text-right text-vault-yellow">
-                            {item.value !== undefined ? formatCaps(item.value) : '-'}
-                          </td>
-                          <td className="py-2 text-right text-vault-yellow-dark hidden md:table-cell">
-                            {item.weight !== undefined ? formatWeight(item.weight) : '-'}
-                          </td>
-                          <td className={`py-2 text-right ${item.rarity !== undefined ? getRarityColor(item.rarity) : ''}`}>
-                            {item.rarity !== undefined ? (
-                              <>
-                                <span className="hidden sm:inline">{t(`common.rarity.${item.rarity}`)}</span>
-                                <span className="sm:hidden">{item.rarity}</span>
-                              </>
-                            ) : '-'}
-                          </td>
-                        </>
-                      )}
-                      <td className="py-2 text-right text-vault-yellow-dark text-xs hidden lg:table-cell">
-                        {formatExtraInfo(item)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div
+            key={categoryKey}
+            className="bg-vault-gray border-2 border-vault-yellow-dark rounded-lg overflow-hidden"
+          >
+            {/* Custom card header with collapse button */}
+            <div className="bg-vault-blue px-4 py-3 border-b-2 border-vault-yellow-dark flex items-center justify-between gap-2">
+              <h2 className="text-vault-yellow font-bold text-lg uppercase tracking-wide">
+                {t(`encyclopedia.categories.${categoryKey}`)} ({groupItems.length})
+              </h2>
+              <button
+                type="button"
+                onClick={() => toggleCollapsed(categoryKey)}
+                className="p-1 text-vault-yellow hover:text-vault-yellow-light transition-colors cursor-pointer"
+                title={isCollapsed ? 'Expand' : 'Collapse'}
+              >
+                {isCollapsed ? <ChevronRight size={20} /> : <ChevronDown size={20} />}
+              </button>
             </div>
-          </Card>
+            {!isCollapsed && (
+              <div className="p-4">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="text-vault-yellow-dark text-left border-b border-vault-yellow-dark">
+                        {/* Name: text input + sort icon */}
+                        <th className="pb-2 pr-2">
+                          <div className="flex items-center gap-1">
+                            <input
+                              type="text"
+                              value={filters.name}
+                              onChange={(e) => updateFilter(categoryKey, { name: e.target.value })}
+                              placeholder={t('common.labels.name')}
+                              className="flex-1 bg-vault-gray text-vault-yellow-light text-xs px-2 py-1 rounded border border-vault-gray-light focus:outline-none focus:border-vault-yellow-dark placeholder:text-vault-yellow-dark/70 font-normal"
+                            />
+                            <SortIconButton
+                              field="name"
+                              currentField={sortState?.direction ? sortState.field : null}
+                              currentDirection={sortState?.direction ?? null}
+                              onClick={() => handleColumnSort(categoryKey, 'name')}
+                            />
+                          </div>
+                        </th>
+                        {/* Type: multi-select + sort icon */}
+                        <th className="pb-2 pr-2 hidden sm:table-cell">
+                          <div className="flex items-center gap-1">
+                            {availableSubTypes.length > 0 ? (
+                              <div className="flex-1">
+                                <MultiSelectDropdown<string>
+                                  values={availableSubTypes}
+                                  selected={filters.subTypes}
+                                  onChange={(next) => updateFilter(categoryKey, { subTypes: next })}
+                                  renderLabel={(v) => t(`skills.${v}`, v)}
+                                  placeholder={t('common.labels.type')}
+                                />
+                              </div>
+                            ) : (
+                              <span className="flex-1 font-medium">{t('common.labels.type')}</span>
+                            )}
+                            <SortIconButton
+                              field="subType"
+                              currentField={sortState?.direction ? sortState.field : null}
+                              currentDirection={sortState?.direction ?? null}
+                              onClick={() => handleColumnSort(categoryKey, 'subType')}
+                            />
+                          </div>
+                        </th>
+                        {hasItemColumns && (
+                          <>
+                            <th className="pb-2 font-medium text-right">
+                              <SortableHeaderInline
+                                label={t('common.labels.value')}
+                                field="value"
+                                currentField={sortState?.direction ? sortState.field : null}
+                                currentDirection={sortState?.direction ?? null}
+                                onClick={(f) => handleColumnSort(categoryKey, f)}
+                                align="right"
+                              />
+                            </th>
+                            <th className="pb-2 font-medium text-right hidden md:table-cell">
+                              <SortableHeaderInline
+                                label={t('common.labels.weight')}
+                                field="weight"
+                                currentField={sortState?.direction ? sortState.field : null}
+                                currentDirection={sortState?.direction ?? null}
+                                onClick={(f) => handleColumnSort(categoryKey, f)}
+                                align="right"
+                              />
+                            </th>
+                            {/* Rarity: multi-select + sort icon */}
+                            <th className="pb-2 pl-2 text-right">
+                              <div className="flex items-center justify-end gap-1">
+                                {availableRarities.length > 0 ? (
+                                  <div className="flex-1 min-w-0">
+                                    <MultiSelectDropdown<number>
+                                      values={availableRarities}
+                                      selected={filters.rarities}
+                                      onChange={(next) => updateFilter(categoryKey, { rarities: next })}
+                                      renderLabel={(v) => t(`common.rarity.${v}`)}
+                                      placeholder={t('common.labels.rarity')}
+                                    />
+                                  </div>
+                                ) : (
+                                  <span className="font-medium">{t('common.labels.rarity')}</span>
+                                )}
+                                <SortIconButton
+                                  field="rarity"
+                                  currentField={sortState?.direction ? sortState.field : null}
+                                  currentDirection={sortState?.direction ?? null}
+                                  onClick={() => handleColumnSort(categoryKey, 'rarity')}
+                                />
+                              </div>
+                            </th>
+                          </>
+                        )}
+                        <th className="pb-2 font-medium text-right hidden lg:table-cell">{t('common.labels.info')}</th>
+                        {hasItemColumns && <th className="pb-2 w-10"></th>}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sortedItems.map((item, index) => (
+                        <tr
+                          key={`${item.id}-${index}`}
+                          className="border-b border-vault-gray-light hover:bg-vault-gray-light/50 cursor-pointer transition-colors"
+                          onClick={() => handleItemClick(item)}
+                        >
+                          <td className={`py-2 ${item.rarity !== undefined ? getRarityColor(item.rarity) : 'text-vault-yellow'}`}>
+                            {getItemName(item)}
+                          </td>
+                          <td className="py-2 text-vault-yellow-dark hidden sm:table-cell">
+                            {item.subType ? t(`skills.${item.subType}`, item.subType) : '-'}
+                          </td>
+                          {hasItemColumns && (
+                            <>
+                              <td className="py-2 text-right text-vault-yellow">
+                                {item.value !== undefined ? formatCaps(item.value) : '-'}
+                              </td>
+                              <td className="py-2 text-right text-vault-yellow-dark hidden md:table-cell">
+                                {item.weight !== undefined ? formatWeight(item.weight) : '-'}
+                              </td>
+                              <td className={`py-2 text-right ${item.rarity !== undefined ? getRarityColor(item.rarity) : ''}`}>
+                                {item.rarity !== undefined ? (
+                                  <>
+                                    <span className="hidden sm:inline">{t(`common.rarity.${item.rarity}`)}</span>
+                                    <span className="sm:hidden">{item.rarity}</span>
+                                  </>
+                                ) : '-'}
+                              </td>
+                            </>
+                          )}
+                          <td className="py-2 text-right text-vault-yellow-dark text-xs hidden lg:table-cell">
+                            {formatExtraInfo(item)}
+                          </td>
+                          {hasItemColumns && (
+                            <td className="py-2 text-center">
+                              <button
+                                type="button"
+                                onClick={(e) => handleInjectClick(e, item)}
+                                className="p-1 text-vault-yellow-dark hover:text-vault-yellow transition-colors cursor-pointer"
+                                title={t('inventory.addToCharacter')}
+                              >
+                                <UserPlus size={16} />
+                              </button>
+                            </td>
+                          )}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+          </div>
         );
       })}
 
@@ -654,6 +969,14 @@ export function EncyclopediaPage() {
         itemId={selectedItem?.id ?? null}
         itemType={selectedItem?.itemType ?? null}
         entry={selectedEntry}
+      />
+
+      {/* Character picker for inject-to-inventory */}
+      <CharacterPickerModal
+        isOpen={injectItem !== null}
+        onClose={() => setInjectItem(null)}
+        onSelect={handleCharacterSelected}
+        title={t('inventory.addToCharacter')}
       />
     </div>
   );

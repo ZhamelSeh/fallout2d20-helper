@@ -1,6 +1,6 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Users, Bot, Swords, Search, ShoppingBag, Play, StopCircle, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { ArrowLeft, Users, Bot, Swords, Search, ShoppingBag, StopCircle, Plus } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import {
   Card,
@@ -9,13 +9,19 @@ import {
   ParticipantRow,
   AddParticipantsModal,
   CombatActionReference,
+  CombatPrepScreen,
+  InitiativeBar,
+  ActiveTurnPanel,
+  CombatantsGrid,
   LootGenerator,
   MerchantGenerator,
-  OriginIcon,
 } from '../../components';
 import { useSession } from '../../hooks/useSessionsApi';
-import { charactersApi } from '../../services/api';
+import { charactersApi, sessionsApi } from '../../services/api';
 import type { SessionParticipantApi } from '../../services/api';
+import type { AttackResult } from '../../domain/rules/attackResolution';
+import type { SurvivalTestResult } from '../../domain/rules/dyingRules';
+import { INJURY_BY_ZONE } from '../../domain/rules/injuryRules';
 
 type TabId = 'pcs' | 'npcs' | 'combat' | 'loot' | 'merchant';
 
@@ -45,32 +51,40 @@ export function SessionDetailPage() {
     session,
     loading,
     error,
-    loadSession: _loadSession,
+    loadSession,
     updateSession: _updateSession,
     addParticipant,
     addQuickNpc,
     removeParticipant,
-    setCombatStatus,
-    setInitiative,
+    setCombatStatus: _setCombatStatus,
+    setInitiative: _setInitiative,
+    setAlliance,
+    setTemporaryActive,
     updateParticipantCharacter,
     startCombat,
     endCombat,
-    nextTurn,
-    prevTurn,
+    nextTurn: _nextTurn,
+    prevTurn: _prevTurn,
     updateGroupAP: _updateGroupAP,
     spendGroupAP,
     gainGroupAP,
     spendGmAP,
     gainGmAP,
-    sortedParticipants,
-    currentParticipant,
+    sortedParticipants: _sortedParticipants,
+    currentParticipant: _currentParticipant,
   } = useSession(sessionId);
 
   const [activeTab, setActiveTab] = useState<TabId>(initialTab);
   const [showActionsRef, setShowActionsRef] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
-  const [collapsedIds, setCollapsedIds] = useState<Set<number>>(new Set());
   const [excludedFromCombat, setExcludedFromCombat] = useState<Set<number>>(new Set());
+  const [selectedTargetId, setSelectedTargetId] = useState<number | null>(null);
+  const [canUndo, setCanUndo] = useState(false);
+  const [lastEndOfTurnReport, setLastEndOfTurnReport] = useState<{
+    bleedingDamageApplied?: number;
+    persistentDamageApplied?: number;
+    transitionedToDying?: boolean;
+  } | null>(null);
 
   // Update tab if location state changes (when returning from character sheet)
   useEffect(() => {
@@ -149,6 +163,109 @@ export function SessionDetailPage() {
 
   // Get current participant IDs for the add section
   const currentParticipantIds = session?.participants.map((p) => p.characterId) ?? [];
+
+  // ===== Combat: compute active participant =====
+  const combatParticipants = session?.participants ?? [];
+  const temporaryActive = combatParticipants.find((p) => p.temporaryActive);
+  const sortedForCombat = [...combatParticipants]
+    .filter((p) => p.turnOrder != null)
+    .sort((a, b) => (b.turnOrder ?? 0) - (a.turnOrder ?? 0));
+  const normalActive = sortedForCombat[session?.currentTurnIndex ?? 0];
+  const activeParticipant = temporaryActive ?? normalActive ?? null;
+
+  const handleActivateOutOfOrder = useCallback(async (participantId: number) => {
+    // Clear any other temporaryActive first
+    for (const p of combatParticipants) {
+      if (p.temporaryActive && p.id !== participantId) {
+        await setTemporaryActive(p.id, false);
+      }
+    }
+    await setTemporaryActive(participantId, true);
+  }, [combatParticipants, setTemporaryActive]);
+
+  const handleReturnToNormalOrder = useCallback(async () => {
+    if (!temporaryActive) return;
+    await setTemporaryActive(temporaryActive.id, false);
+  }, [temporaryActive, setTemporaryActive]);
+
+  const handleActiveDamage = useCallback((amount: number) => {
+    if (activeParticipant) handleDamage(activeParticipant, amount);
+  }, [activeParticipant, handleDamage]);
+
+  const handleActiveHeal = useCallback((amount: number) => {
+    if (activeParticipant) handleHeal(activeParticipant, amount);
+  }, [activeParticipant, handleHeal]);
+
+  // ===== Combat: attack flow =====
+  const selectedTarget = combatParticipants.find(p => p.id === selectedTargetId) ?? null;
+
+  const handleResolveAttack = useCallback(async (
+    result: AttackResult,
+    weaponItemId: number,
+    zone: string,
+  ) => {
+    if (!activeParticipant || !selectedTarget || !sessionId) return;
+    void weaponItemId;
+
+    const injuryDef = INJURY_BY_ZONE[zone as keyof typeof INJURY_BY_ZONE];
+    const persistentCondition = result.persistentCondition
+      ? { type: result.persistentCondition.type, damage: result.persistentCondition.damage }
+      : null;
+
+    try {
+      await sessionsApi.resolveAttack(sessionId, activeParticipant.id, {
+        targetParticipantId: selectedTarget.id,
+        zone,
+        finalDamage: result.finalDamage,
+        injuryTriggered: result.injuryTriggered,
+        injuryType: injuryDef?.type,
+        appliedConditions: result.appliedConditions,
+        persistentCondition,
+        apCost: 2,
+      });
+      setCanUndo(true);
+      await loadSession();
+    } catch (err) {
+      console.error('Attack resolution failed:', err);
+    }
+  }, [activeParticipant, selectedTarget, sessionId, loadSession]);
+
+  const handleUndo = useCallback(async () => {
+    if (!sessionId) return;
+    await sessionsApi.undoLastAttack(sessionId);
+    setCanUndo(false);
+    await loadSession();
+  }, [sessionId, loadSession]);
+
+  const handleHealInjury = useCallback(async (injuryId: number) => {
+    if (!activeParticipant || !sessionId) return;
+    await sessionsApi.healInjury(sessionId, activeParticipant.id, injuryId);
+    await loadSession();
+  }, [activeParticipant, sessionId, loadSession]);
+
+  const handleSubmitSurvivalTest = useCallback(async (result: SurvivalTestResult) => {
+    if (!activeParticipant || !sessionId) return;
+    await sessionsApi.submitSurvivalTest(sessionId, activeParticipant.id, {
+      success: result.success,
+      died: result.died,
+      complication: result.complication,
+    });
+    await loadSession();
+  }, [activeParticipant, sessionId, loadSession]);
+
+  const handleStabilize = useCallback(async () => {
+    if (!activeParticipant || !sessionId) return;
+    await sessionsApi.stabilize(sessionId, activeParticipant.id);
+    await loadSession();
+  }, [activeParticipant, sessionId, loadSession]);
+
+  const handleEndTurn = useCallback(async () => {
+    if (!sessionId) return;
+    const response = (await sessionsApi.advanceTurn(sessionId)) as any;
+    const report = response?.endOfTurnReport;
+    setLastEndOfTurnReport(report ?? null);
+    await loadSession();
+  }, [sessionId, loadSession]);
 
   if (loading) {
     return (
@@ -316,112 +433,36 @@ export function SessionDetailPage() {
             {/* Combat Controls */}
             {!session.combatActive ? (
               <Card>
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-vault-yellow font-bold">
-                    {t('sessions.combat.prepareCombat')}
-                  </h3>
-                  <Button
-                    onClick={() => {
-                      const selectedIds = session.participants
-                        .filter(p => !excludedFromCombat.has(p.id))
-                        .map(p => p.id);
-                      startCombat(selectedIds);
-                    }}
-                    disabled={session.participants.length === 0 || session.participants.every(p => excludedFromCombat.has(p.id))}
-                  >
-                    <Play size={18} />
-                    {t('sessions.combat.startCombat')}
-                  </Button>
-                </div>
-
-                {/* Initiative Preview with selection checkboxes — 2 columns PC/NPC */}
-                {session.participants.length > 0 && (() => {
-                  const sorted = [...session.participants]
-                    .sort((a, b) => (b.character.initiative ?? 0) - (a.character.initiative ?? 0));
-                  const pcList = sorted.filter(p => p.character.type === 'pc');
-                  const npcList = sorted.filter(p => p.character.type === 'npc');
-
-                  const renderRow = (p: SessionParticipantApi) => {
-                    const isExcluded = excludedFromCombat.has(p.id);
-                    return (
-                      <label
-                        key={p.id}
-                        className={`flex items-center gap-2 px-3 py-2 bg-vault-blue rounded cursor-pointer transition-opacity ${isExcluded ? 'opacity-40' : ''}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={!isExcluded}
-                          onChange={() => {
-                            setExcludedFromCombat(prev => {
-                              const next = new Set(prev);
-                              if (next.has(p.id)) next.delete(p.id);
-                              else next.add(p.id);
-                              return next;
-                            });
-                          }}
-                          className="w-4 h-4 accent-vault-yellow cursor-pointer"
-                        />
-                        <OriginIcon originId={p.character.originId} emoji={p.character.emoji} type={p.character.type} size="sm" />
-                        <span className="w-6 text-center font-bold text-vault-yellow text-sm">
-                          {p.character.initiative}
-                        </span>
-                        <span className="text-white text-sm truncate">{(() => { const tr = t(p.character.name); return tr !== p.character.name ? tr : p.character.name; })()}</span>
-                      </label>
-                    );
-                  };
-
-                  return (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-medium text-vault-yellow-dark">
-                          {t('characters.pc')}s
-                        </h4>
-                        {pcList.length === 0 ? (
-                          <div className="text-xs text-gray-500 px-3 py-2">{t('sessions.participants.noPCs')}</div>
-                        ) : pcList.map(renderRow)}
-                      </div>
-                      <div className="space-y-1">
-                        <h4 className="text-sm font-medium text-vault-yellow-dark">
-                          {t('characters.npc')}s
-                        </h4>
-                        {npcList.length === 0 ? (
-                          <div className="text-xs text-gray-500 px-3 py-2">{t('sessions.participants.noNPCs')}</div>
-                        ) : npcList.map(renderRow)}
-                      </div>
-                    </div>
-                  );
-                })()}
+                <CombatPrepScreen
+                  participants={session.participants}
+                  isParticipantIncluded={(pid) => !excludedFromCombat.has(pid)}
+                  onToggleParticipant={(pid, included) => {
+                    setExcludedFromCombat(prev => {
+                      const next = new Set(prev);
+                      if (included) next.delete(pid);
+                      else next.add(pid);
+                      return next;
+                    });
+                  }}
+                  onToggleAlliance={(pid, isAlly) => {
+                    void setAlliance(pid, isAlly);
+                  }}
+                  onStartCombat={() => {
+                    const selectedIds = session.participants
+                      .filter(p => !excludedFromCombat.has(p.id))
+                      .map(p => p.id);
+                    startCombat(selectedIds);
+                  }}
+                  canStartCombat={
+                    session.participants.length > 0 &&
+                    !session.participants.every(p => excludedFromCombat.has(p.id))
+                  }
+                />
               </Card>
             ) : (
               <Card>
-                {/* Compact combat header: [◀] [▶]  name — Round X  [⊘] */}
-                <div className="flex items-center gap-2 mb-4">
-                  <button
-                    type="button"
-                    onClick={() => prevTurn()}
-                    className="p-2 rounded-lg border border-vault-yellow-dark text-vault-yellow-dark hover:text-vault-yellow hover:border-vault-yellow transition-colors cursor-pointer"
-                    title={t('sessions.combat.prevTurn')}
-                  >
-                    <ChevronLeft size={18} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => nextTurn()}
-                    className="p-2 rounded-lg bg-vault-yellow text-vault-blue hover:bg-vault-yellow-dark transition-colors cursor-pointer"
-                    title={t('sessions.combat.nextTurn')}
-                  >
-                    <ChevronRight size={18} />
-                  </button>
-
-                  <div className="flex-1 min-w-0 px-2">
-                    <span className="text-vault-yellow font-bold text-lg truncate">
-                      {currentParticipant ? (() => { const tr = t(currentParticipant.character.name); return tr !== currentParticipant.character.name ? tr : currentParticipant.character.name; })() : '—'}
-                    </span>
-                    <span className="text-gray-400 text-sm ml-2">
-                      — {t('sessions.combat.round', { number: session.currentRound })}
-                    </span>
-                  </div>
-
+                {/* End combat button (kept accessible alongside the new layout) */}
+                <div className="flex items-center justify-end mb-2">
                   <button
                     type="button"
                     onClick={() => endCombat()}
@@ -432,37 +473,54 @@ export function SessionDetailPage() {
                   </button>
                 </div>
 
-                {/* Initiative Order — rotated so active combatant is first */}
-                <div className="space-y-2">
-                  {[...sortedParticipants.slice(session.currentTurnIndex), ...sortedParticipants.slice(0, session.currentTurnIndex)].map((participant, index) => {
-                    const isActive = index === 0;
-                    const isCollapsed = !isActive && collapsedIds.has(participant.id);
-                    return (
-                      <ParticipantRow
-                        key={participant.id}
-                        participant={participant}
-                        isActive={isActive}
-                        showCombatControls
-                        collapsed={isCollapsed}
-                        onToggleCollapse={() => {
-                          setCollapsedIds(prev => {
-                            const next = new Set(prev);
-                            if (next.has(participant.id)) next.delete(participant.id);
-                            else next.add(participant.id);
-                            return next;
-                          });
-                        }}
-                        onDamage={(amt) => handleDamage(participant, amt)}
-                        onHeal={(amt) => handleHeal(participant, amt)}
-                        onRadiation={(amt) => handleRadiation(participant, amt)}
-                        onLuckChange={(amt) => handleLuckChange(participant, amt)}
-                        onCombatStatusChange={(status) => setCombatStatus(participant.id, status)}
-                        onInitiativeChange={(value) => setInitiative(participant.id, value)}
-                        onViewSheet={() => handleViewSheet(participant.characterId)}
-                      />
-                    );
-                  })}
-                </div>
+                {lastEndOfTurnReport &&
+                  ((lastEndOfTurnReport.bleedingDamageApplied ?? 0) > 0 ||
+                    (lastEndOfTurnReport.persistentDamageApplied ?? 0) > 0 ||
+                    lastEndOfTurnReport.transitionedToDying) && (
+                    <div className="bg-vault-blue border border-vault-yellow-dark text-vault-yellow-light p-2 rounded mb-2 flex items-center gap-2">
+                      <span className="text-sm flex-1">
+                        {(lastEndOfTurnReport.bleedingDamageApplied ?? 0) > 0 &&
+                          `🩸 Hémorragie: −${lastEndOfTurnReport.bleedingDamageApplied} HP `}
+                        {(lastEndOfTurnReport.persistentDamageApplied ?? 0) > 0 &&
+                          `☢ Effet persistant: −${lastEndOfTurnReport.persistentDamageApplied} HP `}
+                        {lastEndOfTurnReport.transitionedToDying && '💀 Combattant tombe mourant '}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setLastEndOfTurnReport(null)}
+                        className="text-vault-yellow-dark hover:text-vault-yellow"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                <InitiativeBar
+                  participants={combatParticipants}
+                  activeParticipantId={activeParticipant?.id ?? null}
+                  temporaryActiveId={temporaryActive?.id ?? null}
+                  currentRound={session.currentRound ?? 1}
+                  onActivateOutOfOrder={handleActivateOutOfOrder}
+                  onEndTurn={handleEndTurn}
+                  onReturnToNormalOrder={handleReturnToNormalOrder}
+                />
+                <ActiveTurnPanel
+                  active={activeParticipant}
+                  target={selectedTarget}
+                  allParticipants={combatParticipants}
+                  onSelectTarget={setSelectedTargetId}
+                  canUndo={canUndo}
+                  onResolveAttack={handleResolveAttack}
+                  onUndo={handleUndo}
+                  onHealInjury={handleHealInjury}
+                  onSubmitSurvivalTest={handleSubmitSurvivalTest}
+                  onStabilize={handleStabilize}
+                />
+                <CombatantsGrid
+                  participants={combatParticipants.filter((p) => p.turnOrder != null)}
+                  activeParticipantId={activeParticipant?.id ?? null}
+                  selectedTargetId={selectedTargetId}
+                  onSelectTarget={setSelectedTargetId}
+                />
               </Card>
             )}
 
@@ -470,6 +528,7 @@ export function SessionDetailPage() {
             <CombatActionReference
               collapsed={!showActionsRef}
               onToggle={() => setShowActionsRef(!showActionsRef)}
+              activeParticipant={activeParticipant}
             />
           </div>
         )}

@@ -1,5 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { Swords, Shield, Heart, Users, Bot, Package, Crosshair, Move, Sword, Hand, ArrowUp, ChevronDown as Crouch, PackageOpen, MessageCircle, ArrowDown } from 'lucide-react';
+import type { SessionParticipantApi } from '../../../services/api';
+import { isSprintDisabled } from '../../../domain/rules/injuryRules';
 
 interface ActionInfo {
   key: string;
@@ -34,10 +36,13 @@ const freeActions: ActionInfo[] = [
 interface CombatActionReferenceProps {
   collapsed?: boolean;
   onToggle?: () => void;
+  activeParticipant?: SessionParticipantApi | null;
 }
 
-export function CombatActionReference({ collapsed = false, onToggle }: CombatActionReferenceProps) {
+export function CombatActionReference({ collapsed = false, onToggle, activeParticipant }: CombatActionReferenceProps) {
   const { t } = useTranslation();
+
+  const sprintDisabled = activeParticipant ? isSprintDisabled(activeParticipant.injuries ?? []) : false;
 
   const renderActionGroup = (
     title: string,
@@ -48,22 +53,26 @@ export function CombatActionReference({ collapsed = false, onToggle }: CombatAct
     <div className="space-y-2">
       <h4 className={`text-sm font-bold ${textColor}`}>{title}</h4>
       <div className="space-y-1">
-        {actions.map(({ key, icon: Icon }) => (
-          <div
-            key={key}
-            className={`flex items-start gap-2 p-2 rounded ${bgColor}`}
-          >
-            <Icon size={16} className={`flex-shrink-0 mt-0.5 ${textColor}`} />
-            <div className="flex-1 min-w-0">
-              <div className={`font-medium text-sm ${textColor}`}>
-                {t(`sessions.actions.${key}`)}
-              </div>
-              <div className="text-xs text-gray-400">
-                {t(`sessions.actions.${key}Desc`)}
+        {actions.map(({ key, icon: Icon }) => {
+          const isDisabled = key === 'sprint' && sprintDisabled;
+          return (
+            <div
+              key={key}
+              className={`flex items-start gap-2 p-2 rounded ${bgColor} ${isDisabled ? 'opacity-40' : ''}`}
+              title={isDisabled ? t('combat.injury.leg_broken.rule') : undefined}
+            >
+              <Icon size={16} className={`flex-shrink-0 mt-0.5 ${textColor}`} />
+              <div className="flex-1 min-w-0">
+                <div className={`font-medium text-sm ${textColor}`}>
+                  {t(`sessions.actions.${key}`)}
+                </div>
+                <div className="text-xs text-gray-400">
+                  {t(`sessions.actions.${key}Desc`)}
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

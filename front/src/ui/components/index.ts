@@ -8,7 +8,6 @@ export { StickyCharacterHeader } from './character/StickyCharacterHeader';
 // Combat
 export { APTracker } from './combat/APTracker';
 export { ActionButton } from './combat/ActionButton';
-export { CombatantRow } from './combat/CombatantRow';
 export { CombatActionReference } from './combat/CombatActionReference';
 export { DualAPTracker } from './combat/DualAPTracker';
 export { GroupAPTracker } from './combat/GroupAPTracker';

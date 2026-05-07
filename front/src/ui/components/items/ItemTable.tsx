@@ -89,7 +89,15 @@ export function ItemTable({ items, showCategory = true, onItemClick, onInjectIte
             </h3>
           )}
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
+              <colgroup>
+                <col />
+                <col className="w-20" />
+                <col className="w-28" />
+                <col className="w-24 hidden sm:table-column" />
+                <col className="w-28 hidden md:table-column" />
+                {onInjectItem && <col className="w-10" />}
+              </colgroup>
               <thead>
                 <tr className="text-vault-yellow-dark text-left">
                   <th className="pb-2 font-medium">{t('common.labels.name')}</th>

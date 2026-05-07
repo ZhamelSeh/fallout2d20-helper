@@ -85,7 +85,7 @@ const MAX_SKILL_RANK = 6;
 const GIFTED_BONUS_COUNT = 2; // Gifted trait gives +1 to two chosen SPECIAL
 
 const SPECIAL_SHORT: Record<SpecialAttribute, string> = {
-  strength: 'F', perception: 'P', endurance: 'E',
+  strength: 'S', perception: 'P', endurance: 'E',
   charisma: 'C', intelligence: 'I', agility: 'A', luck: 'L',
 };
 

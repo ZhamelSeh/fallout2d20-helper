@@ -435,6 +435,25 @@ export interface CharacterDrApi {
   drPoison: number;
 }
 
+export type InjuryZone = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
+export type InjuryType =
+  | 'arm_broken_left'
+  | 'arm_broken_right'
+  | 'leg_broken'
+  | 'torso_bleeding'
+  | 'head_dazed';
+
+export interface CharacterInjuryApi {
+  id: number;
+  characterId: number;
+  sessionId: number | null;
+  zone: InjuryZone;
+  injuryType: InjuryType;
+  appliedAtRound: number | null;
+  healedAt: string | null; // ISO
+  createdAt: string;
+}
+
 export interface CharacterTraitApi {
   id: number;
   name: string;
@@ -489,6 +508,7 @@ export interface CharacterApi {
   giftedBonusAttributes: string[];
   exerciseBonuses: string[];
   conditions: string[];
+  injuries: CharacterInjuryApi[];
   inventory: InventoryItemApi[];
   dr: CharacterDrApi[];
   traits: CharacterTraitApi[];
@@ -763,7 +783,7 @@ export const equipmentPacksApi = {
 // ===== SESSIONS API =====
 
 export type SessionStatus = 'active' | 'paused' | 'completed';
-export type CombatantStatus = 'active' | 'unconscious' | 'dead' | 'fled';
+export type CombatantStatus = 'active' | 'unconscious' | 'dying' | 'dead' | 'fled';
 
 export interface SessionEquippedWeapon {
   itemId: number;
@@ -807,6 +827,10 @@ export interface SessionParticipantApi {
   characterId: number;
   turnOrder: number | null;
   combatStatus: CombatantStatus;
+  isAlly: boolean;
+  temporaryActive: boolean;
+  skipNormalActions: boolean;
+  injuries: CharacterInjuryApi[];
   character: SessionParticipantCharacter;
 }
 
@@ -898,6 +922,52 @@ export const sessionsApi = {
       method: 'PUT',
       body: JSON.stringify({ turnOrder }),
     }),
+  updateParticipant: (
+    sessionId: number,
+    participantId: number,
+    data: {
+      combatStatus?: CombatantStatus;
+      turnOrder?: number;
+      isAlly?: boolean;
+      temporaryActive?: boolean;
+      skipNormalActions?: boolean;
+    }
+  ) =>
+    fetchApi<SessionParticipantApi>(`/sessions/${sessionId}/participants/${participantId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  // Attack resolution
+  resolveAttack: (
+    sessionId: number,
+    participantId: number,
+    body: {
+      targetParticipantId: number;
+      zone: string;
+      finalDamage: number;
+      injuryTriggered: boolean;
+      injuryType?: string;
+      appliedConditions: string[];
+      persistentCondition: { type: string; damage: number } | null;
+      apCost: number;
+    }
+  ) =>
+    fetchApi<{ targetHpAfter: number; injuryApplied: any | null; transitionedToDying: boolean }>(
+      `/sessions/${sessionId}/participants/${participantId}/attack`,
+      { method: 'POST', body: JSON.stringify(body) }
+    ),
+  createInjury: (sessionId: number, participantId: number, zone: string, injuryType: string) =>
+    fetchApi<CharacterInjuryApi>(`/sessions/${sessionId}/participants/${participantId}/injuries`, {
+      method: 'POST',
+      body: JSON.stringify({ zone, injuryType }),
+    }),
+  healInjury: (sessionId: number, participantId: number, injuryId: number) =>
+    fetchApi<null>(`/sessions/${sessionId}/participants/${participantId}/injuries/${injuryId}`, {
+      method: 'DELETE',
+    }),
+  undoLastAttack: (sessionId: number) =>
+    fetchApi<{ ok: true }>(`/sessions/${sessionId}/undo-last-attack`, { method: 'POST' }),
 
   // Combat
   startCombat: (sessionId: number, participantIds?: number[]) =>
@@ -915,6 +985,25 @@ export const sessionsApi = {
     }),
   prevTurn: (sessionId: number) =>
     fetchApi<SessionApi>(`/sessions/${sessionId}/combat/prev-turn`, {
+      method: 'POST',
+    }),
+
+  // Dying / survival / advance-turn
+  submitSurvivalTest: (
+    sessionId: number,
+    participantId: number,
+    body: { success: boolean; died: boolean; complication: boolean }
+  ) =>
+    fetchApi(`/sessions/${sessionId}/participants/${participantId}/survival-test`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    }),
+  stabilize: (sessionId: number, participantId: number) =>
+    fetchApi(`/sessions/${sessionId}/participants/${participantId}/stabilize`, {
+      method: 'POST',
+    }),
+  advanceTurn: (sessionId: number) =>
+    fetchApi<{ endOfTurnReport: any }>(`/sessions/${sessionId}/advance-turn`, {
       method: 'POST',
     }),
 

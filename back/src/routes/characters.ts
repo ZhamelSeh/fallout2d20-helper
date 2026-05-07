@@ -30,7 +30,7 @@ import {
 const router = Router();
 
 // Helper to get inventory items with full item details including armor/clothing stats
-async function getCharacterInventory(characterId: number) {
+export async function getCharacterInventory(characterId: number) {
   const inventoryRows = await db
     .select({
       id: characterInventory.id,
@@ -607,6 +607,25 @@ router.put('/:id', async (req, res) => {
       })
       .where(eq(characters.id, id));
 
+    // If character is currently dying in any session and HP > 0, exit dying.
+    if (typeof data.currentHp === 'number' && data.currentHp > 0) {
+      const dyingParticipants = await db
+        .select()
+        .from(sessionParticipants)
+        .where(
+          and(
+            eq(sessionParticipants.characterId, id),
+            eq(sessionParticipants.combatStatus, 'dying'),
+          ),
+        );
+      for (const p of dyingParticipants) {
+        await db
+          .update(sessionParticipants)
+          .set({ combatStatus: 'active' })
+          .where(eq(sessionParticipants.id, p.id));
+      }
+    }
+
     // Update SPECIAL (delete and re-insert)
     if (data.special) {
       await db.delete(characterSpecial).where(eq(characterSpecial.characterId, id));
@@ -1044,6 +1063,7 @@ router.post('/:id/duplicate', async (req, res) => {
         creatureAttributes: character.creatureAttributes,
         creatureSkills: character.creatureSkills,
         creatureAttacks: character.creatureAttacks,
+        emoji: character.emoji,
       })
       .returning();
 

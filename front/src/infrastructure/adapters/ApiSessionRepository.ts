@@ -1,4 +1,4 @@
-import type { SessionRepository } from '../../domain/ports/SessionRepository';
+import type { SessionRepository, ParticipantUpdateData } from '../../domain/ports/SessionRepository';
 import type { Session, CreateSessionData, UpdateSessionData, Participant, AddQuickNpcData } from '../../domain/models/session';
 import type { CombatantStatus } from '../../domain/models/character';
 import { fetchApi } from '../http/httpClient';
@@ -46,6 +46,10 @@ export class ApiSessionRepository implements SessionRepository {
 
   setInitiative(sessionId: number, participantId: number, turnOrder: number): Promise<Participant> {
     return fetchApi(`/sessions/${sessionId}/participants/${participantId}/initiative`, { method: 'PUT', body: JSON.stringify({ turnOrder }) });
+  }
+
+  updateParticipant(sessionId: number, participantId: number, data: ParticipantUpdateData): Promise<Participant> {
+    return fetchApi(`/sessions/${sessionId}/participants/${participantId}`, { method: 'PATCH', body: JSON.stringify(data) });
   }
 
   startCombat(sessionId: number): Promise<Session> {
