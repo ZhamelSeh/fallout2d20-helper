@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Minus, Plus, AlertTriangle } from 'lucide-react';
 import type { InventoryItemApi, CharacterDrApi } from '../../../services/api';
+import { damageTypeColor, damageTypeIcon } from '../../../domain/rules/damageTypes';
 import { computeBodyDR, type BodyLocation } from '../../../domain/rules/bodyResistance';
 
 interface BodyResistanceMapProps {
@@ -85,25 +86,25 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
         {/* DR Grid */}
         <div className="p-2 grid grid-cols-2 gap-1 text-xs">
           <div className="flex justify-between">
-            <span className="text-gray-400">{t('bodyResistance.drPhysical')}</span>
+            <span className="text-gray-400">{damageTypeIcon('physical')} {t('bodyResistance.drPhysical')}</span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.physical, 'text-vault-yellow')
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.physical, damageTypeColor('physical'))
             }`}>
               {formatDrValue(data.physical)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400">{t('bodyResistance.drRadiation')}</span>
+            <span className="text-gray-400">{damageTypeIcon('radiation')} {t('bodyResistance.drRadiation')}</span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.radiation, 'text-yellow-400')
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.radiation, damageTypeColor('radiation'))
             }`}>
               {formatDrValue(data.radiation)}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-gray-400">{t('bodyResistance.drEnergy')}</span>
+            <span className="text-gray-400">{damageTypeIcon('energy')} {t('bodyResistance.drEnergy')}</span>
             <span className={`font-mono font-bold ${
-              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.energy, 'text-blue-400')
+              isDamaged ? 'text-gray-600 line-through' : getDrColor(data.energy, damageTypeColor('energy'))
             }`}>
               {formatDrValue(data.energy)}
             </span>
@@ -122,8 +123,8 @@ export function BodyResistanceMap({ inventory, showPoison = false, originId, onP
             </div>
           ) : showPoisonCell ? (
             <div className="flex justify-between">
-              <span className="text-gray-400">{t('bodyResistance.drPoison')}</span>
-              <span className={`font-mono font-bold ${getDrColor(data.poison, 'text-green-400')}`}>
+              <span className="text-gray-400">{damageTypeIcon('poison')} {t('bodyResistance.drPoison')}</span>
+              <span className={`font-mono font-bold ${getDrColor(data.poison, damageTypeColor('poison'))}`}>
                 {formatDrValue(data.poison)}
               </span>
             </div>

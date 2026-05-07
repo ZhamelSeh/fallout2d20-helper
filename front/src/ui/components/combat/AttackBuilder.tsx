@@ -11,6 +11,7 @@ import type { DamageKind } from '../../../domain/rules/attackQualities';
 import { weaponBlockedByInjuries } from '../../../domain/rules/injuryRules';
 import { computeModdedWeaponName, computeEffectiveWeaponStats } from '../../../domain/rules/weaponMods';
 import { computeBodyDR, type BodyLocation } from '../../../domain/rules/bodyResistance';
+import { damageTypeColor, damageTypeIcon } from '../../../domain/rules/damageTypes';
 import { DamageBreakdown } from './DamageBreakdown';
 import { ItemDetailModal } from '../../../components/ItemDetailModal';
 
@@ -317,7 +318,7 @@ export function AttackBuilder({ attacker, target, allParticipants, onSelectTarge
           </span>
           {weapon?.damageType && (
             <span>
-              💥 <b className="text-vault-yellow">{String(t(`damageTypes.${weapon.damageType}`, weapon.damageType))}</b>
+              {damageTypeIcon(weapon.damageType)} <b className={damageTypeColor(weapon.damageType)}>{String(t(`damageTypes.${weapon.damageType}`, weapon.damageType))}</b>
             </span>
           )}
         </div>

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import type { AttackResult } from '../../../domain/rules/attackResolution';
+import { damageTypeColor, damageTypeIcon } from '../../../domain/rules/damageTypes';
 
 interface DamageBreakdownProps {
   result: AttackResult | null;
@@ -39,7 +40,10 @@ export function DamageBreakdown({ result, zoneLabel }: DamageBreakdownProps) {
         {t('combat.attackFlow.raw')}: <b>{result.rawDamage}</b>
       </div>
       <div>
-        {t('combat.attackFlow.dr')} {String(t(`damageTypes.${result.damageKind}`, result.damageKind))}: <b className="text-vault-danger">−{result.effectiveDR}</b>
+        {t('combat.attackFlow.dr')}{' '}
+        <span className={damageTypeColor(result.damageKind)}>
+          {damageTypeIcon(result.damageKind)} {String(t(`damageTypes.${result.damageKind}`, result.damageKind))}
+        </span>: <b className="text-vault-danger">−{result.effectiveDR}</b>
       </div>
       <div className="text-sm">
         {t('combat.attackFlow.final')}: <b className="text-vault-danger">{result.finalDamage}</b>
