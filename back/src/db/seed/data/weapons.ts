@@ -421,4 +421,123 @@ export const weapons: Weapon[] = [
     qualities: [{ quality: 'vicious' }, { quality: 'breaking' }, { quality: 'radioactive' }, { quality: 'thrown' }, { quality: 'blast' }],
     ammo: 'none', weight: 0.5, value: 100, rarity: 4,
   },
+
+  // ===== GUIDE DES COLONIES — Armes légères =====
+  {
+    name: 'M79 Grenade Launcher', skill: 'smallGuns',
+    damage: 6, damageType: 'physical', fireRate: 0, range: 'long',
+    qualities: [{ quality: 'inaccurate' }, { quality: 'slowReload' }, { quality: 'blast' }],
+    ammo: 'grenade40mm', weight: 3, value: 300, rarity: 3,
+  },
+  {
+    name: 'Smoke Pincer', skill: 'smallGuns',
+    damage: 4, damageType: 'poison', fireRate: 0, range: 'medium',
+    qualities: [{ quality: 'persistent' }, { quality: 'inaccurate' }, { quality: 'blast' }],
+    ammo: 'gasGrenade', weight: 0, value: 0, rarity: 0,
+  },
+
+  // ===== GUIDE DES COLONIES — Armes à énergie =====
+  {
+    name: 'Cryojet', skill: 'energyWeapons',
+    damage: 3, damageType: 'energy', fireRate: 3, range: 'close',
+    qualities: [{ quality: 'burst' }, { quality: 'glacial' }, { quality: 'inaccurate' }],
+    ammo: 'cryoCell', weight: 4, value: 261, rarity: 4,
+  },
+  {
+    name: 'Tesla Rifle', skill: 'energyWeapons',
+    damage: 4, damageType: 'energy', fireRate: 2, range: 'medium',
+    qualities: [{ quality: 'arcing' }, { quality: 'twoHanded' }],
+    ammo: 'fusionCell', weight: 4, value: 180, rarity: 4,
+  },
+  {
+    name: 'Alien Blaster', skill: 'energyWeapons',
+    // Damage type is energy/radiation (use lower DR of the two on target)
+    damage: 5, damageType: 'energy', fireRate: 2, range: 'close',
+    qualities: [{ quality: 'vicious' }, { quality: 'closeQuarters' }, { quality: 'inaccurate' }],
+    ammo: 'alienLaser', weight: 1, value: 90, rarity: 5,
+  },
+  {
+    name: 'Laserotron Head Laser', skill: 'energyWeapons',
+    damage: 5, damageType: 'energy', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'piercing', value: 1 }],
+    ammo: 'fusionCell', ammoPerShot: 2, weight: 4, value: 115, rarity: 4,
+  },
+  {
+    name: 'Medusatron', skill: 'energyWeapons',
+    damage: 3, damageType: 'energy', fireRate: 1, range: 'medium',
+    qualities: [{ quality: 'stun' }],
+    ammo: 'gammaRound', weight: 1, value: 120, rarity: 4,
+  },
+  {
+    name: 'Acid Pistol', skill: 'energyWeapons',
+    damage: 3, damageType: 'poison', fireRate: 2, range: 'close',
+    qualities: [{ quality: 'breaking' }, { quality: 'persistent' }, { quality: 'inaccurate' }, { quality: 'debilitating' }],
+    ammo: 'concentratedAcid', weight: 1.5, value: 125, rarity: 3,
+  },
+
+  // ===== GUIDE DES COLONIES — Armes lourdes =====
+  {
+    name: 'Broadside Cannon', skill: 'bigGuns',
+    damage: 10, damageType: 'physical', fireRate: 0, range: 'medium',
+    qualities: [{ quality: 'breaking' }, { quality: 'twoHanded' }, { quality: 'blast' }],
+    ammo: 'cannonball', weight: 8, value: 140, rarity: 5,
+  },
+  {
+    name: 'Cryolator', skill: 'bigGuns',
+    damage: 4, damageType: 'energy', fireRate: 4, range: 'close',
+    qualities: [{ quality: 'spread' }, { quality: 'burst' }, { quality: 'glacial' }, { quality: 'twoHanded' }, { quality: 'inaccurate' }],
+    ammo: 'cryoCell', weight: 7, value: 300, rarity: 4,
+  },
+  {
+    name: 'Harpoon Rifle', skill: 'bigGuns',
+    damage: 12, damageType: 'physical', fireRate: 0, range: 'medium',
+    qualities: [{ quality: 'piercing', value: 1 }, { quality: 'twoHanded' }, { quality: 'inaccurate' }, { quality: 'debilitating' }],
+    ammo: 'harpoon', weight: 8, value: 120, rarity: 5,
+  },
+
+  // ===== GUIDE DES COLONIES — Armes de corps à corps d'Automatron =====
+  {
+    name: 'Drill', skill: 'unarmed',
+    damage: 5, damageType: 'physical', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'vicious' }, { quality: 'debilitating' }],
+    ammo: 'none', weight: 10, value: 50, rarity: 1,
+  },
+  {
+    name: 'Pincer', skill: 'unarmed',
+    damage: 3, damageType: 'physical', fireRate: 0, range: 'close',
+    qualities: [],
+    ammo: 'none', weight: 1, value: 25, rarity: 1,
+  },
+  {
+    name: 'Construction Pincer', skill: 'unarmed',
+    damage: 4, damageType: 'physical', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'breaking' }],
+    ammo: 'none', weight: 1.5, value: 25, rarity: 0,
+  },
+  {
+    name: 'Vice Pincer', skill: 'unarmed',
+    damage: 4, damageType: 'physical', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'breaking' }],
+    ammo: 'none', weight: 7.5, value: 30, rarity: 2,
+  },
+  {
+    name: 'Circular Saw', skill: 'meleeWeapons',
+    damage: 3, damageType: 'physical', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'piercing', value: 1 }],
+    ammo: 'none', weight: 1.5, value: 25, rarity: 2,
+  },
+  {
+    // Robot integrated melee — Protectron Pompier starter pack
+    name: 'Protectron Fire Axe', skill: 'meleeWeapons',
+    damage: 3, damageType: 'physical', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'piercing', value: 1 }],
+    ammo: 'none', weight: 2, value: 0, rarity: 0,
+  },
+  {
+    // Robot integrated unarmed — Protectron Secouriste starter pack
+    name: 'Electrified Hands', skill: 'unarmed',
+    damage: 3, damageType: 'energy', fireRate: 0, range: 'close',
+    qualities: [{ quality: 'stun' }],
+    ammo: 'none', weight: 0, value: 0, rarity: 0,
+  },
 ];

@@ -75,6 +75,25 @@ export default {
       'Pulse Mine': 'Pulse Mine',
       'Plasma Mine': 'Plasma Mine',
       'Nuka Mine': 'Nuka Mine',
+      // ===== Guide to the Colonies =====
+      'M79 Grenade Launcher': 'M79 Grenade Launcher',
+      'Smoke Pincer': 'Smoke Pincer',
+      'Cryojet': 'Cryojet',
+      'Tesla Rifle': 'Tesla Rifle',
+      'Alien Blaster': 'Alien Blaster',
+      'Laserotron Head Laser': 'Laserotron Head Laser',
+      'Medusatron': 'Medusatron',
+      'Acid Pistol': 'Acid Pistol',
+      'Broadside Cannon': 'Broadside Cannon',
+      'Cryolator': 'Cryolator',
+      'Harpoon Rifle': 'Harpoon Rifle',
+      'Drill': 'Drill',
+      'Pincer': 'Pincer',
+      'Construction Pincer': 'Construction Pincer',
+      'Vice Pincer': 'Vice Pincer',
+      'Circular Saw': 'Circular Saw',
+      'Protectron Fire Axe': 'Protectron Fire Axe',
+      'Electrified Hands': 'Electrified Hands',
     },
     ammunition: {
       '.38 Rounds': '.38 Rounds',
@@ -97,6 +116,14 @@ export default {
       'Plasma Cartridges': 'Plasma Cartridges',
       '2mm EC Rounds': '2mm EC Rounds',
       'Mini Nuke': 'Mini Nuke',
+      // ===== Guide to the Colonies =====
+      'Concentrated Acid': 'Concentrated Acid',
+      'Gas Grenade': 'Gas Grenade',
+      '40mm Grenade': '40mm Grenade',
+      'Harpoon': 'Harpoon',
+      'Cryo Cell': 'Cryo Cell',
+      'Cannonball': 'Cannonball',
+      'Alien Laser Round': 'Alien Laser Round',
     },
     armor: {
       // All armor pieces - English names stay the same
@@ -244,6 +271,8 @@ export default {
       'Welding Mask': 'Welding Mask',
       'Fancy Hat': 'Fancy Hat',
       'Gas Mask': 'Gas Mask',
+      // Guide to the Colonies
+      'Tricorn Hat': 'Tricorn Hat',
     },
     chems: {
       // Most chem names stay the same in English

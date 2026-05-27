@@ -1,4 +1,14 @@
-import type { SpecialAttribute, SkillName } from '../models/character';
+import type { SpecialAttribute, SkillName, OriginId } from '../models/character';
+
+/**
+ * Origins (from Guide des Colonies) that have a fixed carry capacity in kg.
+ * These do NOT scale with Strength.
+ */
+const FIXED_CARRY_CAPACITY_BY_ORIGIN: Partial<Record<OriginId, number>> = {
+  protectron: 113,
+  cerebrobot: 75,
+  securitron: 75,
+};
 
 export const SPECIAL_ATTRIBUTES: SpecialAttribute[] = [
   'strength', 'perception', 'endurance', 'charisma', 'intelligence', 'agility', 'luck',
@@ -40,7 +50,14 @@ export function calculateMaxLuckPoints(luck: number, hasGiftedTrait: boolean = f
   return hasGiftedTrait ? Math.max(0, luck - 1) : luck;
 }
 
-export function calculateCarryCapacity(strength: number, hasSmallFrame: boolean = false): number {
+export function calculateCarryCapacity(
+  strength: number,
+  hasSmallFrame: boolean = false,
+  originId?: string | null,
+): number {
+  if (originId && FIXED_CARRY_CAPACITY_BY_ORIGIN[originId as OriginId] != null) {
+    return FIXED_CARRY_CAPACITY_BY_ORIGIN[originId as OriginId]!;
+  }
   const multiplier = hasSmallFrame ? 2.5 : 5;
   return 75 + multiplier * strength;
 }

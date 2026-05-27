@@ -56,7 +56,7 @@ export function useCharacterStats(character: Character | null): CharacterDerived
     const baseInitiative = calculateInitiative(special.perception, special.agility);
     const baseMeleeDamageBonus = calculateMeleeDamageBonus(special.strength);
     const baseMaxLuckPoints = calculateMaxLuckPoints(special.luck, hasGifted);
-    const baseCarryCapacity = calculateCarryCapacity(special.strength, hasSmallFrame);
+    const baseCarryCapacity = calculateCarryCapacity(special.strength, hasSmallFrame, character.originId);
 
     const perkHPBonus = getPerkHPBonus(perks);
     const perkDRBonuses = getPerkDRBonuses(perks);

@@ -646,6 +646,63 @@ export default {
         description: '-1 difficulty to END tests against diseases. +1 tag skill at rank 2.',
       },
     },
+    // ===== Guide des Colonies =====
+    commonwealthMilitia: {
+      name: 'Commonwealth Militia',
+      description: 'A settler enlisted in the local militia, defender of the Commonwealth colonies.',
+      trait: {
+        name: 'Strength in Unity',
+        description: 'Trade caravan every 5 days. Base colony defense = 4. Choose Energy Weapons OR Small Guns as an additional tag skill. +1 DR while in cover. +1 [CD] damage when outnumbered alongside allies.',
+      },
+    },
+    nca: {
+      name: 'New California Republic',
+      description: 'A citizen of the NCR, heir to a civilization rebuilt in the west.',
+      trait: {
+        name: 'New Californian',
+        description: 'Choose 2 traits from: 2 New Californian traits, 2 Survivor traits, 1 of each, or 1 trait + 1 additional perk.',
+      },
+    },
+    protectron: {
+      name: 'Protectron',
+      description: 'A RobCo robot designed to protect or destroy according to its programming.',
+      trait: {
+        name: 'Protect or Destroy',
+        description: 'Robot. 1×/scene: reroll a test against an environmental hazard. Immune to poison/radiation/disease. No effect from chems, food, drink, or rest. No healing without repairs. Max 2 robot mods. Dedicated model (firefighter, police, etc.): 1st d20 bought with AP costs 0 for tests related to its function. Fixed carry capacity: 113 kg. Built-in weapons: Pincers, Cryojet, Self-destruct, Electrified hand.',
+      },
+    },
+    cerebrobot: {
+      name: 'Cerebrobot',
+      description: 'A cerebral robot mounted on treads, designed for research and security.',
+      trait: {
+        name: 'Cerebrobot',
+        description: 'Robot. Visible + infrared sensors (no PER malus in darkness). Immune to poison/radiation/disease. No effect from chems, food, drink, or rest. No healing without repairs. Movement: two treads. Standard Medusa-tron weapon. Fixed carry capacity: 75 kg.',
+      },
+    },
+    securitron: {
+      name: 'Securitron',
+      description: 'A security robot mounted on a single wheel, the pride of Mr House.',
+      trait: {
+        name: 'Securitron Mk I',
+        description: 'Robot. Forward visual sensors (visible spectrum). Immune to poison/radiation/disease. No effect from chems, food, drink, or rest. No healing without repairs. Movement: one wheel (+1 difficulty to balance tests). Pincers with built-in weapons + hidden missile/grenade launchers (Mk II required). Fixed carry capacity: 75 kg. Hit location table: 1-2 head, 3-11 torso, 12-14 left arm, 15-17 right arm, 18-20 wheel.',
+      },
+    },
+    synthGen3: {
+      name: 'Gen-3 Synth',
+      description: 'An Institute android indistinguishable from a human.',
+      trait: {
+        name: 'More than Human',
+        description: 'Additional tag skill. Immune to hunger/thirst/sleep (rest = quiet activities). No effect from food/drink. Immune to poison/radiation/disease. No aging, body unchanged. +2 difficulty to CHR tests with NPCs aware of your synth nature (except friendly ones). Complication: NPC becomes hostile OR reputation -1. Verbal recall code can disable you.',
+      },
+    },
+    synthGen2: {
+      name: 'Gen-2 Synth',
+      description: 'An Institute android with a visibly artificial appearance.',
+      trait: {
+        name: 'More than Human',
+        description: 'Additional tag skill. Visibly android: your synth nature is always evident. Immune to hunger/thirst/sleep (rest = quiet activities). No effect from food/drink. Immune to poison/radiation/disease. No aging, body unchanged. +2 difficulty to CHR tests with prejudiced NPCs (always). Complication: NPC becomes hostile OR reputation -1. Verbal recall code can disable you. Starter pack: "Wastelander" pack.',
+      },
+    },
   },
 
   survivorTraits: {
@@ -673,6 +730,32 @@ export default {
       name: 'Fast Shot',
       benefit: '2nd major action for ranged attack = 1 AP instead of 2.',
       drawback: 'No benefit from Aim action.',
+    },
+    // ===== Guide des Colonies — New Californian sub-traits =====
+    goodMood: {
+      name: 'Good Mood',
+      benefit: '2 skills among Speech, Medicine, Repair, Science and Barter become tag skills.',
+      drawback: 'Maximum for other skills = 4 (instead of 6).',
+    },
+    infantryman: {
+      name: 'Infantryman',
+      benefit: '+1 [CD] with submachine guns, combat shotguns, assault rifles, frag grenades, and combat knives.',
+      drawback: 'Complication margin of tests with heavy or energy weapons increases by 2.',
+    },
+    homeOnPrairie: {
+      name: 'Home on the Prairie',
+      benefit: 'When you sleep 6h+ near a campfire, the difficulty of injury recovery by rest is reduced by 1.',
+      drawback: 'You are never well-rested (Core Rulebook, p. 35).',
+    },
+    discipline: {
+      name: 'Discipline',
+      benefit: 'On a ranged attack with a small or energy weapon, you may reroll 1d20.',
+      drawback: '-1 fire rate with small and energy weapons while wielding them.',
+    },
+    brahminBaron: {
+      name: 'Brahmin Baron',
+      benefit: 'Each brahmin trough feeds 3 brahmins (instead of 2). "Tend crops" colony action: +1 [CD] of brahmin milk per trough.',
+      drawback: 'Roll +1d20 to determine attack risk on the colony if Food reserve exceeds Settlers value.',
     },
   },
 
@@ -965,6 +1048,19 @@ export default {
     unreliable: {
       name: 'Unreliable',
       description: 'Increases Complication range by 1. Incompatible with Reliable.',
+    },
+    // === GUIDE DES COLONIES ===
+    arcing: {
+      name: 'Arcing',
+      description: 'Each Effect hits an additional target at Close range. Does not cost extra ammo.',
+    },
+    glacial: {
+      name: 'Glacial',
+      description: 'If Effects > END/2 (or BODY/2), target is Frozen and cannot act on its next turn.',
+    },
+    slowReload: {
+      name: 'Slow Reload',
+      description: 'After firing, must spend a minor action reloading before firing again.',
     },
   },
 
@@ -1278,6 +1374,47 @@ export default {
       raider_desc: 'In the Wasteland, might makes right. You take what you need.',
       wanderer: 'Wanderer',
       wanderer_desc: 'You travel from settlement to settlement and scavenge the ruins of the old world for supplies.',
+      // ===== Guide to the Colonies =====
+      // Commonwealth Militia
+      commonwealthMilitia_fusilier: 'Fusilier',
+      commonwealthMilitia_fusilier_desc: 'Trained in marksmanship and rifle maintenance, you belong to the bulk of the Militia.',
+      commonwealthMilitia_dur: 'Tough',
+      commonwealthMilitia_dur_desc: 'You like to close the distance with your targets, with slightly better protection and a much louder gun.',
+      // NCA
+      nca_soldat: 'Soldier',
+      nca_soldat_desc: 'Volunteer or conscript in the NCA army, on the front line of military operations.',
+      nca_sniper: 'Sniper',
+      nca_sniper_desc: 'Specialized in precision shooting, you support your fellow soldiers in tactical operations.',
+      nca_crimsonCaravan: 'Crimson Caravan Member',
+      nca_crimsonCaravan_desc: 'You lead brahmin caravans on the less-traveled routes from New California colonies.',
+      // Protectron
+      protectron_base: 'Protectron',
+      protectron_base_desc: 'Standard security model, designed to protect a specific location.',
+      protectron_pompier: 'Firefighter Protectron',
+      protectron_pompier_desc: 'Designed to extinguish fires and identify fire hazards.',
+      protectron_secouriste: 'Medic Protectron',
+      protectron_secouriste_desc: 'Designed to provide medical response in emergency situations.',
+      protectron_service: 'Service Protectron',
+      protectron_service_desc: 'Heavy-duty model, sometimes used by police for riot control.',
+      protectron_nukatron: 'Nukatron',
+      protectron_nukatron_desc: 'A RobCo and Nuka-Cola creation, half bottling worker, half party automaton.',
+      protectron_x: 'Protectron X',
+      protectron_x_desc: 'Modified beyond all factory recognition.',
+      // Cerebrobot
+      cerebrobot_servomech: 'Servomech',
+      cerebrobot_servomech_desc: 'Salvaged or modified from a factory model, your weapons are a bit jury-rigged.',
+      cerebrobot_armyModel: 'US Army Model',
+      cerebrobot_armyModel_desc: 'From the line equipped for military customers.',
+      cerebrobot_strayPersonality: 'Stray Personality',
+      cerebrobot_strayPersonality_desc: 'Your travels in the Wasteland have left your original design unrecognizable.',
+      // Securitron
+      securitron_default: 'Securitron',
+      securitron_default_desc: 'Built for one purpose: security.',
+      // Synth Gen3
+      synthGen3_infiltrator: 'Synth Infiltrator',
+      synthGen3_infiltrator_desc: 'The Institute created you to infiltrate one of the Commonwealth colonies and serve its interests.',
+      synthGen3_courser: 'Synth Courser',
+      synthGen3_courser_desc: 'Designed to scour the Commonwealth\'s back roads for resources, new colonies and Institute fugitives.',
     },
     items: {
       'Brotherhood Holotags': 'Brotherhood Holotags',
@@ -1318,6 +1455,14 @@ export default {
       // Robot plating
       'Standard Plating': 'Standard Plating',
       'Mister Gutsy Plating': 'Mister Gutsy Plating',
+      // ===== Guide to the Colonies =====
+      'Tricorn Hat': 'Tricorn Hat',
+      'Hacking Module': 'Hacking Module',
+      'Detector': 'Detector',
+      'Radiation Coils': 'Radiation Coils',
+      'Playing Cards': 'Playing Cards',
+      'Protectron Fire Axe': 'Protectron Fire Axe',
+      'Electrified Hands': 'Electrified Hands',
     },
     trinkets: {
       'Gold Pocket Watch': 'Gold Pocket Watch',
@@ -1412,6 +1557,12 @@ export default {
         quatreCharges: { nameAdd: 'Four Charges' },
         cinqCharges: { nameAdd: 'Five Charges' },
         sixCharges: { nameAdd: 'Six Charges' },
+        // Guide to the Colonies
+        caustique: { nameAdd: 'Caustic' },
+        condensateurMk3: { nameAdd: 'Mk III' },
+        condensateurMk4: { nameAdd: 'Mk IV' },
+        condensateurMk5: { nameAdd: 'Mk V' },
+        condensateurMk6: { nameAdd: 'Mk VI' },
       },
       canon: {
         canonLong: { nameAdd: 'Long' },
@@ -1420,6 +1571,23 @@ export default {
         canonAmeliore: { nameAdd: 'Improved' },
         canonPrecision: { nameAdd: 'Sniper' },
         canonLanceFlammes: { nameAdd: 'Flamer' },
+        // Guide to the Colonies
+        canonCristallisant: { nameAdd: 'Crystallizing' },
+      },
+      chargeur: {
+        // Guide to the Colonies
+        chargeurFusionCryolator: { nameAdd: 'Converted' },
+        chargeurFusionAlien: { nameAdd: 'Converted' },
+        grandeAmpoule: { nameAdd: 'Large Capacity' },
+        grandeFiole: { nameAdd: 'Max Capacity' },
+      },
+      crosse: {
+        // Guide to the Colonies
+        crosseCompensateurRecul: { nameAdd: 'Recoil Compensating' },
+      },
+      viseur: {
+        // Guide to the Colonies
+        viseurLaser: { nameAdd: 'Tactical' },
       },
       bouche: {
         diviseurRayon: { nameAdd: 'Disperser' },
@@ -1443,6 +1611,16 @@ export default {
         tripleCanonMinigun: { nameAdd: 'High Power' },
         tripleCanon: { nameAdd: 'Triple Barrel' },
         quadrupleCanon: { nameAdd: 'Quad Barrel' },
+        // Guide to the Colonies
+        canonLongBordee: { nameAdd: 'Long-Barreled' },
+        canonLeger: { nameAdd: 'Rifled' },
+        lanceGrenadesM79: { nameAdd: 'Converted' },
+      },
+      chargeur: {
+        // Guide to the Colonies
+        boiteMultimunitions: { nameAdd: 'Repeating' },
+        harponBarbele: { nameAdd: 'Barbed' },
+        flechettes: { nameAdd: 'Tiny' },
       },
       reservoir: {
         grandReservoir: { nameAdd: 'Large Capacity' },
@@ -1492,6 +1670,11 @@ export default {
         bobineThermique: { nameAdd: 'Heat' },
         revetementPlomb: { nameAdd: 'Lead Coating' },
         griffeSupplementaire: { nameAdd: 'Extra' },
+      },
+      improvement: {
+        // Guide to the Colonies — Pincer
+        modElectrique: { nameAdd: 'Electric Discharge' },
+        modEtourdissant: { nameAdd: 'K.O.' },
       },
     },
     armor: {
@@ -1724,6 +1907,10 @@ export default {
       laserMusket4charges: 'Consumes 4 ammo shots per attack',
       laserMusket5charges: 'Consumes 5 ammo shots per attack',
       laserMusket6charges: 'Consumes 6 ammo shots per attack',
+      consume3AmmoPerAttack: 'Consumes 3 ammo shots per attack',
+      consume4AmmoPerAttack: 'Consumes 4 ammo shots per attack',
+      consume5AmmoPerAttack: 'Consumes 5 ammo shots per attack',
+      consume6AmmoPerAttack: 'Consumes 6 ammo shots per attack',
       aimingComputer: 'When you aim at a target, it does not benefit from cover and the aim bonus applies to the next attack on any subsequent turn during the scene.',
       bayonetLauncher: 'Can be used as a melee weapon: deals 4 ballistic damage, Piercing 1.',
       minigunGrinder: 'Can be used as a melee weapon: deals a number of ballistic damage dice equal to the fire rate.',

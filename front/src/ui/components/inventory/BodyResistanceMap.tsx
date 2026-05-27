@@ -14,7 +14,7 @@ interface BodyResistanceMapProps {
   fixedDr?: CharacterDrApi[];
 }
 
-// Hit location ranges for reference
+// Hit location ranges for reference (standard humanoid table)
 const HIT_LOCATIONS: Record<BodyLocation, string> = {
   head: '1-2',
   torso: '3-8',
@@ -22,6 +22,8 @@ const HIT_LOCATIONS: Record<BodyLocation, string> = {
   armRight: '12-14',
   legLeft: '15-17',
   legRight: '18-20',
+  // Sécuritron-only zone (Guide des Colonies). Not part of the standard humanoid table.
+  wheel: '18-20',
 };
 
 export function BodyResistanceMap({ inventory, showPoison = false, originId, onPieceHpChange, fixedDr }: BodyResistanceMapProps) {

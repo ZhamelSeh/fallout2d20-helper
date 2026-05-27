@@ -231,4 +231,13 @@ export const clothing: Clothing[] = [
     ],
     effect: { drBonus: { poison: 3 }, descriptionKey: 'clothing.effects.gasMask' },
   },
+
+  // ===== Guide des Colonies =====
+  {
+    name: 'Tricorn Hat',
+    value: 12, rarity: 1, weight: 0.5,
+    locations: ['head'],
+    dr: { physical: 0, energy: 0, radiation: 0 },
+    effects: [],
+  },
 ];

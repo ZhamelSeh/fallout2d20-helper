@@ -646,6 +646,63 @@ export default {
         description: '-1 difficulté aux tests d\'END contre les maladies. +1 atout personnel au rang 2.',
       },
     },
+    // ===== Guide des Colonies =====
+    commonwealthMilitia: {
+      name: 'Milicien du Commonwealth',
+      description: 'Un colon engagé dans la milice locale, défenseur des colonies du Commonwealth.',
+      trait: {
+        name: 'L\'union fait la force',
+        description: 'Caravane commerciale tous les 5 jours. Défense de base des colonies = 4. Choisissez Armes à énergie OU Armes légères comme atout personnel supplémentaire. +1 RD à l\'abri. +1 [CD] de dégâts en sous-effectif avec vos camarades.',
+      },
+    },
+    nca: {
+      name: 'République de Nouvelle Californie',
+      description: 'Citoyen de la RNC, héritier d\'une civilisation reconstruite à l\'ouest.',
+      trait: {
+        name: 'Néo-Californien',
+        description: 'Choisissez 2 traits parmi : 2 traits néo-californiens, 2 traits de survivant, 1 trait de chaque, ou 1 trait + 1 aptitude supplémentaire.',
+      },
+    },
+    protectron: {
+      name: 'Protectron',
+      description: 'Un robot RobCo conçu pour protéger ou détruire selon sa programmation.',
+      trait: {
+        name: 'Protéger ou détruire',
+        description: 'Robot. 1×/scène : relancer un test contre un péril environnemental. Immunisé poison/radiations/maladies. Pas d\'effets de chems, nourriture, boissons ou repos. Pas de guérison sans réparations. Max 2 mods de robot. Modèle dédié (pompier, policier, etc.) : 1er d20 acheté avec PA gratuit pour les tests liés à sa fonction. Charge max fixe : 113 kg. Armement intégré : Pinces, Cryojet, Autodestruction, Main électrifiée.',
+      },
+    },
+    cerebrobot: {
+      name: 'Cérébrobot',
+      description: 'Un robot cérébral monté sur chenilles, conçu pour la recherche et la sécurité.',
+      trait: {
+        name: 'Cérébrobot',
+        description: 'Robot. Capteurs visibles + infrarouges (pas de malus PER dans l\'obscurité). Immunisé poison/radiations/maladies. Pas d\'effets de chems, nourriture, boissons ou repos. Pas de guérison sans réparations. Mouvement : deux chenilles. Médusatron de série. Charge max fixe : 75 kg.',
+      },
+    },
+    securitron: {
+      name: 'Sécuritron',
+      description: 'Un robot de sécurité monté sur une roue unique, fierté de Mr House.',
+      trait: {
+        name: 'Sécuritron Mk I',
+        description: 'Robot. Capteurs visuels avant (spectre visible). Immunisé poison/radiations/maladies. Pas d\'effets de chems, nourriture, boissons ou repos. Pas de guérison sans réparations. Mouvement : une roue (+1 difficulté tests d\'équilibre). Pinces avec armes intégrées + lance-missiles/grenades cachés (Mk II requis). Charge max fixe : 75 kg. Localisation des dégâts : 1-2 tête, 3-11 buste, 12-14 bras gauche, 15-17 bras droit, 18-20 roue.',
+      },
+    },
+    synthGen3: {
+      name: 'Synthé de 3e génération',
+      description: 'Un androïde de l\'Institut, indiscernable d\'un humain.',
+      trait: {
+        name: 'Plus qu\'humain',
+        description: 'Atout personnel supplémentaire. Immunisé faim/soif/sommeil (repos = activités calmes). Pas d\'effets de nourriture/boissons. Immunisé poison/radiations/maladies. Pas de vieillissement, corpulence inchangée. +2 difficulté tests CHR avec les PNJ au courant de votre nature (sauf sympathiques). Complication : PNJ devient hostile OU réputation -1. Code de rappel verbal qui désactive.',
+      },
+    },
+    synthGen2: {
+      name: 'Synthé de 2e génération',
+      description: 'Un androïde de l\'Institut, à l\'apparence visiblement artificielle.',
+      trait: {
+        name: 'Plus qu\'humain',
+        description: 'Atout personnel supplémentaire. Apparence visiblement androïde : votre nature est toujours évidente. Immunisé faim/soif/sommeil (repos = activités calmes). Pas d\'effets de nourriture/boissons. Immunisé poison/radiations/maladies. Pas de vieillissement, corpulence inchangée. +2 difficulté tests CHR avec les PNJ ayant un préjugé. Complication : PNJ devient hostile OU réputation -1. Code de rappel verbal qui désactive. Pack de départ : pack "habitant des terres désolées".',
+      },
+    },
   },
 
   survivorTraits: {
@@ -673,6 +730,32 @@ export default {
       name: 'Tir rapide',
       benefit: '2e action majeure pour attaque à distance = 1 PA au lieu de 2.',
       drawback: 'Aucun bénéfice de l\'action Viser.',
+    },
+    // ===== Guide des Colonies — sous-traits néo-californiens =====
+    goodMood: {
+      name: 'Bonne humeur',
+      benefit: '2 compétences parmi Discours, Médecine, Réparation, Science et Troc deviennent des atouts personnels.',
+      drawback: 'Maximum des autres compétences = 4 (au lieu de 6).',
+    },
+    infantryman: {
+      name: 'Fantassin',
+      benefit: '+1 [CD] avec mitraillettes, carabines de combat, fusils d\'assaut, grenades à fragmentation et couteaux de combat.',
+      drawback: 'La marge de complication des tests avec arme lourde ou arme à énergie augmente de 2.',
+    },
+    homeOnPrairie: {
+      name: 'Maison sur la prairie',
+      benefit: 'Lorsque vous dormez 6 h ou plus près d\'un feu de camp, la difficulté de récupération de blessures par repos est diminuée de 1.',
+      drawback: 'Vous n\'êtes jamais bien reposé (livre de base, p. 35).',
+    },
+    discipline: {
+      name: 'Discipline',
+      benefit: 'Lors d\'une attaque à distance avec une arme légère ou à énergie, vous pouvez relancer 1d20.',
+      drawback: '-1 cadence de tir pour les armes légères et à énergie tant que vous les maniez.',
+    },
+    brahminBaron: {
+      name: 'Baron des brahmines',
+      benefit: 'Chaque mangeoire à brahmines nourrit 3 brahmines (au lieu de 2). Action de colonie « S\'occuper des cultures » : +1 [CD] de lait de brahmine par mangeoire.',
+      drawback: 'Lancez +1d20 pour déterminer le risque d\'attaque sur la colonie si la réserve de Vivres dépasse la valeur de Colons.',
     },
   },
 
@@ -965,6 +1048,19 @@ export default {
     unreliable: {
       name: 'Imprévisible',
       description: 'Augmente la marge de Complication de 1. Incompatible avec Fiable.',
+    },
+    // === GUIDE DES COLONIES ===
+    arcing: {
+      name: 'En arc',
+      description: 'Chaque Effet touche une cible supplémentaire à portée courte. Ne coûte pas de munitions supplémentaires.',
+    },
+    glacial: {
+      name: 'Glacial',
+      description: 'Si Effets > END/2 (ou CORPS/2), la cible est Gelée et ne peut pas agir au prochain tour.',
+    },
+    slowReload: {
+      name: 'Rechargement lent',
+      description: 'Après avoir tiré, action mineure de rechargement avant de pouvoir tirer à nouveau.',
     },
   },
 
@@ -1278,6 +1374,47 @@ export default {
       raider_desc: 'Dans les Terres Désolées, la loi du plus fort est en vigueur. Vous prenez ce dont vous avez besoin.',
       wanderer: 'Vagabond',
       wanderer_desc: 'Vous voyagez de communauté en communauté et fouillez les ruines de l\'ancien monde pour vous servir de vos trouvailles.',
+      // ===== Guide des Colonies =====
+      // Milicien du Commonwealth
+      commonwealthMilitia_fusilier: 'Fusilier',
+      commonwealthMilitia_fusilier_desc: 'Formé au tir de précision et à l\'entretien de votre fusil, vous appartenez au gros des Miliciens.',
+      commonwealthMilitia_dur: 'Dur',
+      commonwealthMilitia_dur_desc: 'Vous aimez vous rapprocher de vos cibles avec une protection un peu meilleure et une pétoire plus bruyante.',
+      // RNC
+      nca_soldat: 'Soldat',
+      nca_soldat_desc: 'Volontaire ou conscrit dans l\'armée de la RNC, en première ligne des opérations militaires.',
+      nca_sniper: 'Tireur d\'élite',
+      nca_sniper_desc: 'Spécialisé dans le tir de précision, vous soutenez vos camarades soldats dans les opérations tactiques.',
+      nca_crimsonCaravan: 'Membre de la Crimson Caravan',
+      nca_crimsonCaravan_desc: 'Vous menez des caravanes de brahmines sur les routes les moins fréquentées au départ des colonies de Nouvelle Californie.',
+      // Protectron
+      protectron_base: 'Protectron',
+      protectron_base_desc: 'Modèle de sécurité standard, conçu pour assurer la protection d\'un lieu précis.',
+      protectron_pompier: 'Protectron Pompier',
+      protectron_pompier_desc: 'Modèle conçu pour éteindre les feux et identifier les risques d\'incendie.',
+      protectron_secouriste: 'Protectron Secouriste',
+      protectron_secouriste_desc: 'Conçu pour apporter une réponse médicale en situation d\'urgence.',
+      protectron_service: 'Protectron de Service',
+      protectron_service_desc: 'Modèle destiné au travail intensif, parfois utilisé par les services de police pour la répression d\'émeutes.',
+      protectron_nukatron: 'Nukatron',
+      protectron_nukatron_desc: 'Création RobCo et Nuka-Cola, à mi-chemin entre l\'ouvrier de mise en bouteille et l\'automate de fête.',
+      protectron_x: 'Protectron X',
+      protectron_x_desc: 'Unité modifiée au point de ne plus appartenir aux modèles d\'usine classiques.',
+      // Cérébrobot
+      cerebrobot_servomech: 'Servomech',
+      cerebrobot_servomech_desc: 'Récupéré ou modifié à partir d\'un modèle d\'usine, votre armement est un peu plus bricolé.',
+      cerebrobot_armyModel: 'Modèle de l\'Armée Américaine',
+      cerebrobot_armyModel_desc: 'Issu de la gamme équipée pour les clients militaires.',
+      cerebrobot_strayPersonality: 'Personnalité Égarée',
+      cerebrobot_strayPersonality_desc: 'Votre voyage dans les Terres désolées s\'éternise et votre conception d\'origine n\'est plus reconnaissable.',
+      // Sécuritron
+      securitron_default: 'Sécuritron',
+      securitron_default_desc: 'Construit dans un unique but : la sécurité.',
+      // Synthé Gen3
+      synthGen3_infiltrator: 'Agent Infiltré Synthétique',
+      synthGen3_infiltrator_desc: 'L\'Institut vous a créé afin d\'infiltrer l\'une des colonies du Commonwealth pour servir ses intérêts.',
+      synthGen3_courser: 'Synthétique Chercheur',
+      synthGen3_courser_desc: 'Conçu pour sillonner les routes secondaires du Commonwealth en quête de ressources, de nouvelles colonies et de fugitifs de l\'Institut.',
     },
     items: {
       'Brotherhood Holotags': 'Holoplaques de la Confrérie',
@@ -1320,6 +1457,14 @@ export default {
       // Robot plating
       'Standard Plating': 'Blindage standard',
       'Mister Gutsy Plating': 'Blindage Mister Gutsy',
+      // ===== Guide des Colonies =====
+      'Tricorn Hat': 'Tricorne',
+      'Hacking Module': 'Module de piratage informatique',
+      'Detector': 'Détecteur',
+      'Radiation Coils': 'Bobines de radiation',
+      'Playing Cards': 'Jeu de cartes',
+      'Protectron Fire Axe': 'Hache de Protectron pompier',
+      'Electrified Hands': 'Mains électrifiées',
     },
     trinkets: {
       'Gold Pocket Watch': 'Montre à gousset en or',
@@ -1414,6 +1559,12 @@ export default {
         quatreCharges: { nameAdd: 'Quatre charges' },
         cinqCharges: { nameAdd: 'Cinq charges' },
         sixCharges: { nameAdd: 'Six charges' },
+        // Guide des Colonies
+        caustique: { nameAdd: 'Caustique' },
+        condensateurMk3: { nameAdd: 'Mk III' },
+        condensateurMk4: { nameAdd: 'Mk IV' },
+        condensateurMk5: { nameAdd: 'Mk V' },
+        condensateurMk6: { nameAdd: 'Mk VI' },
       },
       canon: {
         canonLong: { nameAdd: 'Longueur' },
@@ -1422,6 +1573,23 @@ export default {
         canonAmeliore: { nameAdd: 'Amélioré' },
         canonPrecision: { nameAdd: 'Précision' },
         canonLanceFlammes: { nameAdd: 'Lanceur' },
+        // Guide des Colonies
+        canonCristallisant: { nameAdd: 'Cristallisant' },
+      },
+      chargeur: {
+        // Guide des Colonies
+        chargeurFusionCryolator: { nameAdd: 'Converti' },
+        chargeurFusionAlien: { nameAdd: 'Converti' },
+        grandeAmpoule: { nameAdd: 'Grande capacité' },
+        grandeFiole: { nameAdd: 'Capacité max' },
+      },
+      crosse: {
+        // Guide des Colonies
+        crosseCompensateurRecul: { nameAdd: 'Compensation de recul' },
+      },
+      viseur: {
+        // Guide des Colonies
+        viseurLaser: { nameAdd: 'Tactique' },
       },
       bouche: {
         diviseurRayon: { nameAdd: 'Dispersion' },
@@ -1445,6 +1613,16 @@ export default {
         tripleCanonMinigun: { nameAdd: 'Grande puissance' },
         tripleCanon: { nameAdd: 'Triple canon' },
         quadrupleCanon: { nameAdd: 'Quadruple canon' },
+        // Guide des Colonies
+        canonLongBordee: { nameAdd: 'À canon long' },
+        canonLeger: { nameAdd: 'À cannelures' },
+        lanceGrenadesM79: { nameAdd: 'Converti' },
+      },
+      chargeur: {
+        // Guide des Colonies
+        boiteMultimunitions: { nameAdd: 'À répétition' },
+        harponBarbele: { nameAdd: 'Barbelé' },
+        flechettes: { nameAdd: 'Minuscule' },
       },
       reservoir: {
         grandReservoir: { nameAdd: 'Grande capacité' },
@@ -1494,6 +1672,11 @@ export default {
         bobineThermique: { nameAdd: 'Chaleur' },
         revetementPlomb: { nameAdd: 'Revêtement en plomb' },
         griffeSupplementaire: { nameAdd: 'Extra' },
+      },
+      improvement: {
+        // Guide des Colonies — Pince
+        modElectrique: { nameAdd: 'À décharge' },
+        modEtourdissant: { nameAdd: 'KO' },
       },
     },
     armor: {
@@ -1726,6 +1909,10 @@ export default {
       laserMusket4charges: 'Consomme 4 tirs de munitions par attaque',
       laserMusket5charges: 'Consomme 5 tirs de munitions par attaque',
       laserMusket6charges: 'Consomme 6 tirs de munitions par attaque',
+      consume3AmmoPerAttack: 'Consomme 3 tirs de munitions par attaque',
+      consume4AmmoPerAttack: 'Consomme 4 tirs de munitions par attaque',
+      consume5AmmoPerAttack: 'Consomme 5 tirs de munitions par attaque',
+      consume6AmmoPerAttack: 'Consomme 6 tirs de munitions par attaque',
       aimingComputer: 'Quand vous visez une cible, elle ne bénéficie pas de son abri et le bonus de visée s\'applique à l\'attaque suivante lors de tout tour ultérieur pendant la scène.',
       bayonetLauncher: 'Peut être utilisée comme arme de corps à corps : inflige 4 dégâts balistiques, Perforant 1.',
       minigunGrinder: 'Peut être utilisée comme arme de corps à corps : inflige un nombre de dés de dégâts balistiques égal à la cadence de tir.',

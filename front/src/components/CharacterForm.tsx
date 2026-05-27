@@ -386,7 +386,7 @@ export function CharacterForm({
 
   const maxLuckPoints = calculateMaxLuckPoints(special.luck, hasGifted);
 
-  const baseCarryCapacity = calculateCarryCapacity(special.strength, hasSmallFrame);
+  const baseCarryCapacity = calculateCarryCapacity(special.strength, hasSmallFrame, origin);
   const perkCarryBonus = getPerkCarryCapacityBonus(perks);
   const carryCapacity = baseCarryCapacity + perkCarryBonus;
 
@@ -405,8 +405,8 @@ export function CharacterForm({
       },
     ];
 
-    // Conditional: Survivor Traits (PC + origin survivor)
-    if (type === 'PC' && origin === 'survivor') {
+    // Conditional: Survivor Traits — origin Survivor and Néo-Californien (RNC) share the trait pool.
+    if (type === 'PC' && (origin === 'survivor' || origin === 'nca')) {
       steps.push({
         id: 'traits',
         labelKey: 'characters.survivorTraits',
@@ -942,7 +942,7 @@ export function CharacterForm({
       type,
       level,
       origin: type === 'PC' ? origin : undefined,
-      survivorTraits: origin === 'survivor' ? survivorTraits : [],
+      survivorTraits: origin === 'survivor' || origin === 'nca' ? survivorTraits : [],
       giftedBonusAttributes: hasGifted ? giftedBonusAttributes : [],
       exerciseBonuses: creatureStats ? [] : exerciseBonuses,
       special: creatureStats?.special ?? special,
@@ -1078,8 +1078,8 @@ export function CharacterForm({
       </div>
     );
 
-    // Step: Survivor Traits (conditional)
-    if (type === 'PC' && origin === 'survivor') {
+    // Step: Survivor Traits — origin Survivor and Néo-Californien (RNC) share the same trait pool.
+    if (type === 'PC' && (origin === 'survivor' || origin === 'nca')) {
       panels.push(
         <div key="traits" className="space-y-4">
           <StepValidation
@@ -1756,7 +1756,7 @@ export function CharacterForm({
         )}
 
         {/* Active Survivor Traits */}
-        {type === 'PC' && origin === 'survivor' && survivorTraits.length > 0 && (
+        {type === 'PC' && (origin === 'survivor' || origin === 'nca') && survivorTraits.length > 0 && (
           <div>
             <h4 className="text-sm text-gray-400 uppercase tracking-wide mb-2">
               {t('characters.activeSurvivorTraits')}

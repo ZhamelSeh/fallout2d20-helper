@@ -1,6 +1,6 @@
 import type { InventoryItemApi, CharacterDrApi } from '../../services/api';
 
-export type BodyLocation = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight';
+export type BodyLocation = 'head' | 'torso' | 'armLeft' | 'armRight' | 'legLeft' | 'legRight' | 'wheel';
 
 export interface LocationDR {
   physical: number;
@@ -37,6 +37,8 @@ export function computeBodyDR(input: ComputeBodyDRInput): Record<BodyLocation, L
     armRight: { physical: 0, energy: 0, radiation: 0, poison: 0 },
     legLeft: { physical: 0, energy: 0, radiation: 0, poison: 0 },
     legRight: { physical: 0, energy: 0, radiation: 0, poison: 0 },
+    // Securitron-only zone (Guide des Colonies)
+    wheel: { physical: 0, energy: 0, radiation: 0, poison: 0 },
   };
 
   // If fixedDr is provided (NPC), use those values directly

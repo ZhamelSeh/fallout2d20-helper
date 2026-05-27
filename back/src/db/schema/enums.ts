@@ -13,18 +13,22 @@ export const weaponQualityEnum = pgEnum('weapon_quality', [
   'accurate', 'blast', 'breaking', 'burst', 'closeQuarters', 'concealed', 'debilitating',
   'gatling', 'inaccurate', 'mine', 'nightVision', 'parry', 'persistent',
   'piercing', 'radioactive', 'reliable', 'recon', 'spread', 'stun',
-  'thrown', 'twoHanded', 'unreliable', 'vicious', 'silent'
+  'thrown', 'twoHanded', 'unreliable', 'vicious', 'silent',
+  // Guide des Colonies
+  'arcing', 'glacial', 'slowReload'
 ]);
 
 export const ammoTypeEnum = pgEnum('ammo_type', [
   '10mm', '.308', '.38', '.44', '.45', '.50', '5mm', '5.56mm', '2mmEC',
   'shotgunShell', 'fusionCell', 'plasmaCartridge', 'flamerFuel', 'fusionCore',
-  'gammaRound', 'missile', 'miniNuke', 'railwaySpike', 'syringerAmmo', 'flare', 'cannonball', 'none'
+  'gammaRound', 'missile', 'miniNuke', 'railwaySpike', 'syringerAmmo', 'flare', 'cannonball', 'none',
+  // Guide des Colonies
+  'concentratedAcid', 'cryoCell', 'gasGrenade', 'grenade40mm', 'harpoon', 'alienLaser'
 ]);
 
 // ===== BODY & EQUIPMENT =====
 export const bodyLocationEnum = pgEnum('body_location', [
-  'head', 'torso', 'armLeft', 'armRight', 'legLeft', 'legRight', 'all'
+  'head', 'torso', 'armLeft', 'armRight', 'legLeft', 'legRight', 'all', 'wheel'
 ]);
 
 export const armorTypeEnum = pgEnum('armor_type', ['armor', 'powerArmor']);
@@ -106,11 +110,13 @@ export const skillNameEnum = pgEnum('skill_name', [
 ]);
 
 export const originIdEnum = pgEnum('origin_id', [
-  'brotherhood', 'ghoul', 'superMutant', 'misterHandy', 'survivor', 'vaultDweller'
+  'brotherhood', 'ghoul', 'superMutant', 'misterHandy', 'survivor', 'vaultDweller',
+  'commonwealthMilitia', 'nca', 'protectron', 'cerebrobot', 'securitron', 'synthGen3', 'synthGen2'
 ]);
 
 export const survivorTraitIdEnum = pgEnum('survivor_trait_id', [
-  'gifted', 'educated', 'smallFrame', 'heavyHanded', 'fastShot'
+  'gifted', 'educated', 'smallFrame', 'heavyHanded', 'fastShot',
+  'goodMood', 'infantryman', 'homeOnPrairie', 'discipline', 'brahminBaron'
 ]);
 
 export const characterTypeEnum = pgEnum('character_type', ['pc', 'npc']);

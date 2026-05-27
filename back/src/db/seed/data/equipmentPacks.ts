@@ -311,6 +311,452 @@ export const EQUIPMENT_PACKS: OriginEquipmentPacks[] = [
     originId: 'survivor',
     packs: [], // Will reference wasteland packs
   },
+
+  // ============================================================
+  // GUIDE DES COLONIES — 7 new origins
+  // ============================================================
+
+  // ===== MILICIEN DU COMMONWEALTH =====
+  {
+    originId: 'commonwealthMilitia',
+    packs: [
+      {
+        id: 'commonwealthMilitia_fusilier',
+        nameKey: 'equipment.packs.commonwealthMilitia_fusilier',
+        descriptionKey: 'equipment.packs.commonwealthMilitia_fusilier_desc',
+        items: [
+          { itemName: 'Casual Clothes', category: 'clothing' },
+          { itemName: 'Tricorn Hat', category: 'clothing' },
+          {
+            options: [
+              { itemName: 'Leather Chest Piece', category: 'armor' },
+              { itemName: 'Leather Arm', category: 'armor', location: 'choice' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Laser Musket', category: 'weapon' },
+              { itemName: 'Hunting Rifle', category: 'weapon' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Fusion Cells', category: 'ammo', quantity: 14, quantityCD: 7 },
+              { itemName: '.308 Rounds', category: 'ammo', quantity: 6, quantityCD: 3 },
+            ],
+          },
+          { itemName: 'Caps', category: 'caps', quantity: 5 },
+        ],
+      },
+      {
+        id: 'commonwealthMilitia_dur',
+        nameKey: 'equipment.packs.commonwealthMilitia_dur',
+        descriptionKey: 'equipment.packs.commonwealthMilitia_dur_desc',
+        items: [
+          { itemName: 'Casual Clothes', category: 'clothing' },
+          { itemName: 'Military Helmet', category: 'clothing' },
+          { itemName: 'Metal Chest Piece', category: 'armor' },
+          {
+            options: [
+              { itemName: 'Double-Barrel Shotgun', category: 'weapon' },
+              { itemName: 'Submachine Gun', category: 'weapon' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Shotgun Shells', category: 'ammo', quantity: 6, quantityCD: 3 },
+              { itemName: '.45 Rounds', category: 'ammo', quantity: 8, quantityCD: 4 },
+            ],
+          },
+          { itemName: 'Caps', category: 'caps', quantity: 5 },
+        ],
+      },
+    ],
+  },
+
+  // ===== RÉPUBLIQUE DE NOUVELLE CALIFORNIE (NCA) =====
+  // Book also allows using Wasteland packs — see getPacksForOrigin
+  {
+    originId: 'nca',
+    packs: [
+      {
+        id: 'nca_soldat',
+        nameKey: 'equipment.packs.nca_soldat',
+        descriptionKey: 'equipment.packs.nca_soldat_desc',
+        items: [
+          { itemName: 'Military Fatigues', category: 'clothing' },
+          { itemName: 'Military Helmet', category: 'clothing' },
+          {
+            options: [
+              { itemName: 'Combat Rifle', category: 'weapon' },
+              { itemName: 'Combat Shotgun', category: 'weapon' },
+            ],
+          },
+          {
+            options: [
+              { itemName: '.45 Rounds', category: 'ammo', quantity: 8, quantityCD: 4 },
+              { itemName: 'Shotgun Shells', category: 'ammo', quantity: 6, quantityCD: 3 },
+            ],
+          },
+          {
+            options: [
+              { itemName: '10mm Pistol', category: 'weapon' },
+              { itemName: 'Combat Knife', category: 'weapon' },
+            ],
+          },
+          { itemName: '10mm Rounds', category: 'ammo', quantity: 8, quantityCD: 4 },
+          { itemName: 'Purified Water', category: 'food' },
+          // 5+5 dollars RNC ≈ 5 caps after 2$=1cap conversion
+          { itemName: 'Caps', category: 'caps', quantity: 5 },
+        ],
+      },
+      {
+        id: 'nca_sniper',
+        nameKey: 'equipment.packs.nca_sniper',
+        descriptionKey: 'equipment.packs.nca_sniper_desc',
+        items: [
+          { itemName: 'Military Fatigues', category: 'clothing' },
+          { itemName: 'Military Helmet', category: 'clothing' },
+          { itemName: 'Hunting Rifle', category: 'weapon' },
+          { itemName: '.308 Rounds', category: 'ammo', quantity: 6, quantityCD: 3 },
+          { itemName: 'Calmex', category: 'chem' },
+          { itemName: 'U.S. Covert Operations Manual - Siffloter dans les ténèbres', category: 'misc' },
+        ],
+      },
+      {
+        id: 'nca_crimsonCaravan',
+        nameKey: 'equipment.packs.nca_crimsonCaravan',
+        descriptionKey: 'equipment.packs.nca_crimsonCaravan_desc',
+        items: [
+          { itemName: 'Sturdy Clothes', category: 'clothing' },
+          {
+            options: [
+              { itemName: 'Leather Chest Piece', category: 'armor' },
+              { itemName: 'Leather Arm', category: 'armor', location: 'choice' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Double-Barrel Shotgun', category: 'weapon' },
+              { itemName: '.44 Pistol', category: 'weapon' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Shotgun Shells', category: 'ammo', quantity: 6, quantityCD: 3 },
+              { itemName: '.44 Magnum Rounds', category: 'ammo', quantity: 4, quantityCD: 2 },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Combat Knife', category: 'weapon' },
+              { itemName: 'Knuckles', category: 'weapon' },
+            ],
+          },
+          { itemName: 'Pack Brahmin', category: 'misc' },
+          { itemName: 'Playing Cards', category: 'misc' },
+          // 2d20 dollars RNC ≈ 20 caps after conversion
+          { itemName: 'Caps', category: 'caps', quantity: 20 },
+        ],
+      },
+    ],
+  },
+
+  // ===== PROTECTRON =====
+  {
+    originId: 'protectron',
+    packs: [
+      {
+        id: 'protectron_base',
+        nameKey: 'equipment.packs.protectron_base',
+        descriptionKey: 'equipment.packs.protectron_base_desc',
+        items: [
+          { itemName: 'Standard Plating', category: 'robotArmor' },
+          { itemName: 'Pincer', category: 'weapon', quantity: 2 },
+          { itemName: 'Laser Pistol', category: 'weapon', quantity: 2 },
+          { itemName: 'Fusion Cells', category: 'ammo', quantity: 14, quantityCD: 7 },
+          { itemName: 'Recon Sensor Module', category: 'misc' },
+          { itemName: 'Threat Detection Module', category: 'misc' },
+          { itemName: 'Robot Repair Kit', category: 'misc' },
+          { itemName: 'Caps', category: 'caps', quantity: 20 },
+        ],
+      },
+      {
+        id: 'protectron_pompier',
+        nameKey: 'equipment.packs.protectron_pompier',
+        descriptionKey: 'equipment.packs.protectron_pompier_desc',
+        items: [
+          { itemName: 'Standard Plating', category: 'robotArmor' },
+          { itemName: 'Cryojet', category: 'weapon' },
+          { itemName: 'Cryo Cell', category: 'ammo', quantity: 14, quantityCD: 7 },
+          { itemName: 'Protectron Fire Axe', category: 'weapon' },
+          {
+            options: [
+              { itemName: 'Threat Detection Module', category: 'misc' },
+              { itemName: 'Detector', category: 'misc' },
+            ],
+          },
+          { itemName: 'Stimpak', category: 'chem' },
+          { itemName: 'Caps', category: 'caps', quantity: 10 },
+        ],
+      },
+      {
+        id: 'protectron_secouriste',
+        nameKey: 'equipment.packs.protectron_secouriste',
+        descriptionKey: 'equipment.packs.protectron_secouriste_desc',
+        items: [
+          { itemName: 'Standard Plating', category: 'robotArmor' },
+          { itemName: 'Electrified Hands', category: 'weapon' },
+          { itemName: 'Diagnostic Module', category: 'misc' },
+          { itemName: 'Stimpak', category: 'chem', quantity: 2 },
+          { itemName: 'RadAway', category: 'chem' },
+        ],
+      },
+      {
+        id: 'protectron_service',
+        nameKey: 'equipment.packs.protectron_service',
+        descriptionKey: 'equipment.packs.protectron_service_desc',
+        items: [
+          { itemName: 'Factory Armor - Body', category: 'robotArmor' },
+          { itemName: 'Factory Armor - Arm', category: 'robotArmor', quantity: 2 },
+          { itemName: 'Pincer', category: 'weapon' },
+          {
+            options: [
+              { itemName: 'Sledgehammer', category: 'weapon' },
+              { itemName: 'Baton', category: 'weapon' },
+              { itemName: 'Railway Rifle', category: 'weapon' },
+            ],
+          },
+          { itemName: 'Railway Spikes', category: 'ammo', quantity: 6, quantityCD: 3 },
+          {
+            options: [
+              { itemName: 'Threat Detection Module', category: 'misc' },
+              { itemName: 'Detector', category: 'misc' },
+            ],
+          },
+          { itemName: 'Robot Repair Kit', category: 'misc' },
+        ],
+      },
+      {
+        id: 'protectron_nukatron',
+        nameKey: 'equipment.packs.protectron_nukatron',
+        descriptionKey: 'equipment.packs.protectron_nukatron_desc',
+        items: [
+          { itemName: 'Standard Plating', category: 'robotArmor' },
+          { itemName: 'Pincer', category: 'weapon' },
+          {
+            options: [
+              { itemName: 'Behavioral Analysis Module', category: 'misc' },
+              { itemName: 'Built-in Kettle Module', category: 'misc' },
+            ],
+          },
+          { itemName: 'Perfectly Preserved Pie', category: 'food' },
+          {
+            options: [
+              { itemName: 'Nuka-Cola', category: 'food', quantity: 4 },
+              { itemName: 'Nuka-Cherry', category: 'food', quantity: 2 },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'protectron_x',
+        nameKey: 'equipment.packs.protectron_x',
+        descriptionKey: 'equipment.packs.protectron_x_desc',
+        items: [
+          { itemName: 'Standard Plating', category: 'robotArmor' },
+          { itemName: 'Pincer', category: 'weapon', quantity: 2 },
+          {
+            options: [
+              { itemName: 'Factory Armor - Body', category: 'robotArmor' },
+              { itemName: 'Behavioral Analysis Module', category: 'misc' },
+              { itemName: 'Diagnostic Module', category: 'misc' },
+              { itemName: 'Hacking Module', category: 'misc' },
+              { itemName: 'Threat Detection Module', category: 'misc' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Radiation Coils', category: 'misc' },
+              { itemName: 'Recon Sensor Module', category: 'misc' },
+              { itemName: 'Detector', category: 'misc' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Machete', category: 'weapon' },
+              { itemName: 'Aluminum Baseball Bat', category: 'weapon' },
+              { itemName: 'Syringer', category: 'weapon' },
+            ],
+          },
+          { itemName: 'Robot Repair Kit', category: 'misc' },
+        ],
+      },
+    ],
+  },
+
+  // ===== CÉRÉBROBOT =====
+  {
+    originId: 'cerebrobot',
+    packs: [
+      {
+        id: 'cerebrobot_servomech',
+        nameKey: 'equipment.packs.cerebrobot_servomech',
+        descriptionKey: 'equipment.packs.cerebrobot_servomech_desc',
+        items: [
+          { itemName: 'Medusatron', category: 'weapon' },
+          { itemName: 'Tesla Rifle', category: 'weapon' },
+          { itemName: 'Smoke Pincer', category: 'weapon' },
+          { itemName: 'Fusion Cells', category: 'ammo', quantity: 14, quantityCD: 7 },
+          { itemName: 'Robot Repair Kit', category: 'misc', quantity: 2 },
+          {
+            options: [
+              { itemName: 'Casual Hat', category: 'clothing' },
+              { itemName: 'Fancy Hat', category: 'clothing' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'cerebrobot_armyModel',
+        nameKey: 'equipment.packs.cerebrobot_armyModel',
+        descriptionKey: 'equipment.packs.cerebrobot_armyModel_desc',
+        items: [
+          { itemName: 'Medusatron', category: 'weapon' },
+          { itemName: 'Smoke Pincer', category: 'weapon', quantity: 2 },
+          { itemName: 'Fusion Cells', category: 'ammo', quantity: 14, quantityCD: 7 },
+          { itemName: 'Combat Rifle', category: 'weapon' },
+          { itemName: '.45 Rounds', category: 'ammo', quantity: 8, quantityCD: 4 },
+          { itemName: 'Factory Armor - Body', category: 'robotArmor' },
+          { itemName: 'Factory Armor - Arm', category: 'robotArmor', quantity: 2 },
+        ],
+      },
+      {
+        id: 'cerebrobot_strayPersonality',
+        nameKey: 'equipment.packs.cerebrobot_strayPersonality',
+        descriptionKey: 'equipment.packs.cerebrobot_strayPersonality_desc',
+        items: [
+          { itemName: 'Medusatron', category: 'weapon' },
+          // 2 arm accessories — choose 2 from list
+          {
+            options: [
+              { itemName: 'Smoke Pincer', category: 'weapon' },
+              { itemName: 'Tesla Rifle', category: 'weapon' },
+              { itemName: 'Flamer', category: 'weapon' },
+              { itemName: 'Laser Pistol', category: 'weapon' },
+              { itemName: 'Sledgehammer', category: 'weapon' },
+            ],
+            choiceCount: 2,
+          },
+          {
+            options: [
+              { itemName: 'Fusion Cells', category: 'ammo', quantity: 14, quantityCD: 7 },
+              { itemName: 'Flamer Fuel', category: 'ammo', quantity: 12, quantityCD: 6 },
+            ],
+          },
+          { itemName: 'Caps', category: 'caps', quantity: 10 },
+        ],
+      },
+    ],
+  },
+
+  // ===== SÉCURITRON =====
+  // Single fixed pack — book says "Les personnages qui choisissent l'origine Sécuritron reçoivent l'équipement suivant" (no choice)
+  {
+    originId: 'securitron',
+    packs: [
+      {
+        id: 'securitron_default',
+        nameKey: 'equipment.packs.securitron_default',
+        descriptionKey: 'equipment.packs.securitron_default_desc',
+        items: [
+          // Auto laser (Laser Pistol) integrated left arm
+          { itemName: 'Laser Pistol', category: 'weapon' },
+          { itemName: 'Fusion Cells', category: 'ammo', quantity: 14, quantityCD: 7 },
+          { itemName: 'Submachine Gun', category: 'weapon' }, // integrated right arm
+          { itemName: '.45 Rounds', category: 'ammo', quantity: 8, quantityCD: 4 },
+          // Missile launcher and grenade launcher are listed as inutilisable in book — narrative only
+          { itemName: 'Factory Armor - Body', category: 'robotArmor' },
+          { itemName: 'Factory Armor - Optic', category: 'robotArmor' },
+          { itemName: 'Factory Armor - Arm', category: 'robotArmor', quantity: 2 },
+        ],
+      },
+    ],
+  },
+
+  // ===== SYNTHÉ DE 3E GÉNÉRATION =====
+  {
+    originId: 'synthGen3',
+    packs: [
+      {
+        id: 'synthGen3_infiltrator',
+        nameKey: 'equipment.packs.synthGen3_infiltrator',
+        descriptionKey: 'equipment.packs.synthGen3_infiltrator_desc',
+        items: [
+          { itemName: 'Sturdy Clothes', category: 'clothing' },
+          {
+            options: [
+              { itemName: 'Baseball Bat', category: 'weapon' },
+              { itemName: 'Switchblade', category: 'weapon' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Pipe Gun', category: 'weapon' },
+              { itemName: '10mm Pistol', category: 'weapon' },
+            ],
+          },
+          {
+            options: [
+              { itemName: '.38 Rounds', category: 'ammo', quantity: 10, quantityCD: 5 },
+              { itemName: '10mm Rounds', category: 'ammo', quantity: 8, quantityCD: 4 },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'synthGen3_courser',
+        nameKey: 'equipment.packs.synthGen3_courser',
+        descriptionKey: 'equipment.packs.synthGen3_courser_desc',
+        items: [
+          { itemName: 'Sturdy Clothes', category: 'clothing' },
+          {
+            options: [
+              { itemName: 'Leather Chest Piece', category: 'armor' },
+              { itemName: 'Leather Arm', category: 'armor', location: 'choice' },
+            ],
+          },
+          {
+            options: [
+              { itemName: 'Knuckles', category: 'weapon' },
+              { itemName: 'Lead Pipe', category: 'weapon' },
+            ],
+          },
+          {
+            options: [
+              { itemName: '10mm Pistol', category: 'weapon' },
+              { itemName: 'Flare Gun', category: 'weapon' },
+              { itemName: 'Hunting Rifle', category: 'weapon' },
+            ],
+          },
+          {
+            options: [
+              { itemName: '10mm Rounds', category: 'ammo', quantity: 3, quantityCD: 3 },
+              { itemName: 'Flares', category: 'ammo', quantity: 3, quantityCD: 3 },
+              { itemName: '.308 Rounds', category: 'ammo', quantity: 3, quantityCD: 3 },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+
+  // ===== SYNTHÉ DE 2E GÉNÉRATION =====
+  // Per book: uses wasteland inhabitant pack (already wired in getPacksForOrigin)
+  {
+    originId: 'synthGen2',
+    packs: [],
+  },
 ];
 
 // Packs communs pour Goule et Survivant (Habitant des Terres Désolées)
@@ -609,13 +1055,20 @@ export function getLevelBonusCaps(level: number): LevelBonusCaps {
  * Get equipment packs for an origin
  */
 export function getPacksForOrigin(originId: OriginId): EquipmentPack[] {
-  // Ghoul and Survivor use wasteland packs
-  if (originId === 'ghoul' || originId === 'survivor') {
+  // Ghoul, Survivor and Synth Gen2 use wasteland packs
+  if (originId === 'ghoul' || originId === 'survivor' || originId === 'synthGen2') {
     return WASTELAND_PACKS;
   }
 
   const originPacks = EQUIPMENT_PACKS.find((op) => op.originId === originId);
-  return originPacks?.packs ?? [];
+  const ownPacks = originPacks?.packs ?? [];
+
+  // NCA can also pick from wasteland packs (per Guide des Colonies)
+  if (originId === 'nca') {
+    return [...ownPacks, ...WASTELAND_PACKS];
+  }
+
+  return ownPacks;
 }
 
 /**

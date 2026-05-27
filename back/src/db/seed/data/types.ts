@@ -30,7 +30,14 @@ export type AmmoType =
   | 'syringerAmmo'
   | 'flare'
   | 'cannonball'
-  | 'none'; // For melee weapons
+  | 'none' // For melee weapons
+  // Guide des Colonies
+  | 'concentratedAcid'
+  | 'cryoCell'
+  | 'gasGrenade'
+  | 'grenade40mm'
+  | 'harpoon'
+  | 'alienLaser';
 
 export type WeaponQuality =
   | 'accurate'
@@ -56,7 +63,11 @@ export type WeaponQuality =
   | 'twoHanded'
   | 'unreliable'
   | 'vicious'
-  | 'silent';
+  | 'silent'
+  // Guide des Colonies
+  | 'arcing'
+  | 'glacial'
+  | 'slowReload';
 
 export interface WeaponQualityValue {
   quality: WeaponQuality;

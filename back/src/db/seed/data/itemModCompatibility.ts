@@ -249,6 +249,13 @@ export const SMALL_GUNS_COMPATIBILITY: ItemModCompatibility[] = [
       'Lunette de reconnaissance',
     ],
   },
+
+  // ===== GUIDE DES COLONIES =====
+  {
+    // Lance-grenades M79 — Canon long + Crosse complète (mods existants smallGuns)
+    itemName: 'M79 Grenade Launcher',
+    modNames: ['Canon long', 'Crosse complète'],
+  },
 ];
 
 
@@ -338,6 +345,67 @@ export const ENERGY_WEAPONS_COMPATIBILITY: ItemModCompatibility[] = [
       'Diviseur de rayon', 'Concentrateur de faisceau', 'Lentille à gyrocompensation',
     ],
   },
+
+  // ===== GUIDE DES COLONIES =====
+  {
+    // Fusil Tesla — mods canon/viseur partagés (page 104 base book)
+    itemName: 'Tesla Rifle',
+    modNames: [
+      'Canon automatique', 'Diviseur', 'Canon amélioré',
+      'Viseur laser (énergie)',
+    ],
+  },
+  {
+    // Laser alien (pistolet par défaut) — mods canon/poignée/crosse/viseur partagés + Chargeur à fusion (alien)
+    itemName: 'Alien Blaster',
+    modNames: [
+      // Canon
+      'Canon court à fixation', 'Canon long', 'Canon automatique',
+      'Canon long à fixation', 'Canon amélioré', 'Canon de précision',
+      // Poignée
+      'Poignée de tireur d\'élite',
+      // Crosse → rename en "fusil alien"
+      'Crosse standard', 'Crosse de tireur d\'élite',
+      // Viseur
+      'Viseur laser (énergie)', 'Lunette courte',
+      // Chargeur (réservé)
+      'Chargeur à fusion (alien)',
+    ],
+  },
+  {
+    // Laser céphalique de Laserotron — uniquement les condensateurs Mk III à VI
+    itemName: 'Laserotron Head Laser',
+    modNames: [
+      'Condensateur Mk III', 'Condensateur Mk IV', 'Condensateur Mk V', 'Condensateur Mk VI',
+    ],
+  },
+  {
+    // Médusatron — mods condensateur/poignée/viseur partagés
+    itemName: 'Medusatron',
+    modNames: [
+      'Amplificateur d\'ondes Bêta',
+      'Poignée de tireur d\'élite',
+      'Viseur laser (énergie)',
+    ],
+  },
+  {
+    // Pistolet à acide — mods Caustique + Grande ampoule + Grande fiole
+    itemName: 'Acid Pistol',
+    modNames: [
+      'Caustique',
+      'Grande ampoule', 'Grande fiole',
+    ],
+  },
+  {
+    // Cryolator — mods réservés
+    itemName: 'Cryolator',
+    modNames: [
+      'Canon cristallisant',
+      'Chargeur à fusion (cryolator)',
+      'Crosse à compensateur de recul (énergie)',
+      'Viseur laser (énergie)',
+    ],
+  },
 ];
 
 export const BIG_GUNS_COMPATIBILITY: ItemModCompatibility[] = [
@@ -409,6 +477,27 @@ export const BIG_GUNS_COMPATIBILITY: ItemModCompatibility[] = [
       'Module d\'électrification', 'Module de combustion',
     ],
   },
+
+  // ===== GUIDE DES COLONIES =====
+  {
+    // Canon de bordée — mods réservés
+    itemName: 'Broadside Cannon',
+    modNames: [
+      'Canon long (canon de bordée)', 'Canon léger (à cannelures)',
+      'Boîte multimunitions',
+      'Lance-grenades M79 (canon de bordée)',
+    ],
+  },
+  {
+    // Fusil harpon — mods chargeur réservés + crosse/viseur partagés bigGuns
+    itemName: 'Harpoon Rifle',
+    modNames: [
+      'Harpon barbelé', 'Fléchettes',
+      'Crosse à compensateur de recul (lourd)',
+      'Viseur d\'Artilleur',
+      // Lunette courte — pas dispo en bigGuns aujourd'hui ; on s'appuie sur le Viseur d'Artilleur
+    ],
+  },
 ];
 
 export const MELEE_WEAPONS_COMPATIBILITY: ItemModCompatibility[] = [
@@ -440,6 +529,8 @@ export const MELEE_WEAPONS_COMPATIBILITY: ItemModCompatibility[] = [
   { itemName: 'Deathclaw Gauntlet', modNames: ['Griffe supplémentaire'] },
   { itemName: 'Knuckles', modNames: ['Affûté (poing)', 'À pointes (poing)', 'Perforant (poing)', 'À lames (poing)'] },
   { itemName: 'Power Fist', modNames: ['Perforant (poing assisté)', 'Bobine thermique (poing assisté)'] },
+  // ===== GUIDE DES COLONIES — Pince (robot) =====
+  { itemName: 'Pincer', modNames: ['Mod électrique (pince)', 'Mod étourdissant (pince)'] },
 ];
 
 // ===== Armor & Clothing Mod Compatibility =====

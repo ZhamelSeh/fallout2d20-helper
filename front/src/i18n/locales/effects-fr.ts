@@ -471,6 +471,37 @@ export const effectsFr = {
           1: 'Ne peut pas faire de tirs visés/ciblés',
         },
       },
+      // ===== Guide des Colonies — sous-traits néo-californiens =====
+      goodMood: {
+        rules: {
+          0: '2 compétences parmi Discours, Médecine, Réparation, Science et Troc deviennent des atouts personnels.',
+          1: 'Maximum des autres compétences = 4 (au lieu de 6).',
+        },
+      },
+      infantryman: {
+        rules: {
+          0: '+1 [CD] avec mitraillettes, carabines de combat, fusils d\'assaut, grenades à fragmentation et couteaux de combat.',
+          1: 'La marge de complication des tests avec arme lourde ou arme à énergie augmente de 2.',
+        },
+      },
+      homeOnPrairie: {
+        rules: {
+          0: 'Lorsque vous dormez 6 h ou plus près d\'un feu de camp, la difficulté de récupération de blessures par repos est diminuée de 1.',
+          1: 'Vous n\'êtes jamais bien reposé (livre de base, p. 35).',
+        },
+      },
+      discipline: {
+        rules: {
+          0: 'Lors d\'une attaque à distance avec une arme légère ou à énergie, vous pouvez relancer 1d20.',
+          1: '-1 cadence de tir pour les armes légères et à énergie tant que vous les maniez.',
+        },
+      },
+      brahminBaron: {
+        rules: {
+          0: 'Chaque mangeoire à brahmines nourrit 3 brahmines (au lieu de 2). Action de colonie « S\'occuper des cultures » : +1 [CD] de lait de brahmine par mangeoire.',
+          1: 'Lancez +1d20 pour déterminer le risque d\'attaque sur la colonie si la réserve de Vivres dépasse la valeur de Colons.',
+        },
+      },
     },
     weaponQualities: {
       // === EFFETS DE DÉGÂTS ===
@@ -595,6 +626,22 @@ export const effectsFr = {
           0: 'Quand vous portez une attaque avec une arme Imprévisible, augmentez la marge de Complication de l\'attaque de 1. Une arme ne peut pas être à la fois Fiable et Imprévisible.',
         },
       },
+      // === GUIDE DES COLONIES ===
+      arcing: {
+        rules: {
+          0: 'Pour chaque Effet obtenu sur le jet de dégâts, l\'attaque touche une cible supplémentaire située à portée courte ou inférieure de la cible initiale. Contrairement à la qualité En rafale, cet effet ne coûte pas de munitions supplémentaires.',
+        },
+      },
+      glacial: {
+        rules: {
+          0: 'Si le nombre d\'Effets obtenus sur le jet de dégâts dépasse la moitié de l\'END de la cible (ou la moitié de son CORPS pour une créature), la cible est Gelée et ne peut pas agir lors de son prochain tour.',
+        },
+      },
+      slowReload: {
+        rules: {
+          0: 'Recharger cette arme prend du temps. Après avoir tiré, vous devez consacrer une action mineure à son rechargement avant de pouvoir tirer à nouveau.',
+        },
+      },
     },
     origins: {
       brotherhood: {
@@ -624,6 +671,85 @@ export const effectsFr = {
       },
       vaultDweller: {
         trait: 'Bien éduqué : +2 points de compétence à la création du personnage',
+      },
+      // ===== Guide des Colonies =====
+      commonwealthMilitia: {
+        trait: 'L\'union fait la force : caravane tous les 5 jours, défense de base = 4, atout personnel supplémentaire (Armes à énergie ou Armes légères), +1 RD à l\'abri, +1 [CD] en sous-effectif',
+        rules: {
+          0: 'Une caravane commerciale arrive tous les 5 jours (au lieu de 7).',
+          1: 'La valeur de défense de base de vos colonies est de 4.',
+          2: 'Vous bénéficiez de +1 RD tant que vous êtes à l\'abri.',
+          3: 'Vous infligez +1 [CD] de dégâts tant que vous et vos camarades êtes en sous-effectif.',
+        },
+      },
+      nca: {
+        trait: 'Néo-Californien : 2 traits parmi le pool partagé (néo-cal / survivant) ou 1 trait + 1 aptitude',
+        rules: {
+          0: 'Choisissez 2 traits parmi : 2 traits néo-californiens, 2 traits de survivant, 1 trait de chaque, ou 1 trait + 1 aptitude supplémentaire.',
+        },
+      },
+      protectron: {
+        trait: 'Protéger ou détruire : robot RobCo programmé pour la sécurité',
+        rules: {
+          0: '1×/scène : relancer un test contre un péril environnemental.',
+          1: 'Immunisé au poison, aux radiations et aux maladies.',
+          2: 'Aucun effet des chems, de la nourriture, des boissons ou du repos.',
+          3: 'Aucune guérison sans réparations.',
+          4: 'Maximum 2 mods de robot installés.',
+          5: 'Modèle dédié (pompier, policier, ouvrier, secouriste, etc.) : le 1er d20 acheté avec des PA coûte 0 PA pour un test en lien direct avec sa fonction.',
+          6: 'Charge maximale fixe : 113 kg (ne scale pas avec la Force ni les aptitudes).',
+          7: 'Armement intégré : Pinces, Cryojet, Autodestruction, Main électrifiée (à implémenter ultérieurement).',
+        },
+      },
+      cerebrobot: {
+        trait: 'Cérébrobot : robot cérébral monté sur chenilles',
+        rules: {
+          0: 'Capteurs visuels visibles + infrarouges : pas de malus PER dans l\'obscurité.',
+          1: 'Immunisé au poison, aux radiations et aux maladies.',
+          2: 'Aucun effet des chems, de la nourriture, des boissons ou du repos.',
+          3: 'Aucune guérison sans réparations.',
+          4: 'Mouvement : deux chenilles.',
+          5: 'Médusatron de série (arme à distance, à implémenter ultérieurement).',
+          6: 'Charge maximale fixe : 75 kg.',
+        },
+      },
+      securitron: {
+        trait: 'Sécuritron Mk I : robot de sécurité sur roue unique',
+        rules: {
+          0: 'Capteurs visuels avant, spectre visible.',
+          1: 'Immunisé au poison, aux radiations et aux maladies.',
+          2: 'Aucun effet des chems, de la nourriture, des boissons ou du repos.',
+          3: 'Aucune guérison sans réparations.',
+          4: 'Mouvement : une roue. +1 difficulté aux tests d\'équilibre.',
+          5: 'Pinces avec armes intégrées + lance-missiles et lance-grenades cachés (inutilisables sans Mk II ; à implémenter ultérieurement).',
+          6: 'Charge maximale fixe : 75 kg.',
+          7: 'Localisation des dégâts spéciale : 1-2 tête, 3-11 buste, 12-14 bras gauche, 15-17 bras droit, 18-20 roue.',
+        },
+      },
+      synthGen3: {
+        trait: 'Plus qu\'humain : androïde de l\'Institut indiscernable d\'un humain',
+        rules: {
+          0: 'Immunisé à la faim, à la soif et au sommeil. Le repos consiste en des activités calmes (artisanat, lecture, reconnaissance légère).',
+          1: 'Aucun effet de la nourriture ou des boissons.',
+          2: 'Immunisé au poison, aux radiations et aux maladies.',
+          3: 'Pas de vieillissement, corpulence inchangée.',
+          4: '+2 difficulté aux tests CHR avec les PNJ au courant de votre nature synthétique (sauf sympathiques).',
+          5: 'Complication : le PNJ devient hostile OU votre réputation diminue de 1.',
+          6: 'Un code de rappel verbal peut vous désactiver.',
+        },
+      },
+      synthGen2: {
+        trait: 'Plus qu\'humain : androïde de l\'Institut visiblement artificiel',
+        rules: {
+          0: 'Apparence visiblement androïde : votre nature synthétique est toujours évidente.',
+          1: 'Immunisé à la faim, à la soif et au sommeil. Le repos consiste en des activités calmes.',
+          2: 'Aucun effet de la nourriture ou des boissons.',
+          3: 'Immunisé au poison, aux radiations et aux maladies.',
+          4: 'Pas de vieillissement, corpulence inchangée.',
+          5: '+2 difficulté aux tests CHR avec les PNJ ayant un préjugé (toujours en vigueur).',
+          6: 'Un code de rappel verbal peut vous désactiver.',
+          7: 'Pack de départ : pack « habitant des terres désolées » (livre de base, page 78).',
+        },
       },
     },
   },

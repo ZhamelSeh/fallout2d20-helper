@@ -49,6 +49,15 @@ export const ammunition: Ammunition[] = [
 
   // ===== RARITY 6 =====
   { name: 'Mini Nuke', value: 100, rarity: 6, weight: 6, flatAmount: 1, randomAmount: 1 },
+
+  // ===== Guide des Colonies =====
+  { name: 'Concentrated Acid', value: 2, rarity: 3, weight: 0.1, flatAmount: 2, randomAmount: 3 },
+  { name: 'Gas Grenade', value: 2, rarity: 4, weight: 0.1, flatAmount: 2, randomAmount: 1 },
+  { name: '40mm Grenade', value: 2, rarity: 4, weight: 0.1, flatAmount: 2, randomAmount: 1 },
+  { name: 'Harpoon', value: 3, rarity: 4, weight: 0.1, flatAmount: 2, randomAmount: 1 },
+  { name: 'Cryo Cell', value: 10, rarity: 5, weight: 0.1, flatAmount: 4, randomAmount: 3 },
+  { name: 'Cannonball', value: 8, rarity: 5, weight: 2, flatAmount: 1, randomAmount: 2 },
+  { name: 'Alien Laser Round', value: 1, rarity: 6, weight: 0.1, flatAmount: 3, randomAmount: 1 },
 ];
 
 export const syringerAmmo: SyringerAmmo[] = [
